@@ -1,0 +1,383 @@
+
+*** Running vivado
+    with args -log inference_top.vds -m64 -product Vivado -mode batch -messageDb vivado.pb -notrace -source inference_top.tcl
+
+
+****** Vivado v2024.1 (64-bit)
+  **** SW Build 5076996 on Wed May 22 18:36:09 MDT 2024
+  **** IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
+  **** SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
+  **** Start of session at: Sun Nov 17 21:13:33 2024
+    ** Copyright 1986-2022 Xilinx, Inc. All Rights Reserved.
+    ** Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
+
+source inference_top.tcl -notrace
+Command: read_checkpoint -auto_incremental -incremental /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/utils_1/imports/synth_1/inference_top.dcp
+INFO: [Vivado 12-5825] Read reference checkpoint from /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/utils_1/imports/synth_1/inference_top.dcp for incremental synthesis
+INFO: [Vivado 12-7989] Please ensure there are no constraint changes
+Command: synth_design -top inference_top -part xc7a35tcpg236-1
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35t'
+INFO: [Device 21-403] Loading part xc7a35tcpg236-1
+INFO: [Device 21-9227] Part: xc7a35tcpg236-1 does not have CEAM library.
+INFO: [Designutils 20-5440] No compile time benefit to using incremental synthesis; A full resynthesis will be run
+INFO: [Designutils 20-4379] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
+INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 4 processes.
+INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
+INFO: [Synth 8-7075] Helper process launched with PID 533174
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 2127.250 ; gain = 415.621 ; free physical = 41300 ; free virtual = 49762
+---------------------------------------------------------------------------------
+INFO: [Synth 8-11241] undeclared symbol 'o_wr_addr', assumed default net type 'wire' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:61]
+INFO: [Synth 8-11241] undeclared symbol 'o_rd_addr', assumed default net type 'wire' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:62]
+INFO: [Synth 8-11241] undeclared symbol 'clk100m', assumed default net type 'wire' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:107]
+INFO: [Synth 8-6157] synthesizing module 'inference_top' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:43]
+INFO: [Synth 8-6157] synthesizing module 'clk_wiz_0' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.runs/synth_1/.Xil/Vivado-533149-fpgadev/realtime/clk_wiz_0_stub.v:6]
+INFO: [Synth 8-6155] done synthesizing module 'clk_wiz_0' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.runs/synth_1/.Xil/Vivado-533149-fpgadev/realtime/clk_wiz_0_stub.v:6]
+INFO: [Synth 8-6157] synthesizing module 'spi_interface' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:11]
+INFO: [Synth 8-155] case statement is not full and has no default [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:111]
+INFO: [Synth 8-6155] done synthesizing module 'spi_interface' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:11]
+WARNING: [Synth 8-4446] all outputs are unconnected for this instance and logic may be removed [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:107]
+INFO: [Synth 8-6157] synthesizing module 'pixel_curation' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pixel_curation.sv:9]
+INFO: [Synth 8-6155] done synthesizing module 'pixel_curation' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pixel_curation.sv:9]
+INFO: [Synth 8-6155] done synthesizing module 'inference_top' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:43]
+WARNING: [Synth 8-6014] Unused sequential element wr_addr_r_reg was removed.  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:61]
+WARNING: [Synth 8-6014] Unused sequential element rd_addr_r_reg was removed.  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:62]
+WARNING: [Synth 8-7137] Register data_in_gated_reg in module spi_interface has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:65]
+WARNING: [Synth 8-7137] Register hold_rd_data_r_reg in module spi_interface has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:109]
+WARNING: [Synth 8-3848] Net o_image_vector in module/entity pixel_curation does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pixel_curation.sv:13]
+WARNING: [Synth 8-3848] Net w_rd_data in module/entity inference_top does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:89]
+WARNING: [Synth 8-3848] Net clk100m in module/entity inference_top does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:107]
+WARNING: [Synth 8-3917] design inference_top has port led[1] driven by constant 1
+WARNING: [Synth 8-3917] design inference_top has port led[0] driven by constant 1
+WARNING: [Synth 8-3917] design inference_top has port led_r driven by constant 1
+WARNING: [Synth 8-3917] design inference_top has port led_g driven by constant 1
+WARNING: [Synth 8-3917] design inference_top has port led_b driven by constant 0
+WARNING: [Synth 8-7129] Port o_image_vector[1023] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1022] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1021] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1020] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1019] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1018] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1017] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1016] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1015] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1014] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1013] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1012] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1011] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1010] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1009] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1008] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1007] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1006] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1005] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1004] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1003] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1002] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1001] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[1000] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[999] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[998] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[997] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[996] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[995] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[994] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[993] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[992] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[991] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[990] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[989] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[988] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[987] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[986] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[985] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[984] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[983] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[982] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[981] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[980] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[979] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[978] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[977] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[976] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[975] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[974] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[973] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[972] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[971] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[970] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[969] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[968] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[967] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[966] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[965] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[964] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[963] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[962] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[961] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[960] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[959] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[958] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[957] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[956] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[955] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[954] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[953] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[952] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[951] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[950] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[949] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[948] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[947] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[946] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[945] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[944] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[943] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[942] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[941] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[940] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[939] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[938] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[937] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[936] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[935] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[934] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[933] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[932] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[931] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[930] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[929] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[928] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[927] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[926] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[925] in module pixel_curation is either unconnected or has no load
+WARNING: [Synth 8-7129] Port o_image_vector[924] in module pixel_curation is either unconnected or has no load
+INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 2203.219 ; gain = 491.590 ; free physical = 41202 ; free virtual = 49665
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 2218.062 ; gain = 506.434 ; free physical = 41202 ; free virtual = 49665
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 2218.062 ; gain = 506.434 ; free physical = 41202 ; free virtual = 49665
+---------------------------------------------------------------------------------
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2218.062 ; gain = 0.000 ; free physical = 41202 ; free virtual = 49665
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.gen/sources_1/ip/clk_wiz_0/clk_wiz_0/clk_wiz_0_in_context.xdc] for cell 'mmcm0'
+Finished Parsing XDC File [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.gen/sources_1/ip/clk_wiz_0/clk_wiz_0/clk_wiz_0_in_context.xdc] for cell 'mmcm0'
+Parsing XDC File [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/constrs_1/new/pinout.xdc]
+Finished Parsing XDC File [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/constrs_1/new/pinout.xdc]
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/constrs_1/new/pinout.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/inference_top_propImpl.xdc].
+Resolution: To avoid this warning, move constraints listed in [.Xil/inference_top_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
+Completed Processing XDC Constraints
+
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2361.812 ; gain = 0.000 ; free physical = 41195 ; free virtual = 49658
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2361.812 ; gain = 0.000 ; free physical = 41195 ; free virtual = 49658
+INFO: [Designutils 20-5440] No compile time benefit to using incremental synthesis; A full resynthesis will be run
+INFO: [Designutils 20-4379] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2361.812 ; gain = 650.184 ; free physical = 41194 ; free virtual = 49656
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7a35tcpg236-1
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41194 ; free virtual = 49656
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+Applied set_property IO_BUFFER_TYPE = NONE for clk. (constraint file  /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.gen/sources_1/ip/clk_wiz_0/clk_wiz_0/clk_wiz_0_in_context.xdc, line 3).
+Applied set_property CLOCK_BUFFER_TYPE = NONE for clk. (constraint file  /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.gen/sources_1/ip/clk_wiz_0/clk_wiz_0/clk_wiz_0_in_context.xdc, line 4).
+Applied set_property KEEP_HIERARCHY = SOFT for mmcm0. (constraint file  auto generated constraint).
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41194 ; free virtual = 49656
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41192 ; free virtual = 49656
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input    3 Bit       Adders := 1     
++---Registers : 
+	                8 Bit    Registers := 3     
+	                3 Bit    Registers := 1     
+	                1 Bit    Registers := 8     
++---Muxes : 
+	   2 Input    8 Bit        Muxes := 2     
+	   2 Input    7 Bit        Muxes := 1     
+	   4 Input    1 Bit        Muxes := 4     
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 90 (col length:60)
+BRAMs: 100 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-7080] Parallel synthesis criteria is not met
+WARNING: [Synth 8-3917] design inference_top has port led[1] driven by constant 1
+WARNING: [Synth 8-3917] design inference_top has port led[0] driven by constant 1
+WARNING: [Synth 8-3917] design inference_top has port led_r driven by constant 1
+WARNING: [Synth 8-3917] design inference_top has port led_g driven by constant 1
+WARNING: [Synth 8-3917] design inference_top has port led_b driven by constant 0
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[7]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[6]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[5]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[4]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[3]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[2]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[1]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[0]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:07 ; elapsed = 00:00:07 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49658
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:09 ; elapsed = 00:00:09 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41189 ; free virtual = 49656
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:00:09 ; elapsed = 00:00:09 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41189 ; free virtual = 49656
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:00:09 ; elapsed = 00:00:09 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41189 ; free virtual = 49656
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++------+--------------+----------+
+|      |BlackBox name |Instances |
++------+--------------+----------+
+|1     |clk_wiz_0     |         1|
++------+--------------+----------+
+
+Report Cell Usage: 
++------+--------+------+
+|      |Cell    |Count |
++------+--------+------+
+|1     |clk_wiz |     1|
+|2     |OBUF    |     6|
++------+--------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 24 critical warnings and 6 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:10 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 514.438 ; free physical = 41190 ; free virtual = 49657
+Synthesis Optimization Complete : Time (s): cpu = 00:00:11 ; elapsed = 00:00:12 . Memory (MB): peak = 2369.824 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+INFO: [Project 1-571] Translating synthesized netlist
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2369.824 ; gain = 0.000 ; free physical = 41252 ; free virtual = 49720
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2369.824 ; gain = 0.000 ; free physical = 41465 ; free virtual = 49932
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Synth Design complete | Checksum: 3064e8b7
+INFO: [Common 17-83] Releasing license: Synthesis
+33 Infos, 119 Warnings, 24 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:00:15 ; elapsed = 00:00:14 . Memory (MB): peak = 2369.824 ; gain = 951.266 ; free physical = 41466 ; free virtual = 49933
+INFO: [Common 17-2834] synth_design peak Physical Memory [PSS] (MB): overall = 1866.220; main = 1524.030; forked = 391.301
+INFO: [Common 17-2834] synth_design peak Virtual Memory [VSS] (MB): overall = 3401.090; main = 2369.820; forked = 1031.270
+INFO: [runtcl-6] Synthesis results are not added to the cache due to CRITICAL_WARNING
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2393.828 ; gain = 0.000 ; free physical = 41466 ; free virtual = 49933
+INFO: [Common 17-1381] The checkpoint '/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.runs/synth_1/inference_top.dcp' has been generated.
+INFO: [Vivado 12-24828] Executing command : report_utilization -file inference_top_utilization_synth.rpt -pb inference_top_utilization_synth.pb
+INFO: [Common 17-206] Exiting Vivado at Sun Nov 17 21:13:52 2024...

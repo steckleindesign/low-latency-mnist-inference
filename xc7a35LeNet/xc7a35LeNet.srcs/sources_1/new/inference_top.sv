@@ -41,37 +41,77 @@ Thank you!
 //////////////////////////////////////////////////////////////////////////////////
 
 module inference_top(
-    input  wire clk,
-    input  wire sck,
-    input  wire nss,
-    input  wire mosi,
-    output wire miso
+    // 12MHz clock from on-board oscillator
+    input  wire       clk,
+    // SPI interface
+    input  wire       sck,
+    input  wire       nss,
+    input  wire       mosi,
+    output wire       miso,
+    // LEDs
+    output wire [1:0] led,
+    output wire       led_r, led_g, led_b
 );
 
     /* TODO  list:
-        MMCM
-        SPI interface
-        Placing pixel data in RAM
-        Constraints (pinout)
+        SPI interface - placing pixel data in RAM
         
         Structure
-        self.conv1 = nn.Conv2d(1,6,5)
-        self.pool1 = nn.MaxPool2d(2,2)
-        self.conv2 = nn.Conv2d(6,16,5)
-        self.pool2 = nn.MaxPool2d(2,2)
-        self.fc1 = nn.Linear(16*4*4, 120)
-        self.fc2 = nn.Linear(120,84)
-        self.fc3 = nn.Linear(84,10)
+        self.conv1 = nn.Conv2d    (1,      6,  5 )
+        self.pool1 = nn.MaxPool2d (2,      2     )
+        self.conv2 = nn.Conv2d    (6,      16, 5 )
+        self.pool2 = nn.MaxPool2d (2,      2     )
+        self.fc1   = nn.Linear    (16*4*4, 120   )
+        self.fc2   = nn.Linear    (120,    84    )
+        self.fc3   = nn.Linear    (84,     10    )
     
         Forward prop
-        x = self.pool1(F.relu(self.conv1(x)))
-        x = self.pool2(F.relu(self.conv2(x)))
-        x = torch.flatten(x,1)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        logits = self.fc3(x)
+        x      = self.pool1(F.relu(self.conv1(x)))
+        x      = self.pool2(F.relu(self.conv2(x)))
+        x      = torch.flatten    (x, 1)
+        x      = F.relu(self.fc1  (x)  )
+        x      = F.relu(self.fc2  (x)  )
+        logits =        self.fc3  (x)
         
-        LEDs (green/red for correct/incorrect ?)
+        Send logits out on MISO line
+        
+        LEDs (green/red for correct/incorrect?)
     */
+    
+    // MMCM
+    wire        w_clk100m;
+    wire        w_locked;
+    
+    // SPI
+    wire        w_wr_req;
+    wire        w_rd_req;
+    wire  [7:0] w_wr_data;
+    wire  [7:0] w_rd_data;
+    
+    // Bump 12MHz input clock line to 100MHz for internal use
+    clk_wiz_0         mmcm0 (.clk    (clk),
+                             .reset  (1'b0),
+                             .locked (w_locked),
+                             .clk100m(w_clk100m));
+                             
+    // Discontinuous SPI clock
+    spi_interface     spi0  (.i_sck    (sck),
+                             .i_nss    (nss),
+                             .i_mosi   (mosi),
+                             .o_miso   (miso),
+                             .o_wr_req (w_wr_req),
+                             .o_wr_data(w_wr_data),
+                             .o_rd_req (w_rd_req),
+                             .i_rd_data(w_rd_data));
+    
+    pixel_curation    cur   (.i_clk         (clk100m),
+                             .i_wr_req      (w_wr_req),
+                             .i_pixel_data  (w_wr_data),
+                             .o_image_vector());
+    
+    assign led   = 2'b11;
+    assign led_r = 1'b1;
+    assign led_g = 1'b1;
+    assign led_b = 1'b0;
     
 endmodule
