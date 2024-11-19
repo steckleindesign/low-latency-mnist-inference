@@ -107,7 +107,25 @@ module inference_top(
     pixel_curation    cur   (.i_clk         (clk100m),
                              .i_wr_req      (w_wr_req),
                              .i_pixel_data  (w_wr_data),
-                             .o_image_vector());
+                             .o_image_vector(),
+                             .o_data_ready());
+    
+    conv                   #(
+                             .IMAGE_WIDTH (32),
+                             .IMAGE_HEIGHT(32),
+                             .FILTER_SIZE ( 5),
+                             .NUM_FILTERS ( 6)
+                            ) conv1 (
+                             .i_clk       (clk100m),
+                             .i_image      (),
+                             .i_filters    (),
+                             .o_feature_map()
+                            );
+    
+    // conv - use single module and just apply different params?
+    // relu - ok to place inside conv module?
+    // pool - inside conv?
+    // fc   - can layers be collapsed?
     
     assign led   = 2'b11;
     assign led_r = 1'b1;
