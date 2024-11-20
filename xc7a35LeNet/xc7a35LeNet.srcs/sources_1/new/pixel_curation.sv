@@ -7,23 +7,38 @@
 
 
 module pixel_curation(
-    input  wire          i_clk,
-    input  wire          i_wr_req,
-    input  wire    [7:0] i_pixel_data,
-    output wire [1023:0] o_image_vector,
-    output wire          o_data_ready
+    input  logic       i_clk,
+    input  logic       i_wr_req,
+    input  logic [7:0] i_pixel_data,
+    output logic [7:0] o_image[31:0][31:0],
+    output logic       o_data_ready
 );
 
     wire [9:0] vector_pos_upper;
 
     // 2FF synchronizer for SPI to global clock domain cross
-    reg           sync_ff0       = 1'b0; 
-    reg           sync_ff1       = 1'b0;
-    reg           sync_ff2       = 1'b0;
+    reg            sync_ff0       = 1'b0; 
+    reg            sync_ff1       = 1'b0;
+    reg            sync_ff2       = 1'b0;
  
-    reg     [9:0] vector_pos     = 10'b0;
-
-    assign vector_pos_upper = vector_pos + 3'd7;
+    reg      [6:0] byte_cnt     = 7'b0;
+    logic [1023:0] image_vector = 1024'b0;
+    
+    task convert_1d_to_2d(logic [1023:0] data);
+        int x, y;
+        for (int i = 0; i < 1024; i++)
+        begin
+            indices_1d_to_2d(i, x, y);
+            o_image[x][y] = {6'b0, data[i]};
+        end
+    endtask
+    
+    function void indices_1d_to_2d(int vector_index, output int x, output int y);
+        int num_cols = 32;
+        x = vector_index / num_cols;
+        y = vector_index % num_cols;
+    endfunction
+    
     always_ff @(posedge i_clk)
     begin
         sync_ff0 <= i_wr_req;
@@ -31,9 +46,9 @@ module pixel_curation(
         sync_ff2 <= sync_ff1;
         if (~sync_ff1 & sync_ff2)
         begin
-            vector_pos   <= vector_pos + 4'd8;
-            o_image_vector[vector_pos_upper:vector_pos] <= i_pixel_data;
-            o_data_ready <= vector_pos == 10'd1016;
+            image_vector <= {image_vector[1015:0], i_pixel_data};
+            o_data_ready <= byte_cnt == 7'd127;
+            byte_cnt     <= byte_cnt + 1'b1;
         end
     end
         
