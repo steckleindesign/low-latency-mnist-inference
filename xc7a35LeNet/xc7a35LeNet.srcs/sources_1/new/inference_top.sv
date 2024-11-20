@@ -37,6 +37,24 @@ This source code is for the low-latency system.
 
 If you have questions or comments, I can be reached at steckleindesign@gmail.com
 Thank you!
+
+Structure - pytorch
+self.conv1 = nn.Conv2d    (1,      6,  5 )
+self.pool1 = nn.MaxPool2d (2,      2     )
+self.conv2 = nn.Conv2d    (6,      16, 5 )
+self.pool2 = nn.MaxPool2d (2,      2     )
+self.fc1   = nn.Linear    (16*4*4, 120   )
+self.fc2   = nn.Linear    (120,    84    )
+self.fc3   = nn.Linear    (84,     10    )
+
+Forward prop - pytorch
+x      = self.pool1(F.relu(self.conv1(x)))
+x      = self.pool2(F.relu(self.conv2(x)))
+x      = torch.flatten    (x, 1)
+x      = F.relu(self.fc1  (x)  )
+x      = F.relu(self.fc2  (x)  )
+logits =        self.fc3  (x)
+
 */
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -54,27 +72,7 @@ module inference_top(
 );
 
     /* TODO  list:
-        SPI interface - placing pixel data in RAM
-        
-        Structure
-        self.conv1 = nn.Conv2d    (1,      6,  5 )
-        self.pool1 = nn.MaxPool2d (2,      2     )
-        self.conv2 = nn.Conv2d    (6,      16, 5 )
-        self.pool2 = nn.MaxPool2d (2,      2     )
-        self.fc1   = nn.Linear    (16*4*4, 120   )
-        self.fc2   = nn.Linear    (120,    84    )
-        self.fc3   = nn.Linear    (84,     10    )
-    
-        Forward prop
-        x      = self.pool1(F.relu(self.conv1(x)))
-        x      = self.pool2(F.relu(self.conv2(x)))
-        x      = torch.flatten    (x, 1)
-        x      = F.relu(self.fc1  (x)  )
-        x      = F.relu(self.fc2  (x)  )
-        logits =        self.fc3  (x)
-        
         Send logits out on MISO line
-        
         LEDs (green/red for correct/incorrect?)
     */
     
@@ -87,6 +85,8 @@ module inference_top(
     wire        w_rd_req;
     wire  [7:0] w_wr_data;
     wire  [7:0] w_rd_data;
+    
+    logic signed [15:0] conv1_feature_maps[5:0][27:0][27:0];
     
     // Bump 12MHz input clock line to 100MHz for internal use
     clk_wiz_0         mmcm0 (.clk    (clk),
@@ -103,29 +103,38 @@ module inference_top(
                              .o_wr_data(w_wr_data),
                              .o_rd_req (w_rd_req),
                              .i_rd_data(w_rd_data));
-    
+                             
+    // Do we want grayscale or binary black/white pixel data?
     pixel_curation    cur   (.i_clk         (clk100m),
                              .i_wr_req      (w_wr_req),
                              .i_pixel_data  (w_wr_data),
                              .o_image_vector(),
                              .o_data_ready());
-    
-    conv                   #(
+                             
+    // How can we combine conv/relu/pool
+    conv1                  #(
                              .IMAGE_WIDTH (32),
                              .IMAGE_HEIGHT(32),
                              .FILTER_SIZE ( 5),
                              .NUM_FILTERS ( 6)
-                            ) conv1 (
+                            ) conv1_inst (
                              .i_clk       (clk100m),
-                             .i_image      (),
-                             .i_filters    (),
-                             .o_feature_map()
+                             .i_image      (), // how dimensions should work
+                             .i_filters    (), // need to get params from ipynb
+                             .o_feature_map(conv1_feature_maps)
                             );
+                            
+    pool                   #(
+                             .INPUT_WIDTH(),
+                             .INPUT_HEIGHT(),
+                             .NUM_CHANNELS()
+                            ) maxpool1 (
+                             .i_clk(clk100m),
+                             .i_feature_map(conv1_feature_maps),
+                             .o_feature_map()
+                            )
     
-    // conv - use single module and just apply different params?
-    // relu - ok to place inside conv module?
-    // pool - inside conv?
-    // fc   - can layers be collapsed?
+    // Can FC layers be collapsed?
     
     assign led   = 2'b11;
     assign led_r = 1'b1;

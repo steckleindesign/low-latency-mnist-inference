@@ -10,9 +10,9 @@ module conv1 #(
     parameter NUM_FILTERS  = 6
 ) (
     input  logic               i_clk,
-    // Do we want grayscale, or binary black/white pixel data?
     input  logic         [7:0] i_image[IMAGE_HEIGHT-1:0][IMAGE_WIDTH-1:0],
     input  logic signed  [7:0] i_filters[NUM_FILTERS-1:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0],
+    // 6x28x28 output to first max pool layer
     output logic signed [15:0] o_feature_map[NUM_FILTERS-1:0][IMAGE_HEIGHT-FILTER_SIZE:0][IMAGE_WIDTH-FILTER_SIZE:0]
 );
 
