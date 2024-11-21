@@ -24,7 +24,7 @@ module pixel_curation(
     reg      [6:0] byte_cnt     = 7'b0;
     logic [1023:0] image_vector = 1024'b0;
     
-    task convert_1d_to_2d(logic [1023:0] data);
+    task convert_1d_to_2d(input logic [1023:0] data);
         int x, y;
         for (int i = 0; i < 1024; i++)
         begin
@@ -33,10 +33,9 @@ module pixel_curation(
         end
     endtask
     
-    function void indices_1d_to_2d(int vector_index, output int x, output int y);
-        int num_cols = 32;
-        x = vector_index / num_cols;
-        y = vector_index % num_cols;
+    function void indices_1d_to_2d(input int vector_index, output int x, output int y);
+        x = vector_index / 32;
+        y = vector_index % 32;
     endfunction
     
     always_ff @(posedge i_clk)
