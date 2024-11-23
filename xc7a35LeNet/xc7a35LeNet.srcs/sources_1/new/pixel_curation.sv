@@ -14,30 +14,14 @@ module pixel_curation(
     output logic       o_data_ready
 );
 
-    wire [9:0] vector_pos_upper;
-
     // 2FF synchronizer for SPI to global clock domain cross
-    reg            sync_ff0       = 1'b0; 
-    reg            sync_ff1       = 1'b0;
-    reg            sync_ff2       = 1'b0;
- 
-    reg      [6:0] byte_cnt     = 7'b0;
-    logic [1023:0] image_vector = 1024'b0;
+    logic          sync_ff0       = 1'b0; 
+    logic          sync_ff1       = 1'b0;
+    logic          sync_ff2       = 1'b0;
     
-    task convert_1d_to_2d(input logic [1023:0] data);
-        int x, y;
-        for (int i = 0; i < 1024; i++)
-        begin
-            indices_1d_to_2d(i, x, y);
-            o_image[x][y] = {6'b0, data[i]};
-        end
-    endtask
-    
-    function void indices_1d_to_2d(input int vector_index, output int x, output int y);
-        x = vector_index / 32;
-        y = vector_index % 32;
-    endfunction
-    
+    logic    [4:0] i              = 5'b0;
+    logic    [4:0] j              = 5'b0;
+        
     always_ff @(posedge i_clk)
     begin
         sync_ff0 <= i_wr_req;
@@ -45,9 +29,19 @@ module pixel_curation(
         sync_ff2 <= sync_ff1;
         if (~sync_ff1 & sync_ff2)
         begin
-            image_vector <= {image_vector[1015:0], i_pixel_data};
-            o_data_ready <= byte_cnt == 7'd127;
-            byte_cnt     <= byte_cnt + 1'b1;
+            // Turn into for loop
+            o_image[i][j]   = {6'b0, i_pixel_data[0]};
+            o_image[i][j+1] = {6'b0, i_pixel_data[1]};
+            o_image[i][j+1] = {6'b0, i_pixel_data[2]};
+            o_image[i][j+3] = {6'b0, i_pixel_data[3]};
+            o_image[i][j+4] = {6'b0, i_pixel_data[4]};
+            o_image[i][j+5] = {6'b0, i_pixel_data[5]};
+            o_image[i][j+6] = {6'b0, i_pixel_data[6]};
+            o_image[i][j+7] = {6'b0, i_pixel_data[7]};
+            // Update indices
+            if (j == 5'd24) i = i + 1'b1;
+            j <= j + 4'd8;
+            o_data_ready <= (i == 5'd31) & (j == 5'd24);
         end
     end
         

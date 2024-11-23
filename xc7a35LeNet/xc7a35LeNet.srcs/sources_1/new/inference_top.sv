@@ -86,7 +86,11 @@ module inference_top(
     wire  [7:0] w_wr_data;
     wire  [7:0] w_rd_data;
     
-    logic signed [15:0] conv1_feature_maps[5:0][27:0][27:0];
+    wire        w_data_ready;
+    
+    logic          [7:0] input_image[31:0][31:0];
+    logic signed  [15:0] conv1_feature_maps[5:0][27:0][27:0];
+    logic signed  [15:0] pool1_feature_maps[5:0][13:0][13:0];
     
     // Bump 12MHz input clock line to 100MHz for internal use
     clk_wiz_0         mmcm0 (.clk    (clk),
@@ -105,12 +109,12 @@ module inference_top(
                              .i_rd_data(w_rd_data));
                              
     // Do we want grayscale or binary black/white pixel data?
-    pixel_curation    cur   (.i_clk         (clk100m),
-                             .i_wr_req      (w_wr_req),
-                             .i_pixel_data  (w_wr_data),
-                             .o_image_vector(),
-                             .o_data_ready());
-                             
+    pixel_curation    cur   (.i_clk       (clk100m),
+                             .i_wr_req    (w_wr_req),
+                             .i_pixel_data(w_wr_data),
+                             .o_image     (input_image),
+                             .o_data_ready(w_data_ready));
+    
     // How can we combine conv/relu/pool
     conv1                  #(
                              .IMAGE_WIDTH (32),
@@ -118,21 +122,24 @@ module inference_top(
                              .FILTER_SIZE ( 5),
                              .NUM_FILTERS ( 6)
                             ) conv1_inst (
-                             .i_clk       (clk100m),
-                             .i_image      (), // how dimensions should work
+                             .i_clk        (clk100m),
+                             .i_ready      (w_data_ready),
+                             .i_image      (input_image), // how dimensions should work
                              .i_filters    (), // need to get params from ipynb
                              .o_feature_map(conv1_feature_maps)
                             );
                             
     pool                   #(
-                             .INPUT_WIDTH(),
-                             .INPUT_HEIGHT(),
-                             .NUM_CHANNELS()
+                             .INPUT_WIDTH (28),
+                             .INPUT_HEIGHT(28),
+                             .NUM_CHANNELS(6),
+                             .POOL_SIZE   (2),
+                             .STRIDE      (2)
                             ) maxpool1 (
-                             .i_clk(clk100m),
+                             .i_clk        (clk100m),
                              .i_feature_map(conv1_feature_maps),
-                             .o_feature_map()
-                            )
+                             .o_feature_map(pool1_feature_maps)
+                            );
     
     // Can FC layers be collapsed?
     

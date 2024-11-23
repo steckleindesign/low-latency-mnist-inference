@@ -20,23 +20,14 @@ module pool #(
     always_ff @(posedge i_clk)
     begin
         for (c = 0; c < NUM_CHANNELS; c++)
-        begin
             for (i = 0; i < INPUT_HEIGHT/POOL_SIZE; i++)
-            begin
-                for (j = 0; j < INPUT_WIDTH/POOL_SIZE; j++)
-                begin
+                for (j = 0; j < INPUT_WIDTH/POOL_SIZE; j++) begin
                     automatic logic signed [15:0] max_value = {16{1'b1}};
                     for (k = 0; k < POOL_SIZE; k++)
-                    begin
                         for (l = 0; l < POOL_SIZE; l++)
-                        begin
                             if (i_feature_map[c][i*STRIDE + k][j*STRIDE + l] > max_value)
                                 max_value = i_feature_map[c][i*STRIDE + k][j*STRIDE + l];
-                        end
-                    end
                 end
-            end
-        end
     end
     
 endmodule
