@@ -33,7 +33,7 @@ the model propagates the inputs through the model.
 The inference process doesn't wait for all pixel data to be ready
 at the start of inference, rather it propagates pixel data on the fly.
 
-This source code is for the low-latency system.
+This source code is for the ultra low-latency system.
 
 If you have questions or comments, I can be reached at steckleindesign@gmail.com
 Thank you!
@@ -86,9 +86,10 @@ module inference_top(
     wire  [7:0] w_wr_data;
     wire  [7:0] w_rd_data;
     
-    wire        w_data_ready;
+    // Valid pixel for input (to first convolution layer)
+    wire        w_input_valid;
     
-    logic          [7:0] input_image[31:0][31:0];
+    logic          [7:0] w_pixel;
     logic signed  [15:0] conv1_feature_maps[5:0][27:0][27:0];
     logic signed  [15:0] pool1_feature_maps[5:0][13:0][13:0];
     
@@ -108,12 +109,15 @@ module inference_top(
                              .o_rd_req (w_rd_req),
                              .i_rd_data(w_rd_data));
                              
-    // Do we want grayscale or binary black/white pixel data?
-    pixel_curation    cur   (.i_clk       (clk100m),
-                             .i_wr_req    (w_wr_req),
-                             .i_pixel_data(w_wr_data),
-                             .o_image     (input_image),
-                             .o_data_ready(w_data_ready));
+    // Grayscale pixel data
+    pixel_curation    cur   (.i_clk      (clk100m),
+                             .i_wr_req   (w_wr_req),
+                             .i_spi_data (w_wr_data),
+                             .o_pixel    (w_pixel),
+                             .o_pix_valid(w_input_valid));
+    
+    // Need to get weights for filters here
+    // Add in the bias
     
     // How can we combine conv/relu/pool
     conv1                  #(
@@ -123,9 +127,9 @@ module inference_top(
                              .NUM_FILTERS ( 6)
                             ) conv1_inst (
                              .i_clk        (clk100m),
-                             .i_ready      (w_data_ready),
-                             .i_image      (input_image), // how dimensions should work
-                             .i_filters    (), // need to get params from ipynb
+                             .i_ready      (w_input_valid),
+                             .i_image      (w_pixel),
+                             .i_filters    (), // Get params from ipynb
                              .o_feature_map(conv1_feature_maps)
                             );
                             

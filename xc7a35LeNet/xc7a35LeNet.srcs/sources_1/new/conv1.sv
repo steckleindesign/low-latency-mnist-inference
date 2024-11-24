@@ -10,13 +10,19 @@ module conv1 #(
     parameter NUM_FILTERS  = 6
 ) (
     input  logic               i_clk,
-    // Do we need ready signal?
     input  logic               i_ready,
-    input  logic         [7:0] i_image[IMAGE_HEIGHT-1:0][IMAGE_WIDTH-1:0],
-    input  logic signed  [7:0] i_filters[NUM_FILTERS-1:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0],
+    input  logic         [7:0] i_pixel, // i_image[IMAGE_HEIGHT-1:0][IMAGE_WIDTH-1:0],
+    // How do we want to load in pixel data? Probably RAM in another module
+    input  logic signed  [7:0] i_filters, // i_filters[NUM_FILTERS-1:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0],
     // 6x28x28 output to first max pool layer
+    // How can we go about a sequential output now that we have serial pixel data coming in?
     output logic signed [15:0] o_feature_map[NUM_FILTERS-1:0][IMAGE_HEIGHT-FILTER_SIZE:0][IMAGE_WIDTH-FILTER_SIZE:0]
 );
+
+    
+
+
+/* Parallel implementation
 
     integer i, j, k, l, f;
     
@@ -42,5 +48,7 @@ module conv1 #(
             end
         end
     end
+    
+*/
     
 endmodule
