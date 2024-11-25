@@ -32,10 +32,10 @@ module conv1 #(
 
     // For height=5 filter, we only need to store 4 rows of pixel data
     // We could reduce latency if we get creative with the fill order of the LB
-    logic [7:0] line_buffer[FILTER_SIZE-2:0][IMAGE_WIDTH-1:0];
+    logic        [7:0] line_buffer[FILTER_SIZE-2:0][IMAGE_WIDTH-1:0];
     
-    // Window is the current filter kernel (5x5 for conv1 of LeNet-5)
-    logic [7:0] window[FILTER_SIZE-1][FILTER_SIZE-1];
+    // Window is pixel block to be element-wise multiplied with filter kernel (5x5 for conv1 of LeNet-5)
+    logic        [7:0] window[FILTER_SIZE-1][FILTER_SIZE-1];
     
     // control counters
     logic [$clog2(IMAGE_HEIGHT)-1:0] row_ctr;
