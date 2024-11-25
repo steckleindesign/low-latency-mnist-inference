@@ -90,7 +90,7 @@ module inference_top(
     wire        w_input_valid;
     
     logic          [7:0] w_pixel;
-    logic signed  [15:0] conv1_feature_maps[5:0][27:0][27:0];
+    logic signed  [15:0] conv1_feature;
     logic signed  [15:0] pool1_feature_maps[5:0][13:0][13:0];
     
     // Bump 12MHz input clock line to 100MHz for internal use
@@ -130,7 +130,8 @@ module inference_top(
                              .i_ready      (w_input_valid),
                              .i_image      (w_pixel),
                              .i_filters    (), // Get params from ipynb
-                             .o_feature_map(conv1_feature_maps)
+                             .o_feature(conv1_feature),
+                             .o_feature_valid()
                             );
                             
     pool                   #(
@@ -141,8 +142,9 @@ module inference_top(
                              .STRIDE      (2)
                             ) maxpool1 (
                              .i_clk        (clk100m),
-                             .i_feature_map(conv1_feature_maps),
-                             .o_feature_map(pool1_feature_maps)
+                             .i_feature_valid(),
+                             .i_feature(conv1_feature),
+                             .o_feature(pool1_feature_maps)
                             );
     
     // Can FC layers be collapsed?
