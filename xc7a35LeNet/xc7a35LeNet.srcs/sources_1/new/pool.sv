@@ -11,6 +11,7 @@ module pool #(
     parameter STRIDE       = 2
 ) (
     input  logic               i_clk,
+    input  logic               i_rst,
     input  logic signed [15:0] i_feature_map[NUM_CHANNELS-1:0][INPUT_HEIGHT-1:0][INPUT_WIDTH-1:0],
     output logic signed [15:0] o_feature_map[NUM_CHANNELS-1:0][(INPUT_HEIGHT/POOL_SIZE)-1:0][(INPUT_WIDTH/POOL_SIZE)-1:0]
 );

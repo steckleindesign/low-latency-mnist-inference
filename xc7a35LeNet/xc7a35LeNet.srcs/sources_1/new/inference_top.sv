@@ -60,15 +60,16 @@ logits =        self.fc3  (x)
 
 module inference_top(
     // 12MHz clock from on-board oscillator
-    input  wire       clk,
+    input  logic       clk,
+    input  logic       rst,
     // SPI interface
-    input  wire       sck,
-    input  wire       nss,
-    input  wire       mosi,
-    output wire       miso,
+    input  logic       sck,
+    input  logic       nss,
+    input  logic       mosi,
+    output logic       miso,
     // LEDs
-    output wire [1:0] led,
-    output wire       led_r, led_g, led_b
+    output logic [1:0] led,
+    output logic       led_r, led_g, led_b
 );
 
     /* TODO  list:
@@ -88,6 +89,7 @@ module inference_top(
     
     // Valid pixel for input (to first convolution layer)
     wire        w_input_valid;
+    wire        w_feature1_valid
     
     logic          [7:0] w_pixel;
     logic signed  [15:0] conv1_feature;
@@ -95,11 +97,12 @@ module inference_top(
     
     // Bump 12MHz input clock line to 100MHz for internal use
     clk_wiz_0         mmcm0 (.clk    (clk),
-                             .reset  (1'b0),
+                             .reset  (rst),
                              .locked (w_locked),
                              .clk100m(w_clk100m));
                              
     // Discontinuous SPI clock
+    // How to handle reset for SPI interface? Do we need a reset?
     spi_interface     spi0  (.i_sck    (sck),
                              .i_nss    (nss),
                              .i_mosi   (mosi),
@@ -111,6 +114,7 @@ module inference_top(
                              
     // Grayscale pixel data
     pixel_curation    cur   (.i_clk      (clk100m),
+                             .i_rst      (rst),
                              .i_wr_req   (w_wr_req),
                              .i_spi_data (w_wr_data),
                              .o_pixel    (w_pixel),
@@ -126,12 +130,13 @@ module inference_top(
                              .FILTER_SIZE ( 5),
                              .NUM_FILTERS ( 6)
                             ) conv1_inst (
-                             .i_clk        (clk100m),
-                             .i_ready      (w_input_valid),
-                             .i_image      (w_pixel),
-                             .i_filters    (), // Get params from ipynb
-                             .o_feature(conv1_feature),
-                             .o_feature_valid()
+                             .i_clk          (clk100m),
+                             .i_rst          (rst),
+                             .i_ready        (w_input_valid),
+                             .i_image        (w_pixel),
+                             .i_filters      (), // Get params from ipynb
+                             .o_feature      (conv1_feature),
+                             .o_feature_valid(w_feature1_valid)
                             );
                             
     pool                   #(
@@ -141,10 +146,11 @@ module inference_top(
                              .POOL_SIZE   (2),
                              .STRIDE      (2)
                             ) maxpool1 (
-                             .i_clk        (clk100m),
-                             .i_feature_valid(),
-                             .i_feature(conv1_feature),
-                             .o_feature(pool1_feature_maps)
+                             .i_clk          (clk100m),
+                             .i_rst          (rst),
+                             .i_feature_valid(w_feature1_valid),
+                             .i_feature      (conv1_feature),
+                             .o_feature      (pool1_feature_maps)
                             );
     
     // Can FC layers be collapsed?
