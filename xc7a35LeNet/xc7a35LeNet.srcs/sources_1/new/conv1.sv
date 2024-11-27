@@ -59,12 +59,11 @@ module conv1 #(
     logic mac_done;
     
     // Handle reset for FSM
-    always_ff @(posedge i_clk or negedge i_rst) begin
-        curr_state <= ~rst ? IDLE : next_state;
+    always_ff @(posedge i_clk or negedge i_rst)
+        curr_state <= ~i_rst ? IDLE : next_state;
     
     // Next state logic
-    always_comb
-    begin
+    always_comb begin
         case (curr_state)
             IDLE: begin
                 next_state = pixel_valid ? LOAD_WINDOW : IDLE;
@@ -135,7 +134,7 @@ module conv1 #(
             
             // Last column of filter kernel after top row of convolutions
             if (row_ctr >= FILTER_SIZE-1) begin
-                for (int i = 0; i < FILTER_SIZE-1; i=++)
+                for (int i = 0; i < FILTER_SIZE-1; i++)
                     window[i][FILTER_SIZE-1] <= line_buffer[i][col_ctr];
                 window[FILTER_SIZE-1][FILTER_SIZE-1] <= i_pixel;
             end
@@ -167,11 +166,11 @@ module conv1 #(
     
     // review synthesis to check if logical AND results in different RTL circuit
     always_ff @(posedge i_clk or negedge i_rst) begin
-        if (~i_rst)
+        if (~i_rst) begin
             window_valid    <= 1'b0;
             o_feature_valid <= 1'b0;
             mac_done        <= 1'b0;
-        else begin
+        end else begin
             window_valid    <= pixel_valid ? col_ctr >= FILTER_SIZE-1 & row_ctr >= FILTER_SIZE-1 : window_valid;
             o_feature_valid <= curr_state == DATA_OUT;
             mac_done        <= curr_state == MACC & mac_ctr == WINDOW_AREA-1;

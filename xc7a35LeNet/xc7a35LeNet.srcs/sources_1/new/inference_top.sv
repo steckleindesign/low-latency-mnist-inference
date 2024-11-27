@@ -89,7 +89,7 @@ module inference_top(
     
     // Valid pixel for input (to first convolution layer)
     wire        w_input_valid;
-    wire        w_feature1_valid
+    wire        w_feature1_valid;
     
     logic          [7:0] w_pixel;
     logic signed  [15:0] conv1_feature;
