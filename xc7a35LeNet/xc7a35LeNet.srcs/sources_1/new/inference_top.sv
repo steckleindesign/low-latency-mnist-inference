@@ -93,7 +93,7 @@ module inference_top(
     
     logic          [7:0] w_pixel;
     logic signed  [15:0] conv1_feature;
-    logic signed  [15:0] pool1_feature_maps[5:0][13:0][13:0];
+    logic signed  [15:0] pool1_feature_map;
     
     // Bump 12MHz input clock line to 100MHz for internal use
     clk_wiz_0         mmcm0 (.clk    (clk),
@@ -150,7 +150,7 @@ module inference_top(
                              .i_rst          (rst),
                              .i_feature_valid(w_feature1_valid),
                              .i_feature      (conv1_feature),
-                             .o_feature      (pool1_feature_maps)
+                             .o_feature      (pool1_feature_map)
                             );
     
     // Can FC layers be collapsed?

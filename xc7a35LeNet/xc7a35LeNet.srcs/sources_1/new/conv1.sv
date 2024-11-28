@@ -23,9 +23,9 @@ module conv1 #(
 );
 
     // Computed local params from module parameters
-    localparam WINDOW_AREA   = FILTER_SIZE * FILTER_SIZE;
+    localparam WINDOW_AREA   = FILTER_SIZE*FILTER_SIZE;
     localparam OUTPUT_HEIGHT = IMAGE_HEIGHT - FILTER_SIZE + 1;
-    localparam OUTPUT_WIDTH  = IMAGE_WIDTH - FILTER_SIZE + 1;
+    localparam OUTPUT_WIDTH  = IMAGE_WIDTH  - FILTER_SIZE + 1;
     
     // Focus on how we want to load the weights in
     logic signed [7:0] filter_weights[NUM_FILTERS-1:0][FILTER_SIZE*FILTER_SIZE-1];
@@ -33,9 +33,6 @@ module conv1 #(
     // For height=5 filter, we only need to store 4 rows of pixel data
     // We could reduce latency if we get creative with the fill order of the LB
     logic        [7:0] line_buffer[FILTER_SIZE-2:0][IMAGE_WIDTH-1:0];
-    
-    // We need to store an additional FILTER_SIZE pixels for the planned conv method
-    logic        [7:0] temp_buffer[FILTER_SIZE-1:0];
     
     // Window is pixel block to be element-wise multiplied with filter kernel (5x5 for conv1 of LeNet-5)
     logic        [7:0] window[FILTER_SIZE-1][FILTER_SIZE-1];
@@ -148,7 +145,8 @@ module conv1 #(
             // Line buffer
             for (int i = 0; i < FILTER_SIZE-2; i++)
                 line_buffer[i][col_ctr] <= line_buffer[i+1][col_ctr];
-            line_buffer[FILTER_SIZE-2][col_ctr] <= i_pixel;
+            line_buffer[FILTER_SIZE-2][col_ctr]   <= i_pixel;
+            line_buffer[0][col_ctr-FILTER_SIZE+1] <= window[FILTER_SIZE-1][col_ctr-FILTER_SIZE+1];
             
             // Row/Column counters
             col_ctr <= col_ctr + 1'b1;
@@ -164,7 +162,7 @@ module conv1 #(
     // MACC operation (DSP48E1!!!)
     always_ff @(posedge i_clk) begin
         if (curr_state == MACC) begin
-            integer i; // static so initialized once here (or is it init each cycle?)
+            integer i;   // static so initialized once here (or is it init each cycle?)
             i = mac_ctr; // value is set each time always block is entered
             mac_accum <= mac_accum +
                 $signed(window[i/FILTER_SIZE][i%FILTER_SIZE]) *
