@@ -34,6 +34,9 @@ module conv1 #(
     // We could reduce latency if we get creative with the fill order of the LB
     logic        [7:0] line_buffer[FILTER_SIZE-2:0][IMAGE_WIDTH-1:0];
     
+    // We need to store an additional FILTER_SIZE pixels for the planned conv method
+    logic        [7:0] temp_buffer[FILTER_SIZE-1:0];
+    
     // Window is pixel block to be element-wise multiplied with filter kernel (5x5 for conv1 of LeNet-5)
     logic        [7:0] window[FILTER_SIZE-1][FILTER_SIZE-1];
     
@@ -114,30 +117,33 @@ module conv1 #(
                 DATA_OUT: begin
                     o_feature_valid <= 1'b1;
                     o_feature       <= mac_accum;
-                    filter_ctr      <= filter_ctr + 1'b1;
-                    if (filter_ctr == NUM_FILTERS-1) begin
-                        filter_ctr <= 'b0;
-                        row_ctr    <= (row_ctr == OUTPUT_HEIGHT-1) ? 'b0 : row_ctr + 1'b1;
-                    end
+                    filter_ctr      <= filter_ctr == NUM_FILTERS-1 ? 'b0 : filter_ctr + 1'b1;
                 end
             endcase
         end
     end
     
+    /*
+        colummn counter counts from 0 to IMAGE_WIDTH-1
+        row counter counts from 0 to IMAGE_WIDTH-1
+        TODO: Can optimize this later, may only need to cnt from 0 to OUTPUT SIZE
+        
+    */
+    
     always_ff @(posedge i_clk) begin
         if (pixel_valid) begin
-            // Generate window
-            for (int i = 0; i < FILTER_SIZE-1; i++)
-                for (int j = 0; j < FILTER_SIZE; j++)
+            // Generate window by shifting right by 1
+            for (int i = 0; i < FILTER_SIZE; i++)
+                for (int j = 0; j < FILTER_SIZE-1; j++)
                     window[i][j] <= window[i][j+1];
-            window[row_ctr][FILTER_SIZE] <= i_pixel;
             
-            // Last column of filter kernel after top row of convolutions
-            if (row_ctr >= FILTER_SIZE-1) begin
-                for (int i = 0; i < FILTER_SIZE-1; i++)
-                    window[i][FILTER_SIZE-1] <= line_buffer[i][col_ctr];
-                window[FILTER_SIZE-1][FILTER_SIZE-1] <= i_pixel;
-            end
+            // Last column of pixel window assigned values from equivalent column of line buffer
+            // Check synthesis here, is there simply FILTER_SIZE-1 SRLs?
+            for (int i = 0; i < FILTER_SIZE-1; i++)
+                window[i][FILTER_SIZE-1] <= line_buffer[i][col_ctr];
+            
+            // The bottom right corner of the pixel window, will take the incoming pixel as its value
+            window[FILTER_SIZE-1][FILTER_SIZE-1] <= i_pixel;
             
             // Line buffer
             for (int i = 0; i < FILTER_SIZE-2; i++)
@@ -148,7 +154,9 @@ module conv1 #(
             col_ctr <= col_ctr + 1'b1;
             if (col_ctr == IMAGE_WIDTH-1) begin
                 col_ctr <= 'b0;
-                row_ctr <= (row_ctr == IMAGE_HEIGHT-1) ? 'b0 : row_ctr + 1'b1;
+                // Can always incr row cnt because it gets reset when
+                // we fall back into the IDLE state of the main FSM
+                row_ctr <= row_ctr + 1'b1;
             end
         end
     end
@@ -156,8 +164,8 @@ module conv1 #(
     // MACC operation (DSP48E1!!!)
     always_ff @(posedge i_clk) begin
         if (curr_state == MACC) begin
-            integer i;
-            i = mac_ctr;
+            integer i; // static so initialized once here (or is it init each cycle?)
+            i = mac_ctr; // value is set each time always block is entered
             mac_accum <= mac_accum +
                 $signed(window[i/FILTER_SIZE][i%FILTER_SIZE]) *
                 $signed(filter_weights[filter_ctr][i]);
@@ -171,7 +179,8 @@ module conv1 #(
             o_feature_valid <= 1'b0;
             mac_done        <= 1'b0;
         end else begin
-            window_valid    <= pixel_valid ? col_ctr >= FILTER_SIZE-1 & row_ctr >= FILTER_SIZE-1 : window_valid;
+            // How wide should each valid signal be?
+            window_valid    <= pixel_valid ? (col_ctr >= FILTER_SIZE-1 & row_ctr >= FILTER_SIZE-1) : window_valid;
             o_feature_valid <= curr_state == DATA_OUT;
             mac_done        <= curr_state == MACC & mac_ctr == WINDOW_AREA-1;
         end
