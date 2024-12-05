@@ -28,14 +28,14 @@ module conv1 #(
     localparam OUTPUT_WIDTH  = IMAGE_WIDTH  - FILTER_SIZE + 1;
     
     // Focus on how we want to load the weights in
-    logic signed [7:0] filter_weights[NUM_FILTERS-1:0][FILTER_SIZE*FILTER_SIZE-1];
+    logic signed [7:0] filter_weights[NUM_FILTERS-1:0][FILTER_SIZE*FILTER_SIZE-1:0];
 
     // For height=5 filter, we only need to store 4 rows of pixel data
     // We could reduce latency if we get creative with the fill order of the LB
     logic        [7:0] line_buffer[FILTER_SIZE-2:0][IMAGE_WIDTH-1:0];
     
     // Window is pixel block to be element-wise multiplied with filter kernel (5x5 for conv1 of LeNet-5)
-    logic        [7:0] window[FILTER_SIZE-1][FILTER_SIZE-1];
+    logic        [7:0] window[FILTER_SIZE-1:0][FILTER_SIZE-1:0];
     
     // control counters
     logic [$clog2(IMAGE_HEIGHT)-1:0] row_ctr;
@@ -66,31 +66,31 @@ module conv1 #(
     always_comb begin
         case (curr_state)
             IDLE: begin
-                next_state = pixel_valid ? LOAD_WINDOW : IDLE;
+                next_state <= pixel_valid ? LOAD_WINDOW : IDLE;
             end
             LOAD_WINDOW: begin
-                next_state = window_valid ? MACC : LOAD_WINDOW;
+                next_state <= window_valid ? MACC : LOAD_WINDOW;
             end
             MACC: begin
-                next_state = mac_done ? DATA_OUT : MACC;
+                next_state <= mac_done ? DATA_OUT : MACC;
             end
             DATA_OUT: begin
                 if (filter_ctr == NUM_FILTERS-1)
                     next_state <= (row_ctr == IMAGE_HEIGHT-1 & col_ctr == IMAGE_WIDTH-1) ? IDLE : LOAD_WINDOW;
                 else
-                    next_state = MACC;
+                    next_state <= MACC;
             end
-            default: next_state = IDLE;
+            default: next_state <= IDLE;
         endcase
     end
     
     always_ff @(posedge i_clk or negedge i_rst) begin
         if (~i_rst) begin
-            row_ctr         <=  'b0;
-            col_ctr         <=  'b0;
-            filter_ctr      <=  'b0;
-            mac_ctr         <=  'b0;
-            mac_accum       <=  'b0;
+            row_ctr    <='b0;
+            col_ctr    <='b0;
+            filter_ctr <='b0;
+            mac_ctr    <='b0;
+            mac_accum  <='b0;
         end else begin
             case (curr_state)
                 IDLE: begin
