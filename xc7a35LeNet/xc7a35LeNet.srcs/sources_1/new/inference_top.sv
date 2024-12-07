@@ -122,12 +122,12 @@ module inference_top(
                              .o_pix_valid(spi_pixel_valid));
     
     // Convolutional Layer 1
-    conv1                  #(
-                             .IMAGE_WIDTH (32),
-                             .IMAGE_HEIGHT(32),
+    conv                   #(
+                             .INPUT_WIDTH (32),
+                             .INPUT_HEIGHT(32),
                              .FILTER_SIZE ( 5),
                              .NUM_FILTERS ( 6)
-                            ) conv1_inst (
+                            ) conv1 (
                              .i_clk          (clk100m),
                              .i_rst          (rst),
                              .i_feature_valid(spi_pixel_valid),
@@ -151,12 +151,12 @@ module inference_top(
                              .o_feature      (pool1_feature));
                             
     // Convolutional Layer 2
-    conv2                  #(
-                             .FEATURE_WIDTH (14),
-                             .FEATURE_HEIGHT(14),
+    conv                   #(
+                             .INPUT_WIDTH (14),
+                             .INPUT_HEIGHT(14),
                              .FILTER_SIZE   ( 5),
                              .NUM_FILTERS   (16)
-                            ) conv2_inst (
+                            ) conv2 (
                              .i_clk          (clk100m),
                              .i_rst          (rst),
                              .i_feature_valid(pool1_feature_valid),
