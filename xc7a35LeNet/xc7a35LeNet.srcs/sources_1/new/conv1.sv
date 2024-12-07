@@ -13,13 +13,10 @@ module conv1 #(
 ) (
     input  logic               i_clk,
     input  logic               i_rst,
-    input  logic               i_ready,
-    input  logic         [7:0] i_pixel,
-    // How do we want to load in pixel data? Probably RAM in another module
-    input  logic signed  [7:0] i_filters,
-    // How can we go about a sequential output now that we have serial pixel data coming in?
-    output logic signed [15:0] o_feature,
-    output logic               o_feature_valid
+    input  logic               i_feature_valid,
+    input  logic         [7:0] i_feature,
+    output logic               o_feature_valid,
+    output logic signed [15:0] o_feature
 );
 
     // Computed local params from module parameters
@@ -54,7 +51,6 @@ module conv1 #(
     } state;
     state next_state, curr_state;
     
-    logic pixel_valid;
     logic window_valid;
     logic mac_done;
     
@@ -66,7 +62,7 @@ module conv1 #(
     always_comb begin
         case (curr_state)
             IDLE: begin
-                next_state <= pixel_valid ? LOAD_WINDOW : IDLE;
+                next_state <= i_feature_valid ? LOAD_WINDOW : IDLE;
             end
             LOAD_WINDOW: begin
                 next_state <= window_valid ? MACC : LOAD_WINDOW;
@@ -94,7 +90,7 @@ module conv1 #(
         end else begin
             case (curr_state)
                 IDLE: begin
-                    if (pixel_valid) begin
+                    if (i_feature_valid) begin
                         row_ctr         <=  'b0;
                         col_ctr         <=  'b0;
                         filter_ctr      <=  'b0;
@@ -128,7 +124,7 @@ module conv1 #(
     */
     
     always_ff @(posedge i_clk) begin
-        if (pixel_valid) begin
+        if (i_feature_valid) begin
             // Generate window by shifting right by 1
             for (int i = 0; i < FILTER_SIZE; i++)
                 for (int j = 0; j < FILTER_SIZE-1; j++)
@@ -140,12 +136,12 @@ module conv1 #(
                 window[i][FILTER_SIZE-1] <= line_buffer[i][col_ctr];
             
             // The bottom right corner of the pixel window, will take the incoming pixel as its value
-            window[FILTER_SIZE-1][FILTER_SIZE-1] <= i_pixel;
+            window[FILTER_SIZE-1][FILTER_SIZE-1] <= i_feature;
             
             // Line buffer
             for (int i = 0; i < FILTER_SIZE-2; i++)
                 line_buffer[i][col_ctr] <= line_buffer[i+1][col_ctr];
-            line_buffer[FILTER_SIZE-2][col_ctr]   <= i_pixel;
+            line_buffer[FILTER_SIZE-2][col_ctr]   <= i_feature;
             line_buffer[0][col_ctr-FILTER_SIZE+1] <= window[FILTER_SIZE-1][col_ctr-FILTER_SIZE+1];
             
             // Row/Column counters
@@ -178,7 +174,7 @@ module conv1 #(
             mac_done        <= 1'b0;
         end else begin
             // How wide should each valid signal be?
-            window_valid    <= pixel_valid ? (col_ctr >= FILTER_SIZE-1 & row_ctr >= FILTER_SIZE-1) : window_valid;
+            window_valid    <= i_feature_valid ? (col_ctr >= FILTER_SIZE-1 & row_ctr >= FILTER_SIZE-1) : window_valid;
             o_feature_valid <= curr_state == DATA_OUT;
             mac_done        <= curr_state == MACC & mac_ctr == WINDOW_AREA-1;
         end

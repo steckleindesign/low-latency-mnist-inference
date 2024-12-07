@@ -14,6 +14,7 @@ module pool #(
     input  logic               i_rst,
     input  logic               i_feature_valid,
     input  logic signed [15:0] i_feature,
+    output logic               o_feature_valid,
     output logic signed [15:0] o_feature
 );
 
@@ -58,8 +59,9 @@ module pool #(
         if (~i_rst) begin
             // for (int i = 0; i < POOL_AREA; i++)
             //     pool[i] <= 'b0;
-            pool        <= '{default: 0};
-            feature_ctr <= 'b0;
+            pool            <= '{default: 0};
+            feature_ctr     <= 'b0;
+            o_feature_valid <= 1'b0;
         end else if (i_feature_valid) begin
             o_feature_valid <= 1'b0;
             feature_ctr     <= feature_ctr + 1'b1;

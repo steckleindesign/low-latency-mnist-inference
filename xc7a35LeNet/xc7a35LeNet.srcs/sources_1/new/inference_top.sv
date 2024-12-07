@@ -74,32 +74,33 @@ module inference_top(
 
     /* TODO  list:
         Send logits out on MISO line
-        LEDs (green/red for correct/incorrect?)
+        Filter weights/biases
+        Fully connected layer
     */
     
     // MMCM
-    wire        w_clk100m;
-    wire        w_locked;
+    logic       clk100m;
+    logic       locked;
     
     // SPI
-    wire        w_wr_req;
-    wire        w_rd_req;
-    wire  [7:0] w_wr_data;
-    wire  [7:0] w_rd_data;
+    logic       spi_wr_req;
+    logic       spi_rd_req;
+    logic [7:0] spi_wr_data;
+    logic [7:0] spi_rd_data;
     
     // Valid pixel for input (to first convolution layer)
-    wire        w_input_valid;
-    wire        w_feature1_valid;
-    
-    logic          [7:0] w_pixel;
-    logic signed  [15:0] conv1_feature;
-    logic signed  [15:0] pool1_feature_map;
+    logic               pixel_valid;
+    logic         [7:0] w_pixel;
+    logic               conv1_feature_valid, conv2_feature_valid;
+    logic signed [15:0] conv1_feature,       conv2_feature;
+    logic               pool1_feature_valid, pool2_feature_valid;
+    logic signed [15:0] pool1_feature,       pool2_feature;
     
     // Bump 12MHz input clock line to 100MHz for internal use
     clk_wiz_0         mmcm0 (.clk    (clk),
                              .reset  (rst),
-                             .locked (w_locked),
-                             .clk100m(w_clk100m));
+                             .locked (locked),
+                             .clk100m(clk100m));
                              
     // Discontinuous SPI clock
     // How to handle reset for SPI interface? Do we need a reset?
@@ -107,23 +108,20 @@ module inference_top(
                              .i_nss    (nss),
                              .i_mosi   (mosi),
                              .o_miso   (miso),
-                             .o_wr_req (w_wr_req),
-                             .o_wr_data(w_wr_data),
-                             .o_rd_req (w_rd_req),
-                             .i_rd_data(w_rd_data));
+                             .o_wr_req (spi_wr_req),
+                             .o_wr_data(spi_wr_data),
+                             .o_rd_req (spi_rd_req),
+                             .i_rd_data(spi_rd_data));
                              
     // Grayscale pixel data
     pixel_curation    cur   (.i_clk      (clk100m),
                              .i_rst      (rst),
-                             .i_wr_req   (w_wr_req),
-                             .i_spi_data (w_wr_data),
-                             .o_pixel    (w_pixel),
-                             .o_pix_valid(w_input_valid));
+                             .i_wr_req   (spi_wr_req),
+                             .i_spi_data (spi_wr_data),
+                             .o_pixel    (spi_pixel),
+                             .o_pix_valid(spi_pixel_valid));
     
-    // Need to get weights for filters here
-    // Add in the bias
-    
-    // How can we combine conv/relu/pool
+    // Convolutional Layer 1
     conv1                  #(
                              .IMAGE_WIDTH (32),
                              .IMAGE_HEIGHT(32),
@@ -132,13 +130,12 @@ module inference_top(
                             ) conv1_inst (
                              .i_clk          (clk100m),
                              .i_rst          (rst),
-                             .i_ready        (w_input_valid),
-                             .i_image        (w_pixel),
-                             .i_filters      (), // Get params from ipynb
-                             .o_feature      (conv1_feature),
-                             .o_feature_valid(w_feature1_valid)
-                            );
+                             .i_feature_valid(spi_pixel_valid),
+                             .i_feature      (spi_pixel),
+                             .o_feature_valid(conv1_feature_valid),
+                             .o_feature      (conv1_feature));
                             
+    // Max Pooling Layer 1
     pool                   #(
                              .INPUT_WIDTH (28),
                              .INPUT_HEIGHT(28),
@@ -148,10 +145,39 @@ module inference_top(
                             ) maxpool1 (
                              .i_clk          (clk100m),
                              .i_rst          (rst),
-                             .i_feature_valid(w_feature1_valid),
+                             .i_feature_valid(conv1_feature_valid),
                              .i_feature      (conv1_feature),
-                             .o_feature      (pool1_feature_map)
-                            );
+                             .o_feature_valid(pool1_feature_valid),
+                             .o_feature      (pool1_feature));
+                            
+    // Convolutional Layer 2
+    conv2                  #(
+                             .FEATURE_WIDTH (14),
+                             .FEATURE_HEIGHT(14),
+                             .FILTER_SIZE   ( 5),
+                             .NUM_FILTERS   (16)
+                            ) conv2_inst (
+                             .i_clk          (clk100m),
+                             .i_rst          (rst),
+                             .i_feature_valid(pool1_feature_valid),
+                             .i_feature      (pool1_feature),
+                             .o_feature_valid(conv2_feature_valid),
+                             .o_feature      (conv2_feature));
+                            
+    // Max Pooling Layer 2
+    pool                   #(
+                             .INPUT_WIDTH (28),
+                             .INPUT_HEIGHT(28),
+                             .NUM_CHANNELS(6),
+                             .POOL_SIZE   (2),
+                             .STRIDE      (2)
+                            ) maxpool2 (
+                             .i_clk          (clk100m),
+                             .i_rst          (rst),
+                             .i_feature_valid(conv2_feature_valid),
+                             .i_feature      (conv2_feature),
+                             .o_feature_valid(pool2_feature_valid),
+                             .o_feature      (pool2_feature));
     
     // Can FC layers be collapsed?
     
