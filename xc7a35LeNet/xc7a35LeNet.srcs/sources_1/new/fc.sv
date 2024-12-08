@@ -15,15 +15,17 @@ module fc #(
     input  [15:0] i_fefature,
     output        o_neuron_valid,
     // Needs to be parameterized
-    output [x:0] o_neuron
+    output [FEATURE_WIDTH+WEIGHT_WIDTH+$clog2(NUM_FEATURES)-1:0] o_neuron
 );
 
+    localparam WEIGHT_WIDTH = 16;
+    
     // Need to load in trained weights/biases
     // Time multiplexing of DSP48s?
     
     // Accumulate value for each neuron
     // Should we pass to next layer incrementally/serially to save memory?
-    logic signed [x:0] acc[NUM_NEURONS-1:0];
+    logic signed [FEATURE_WIDTH+WEIGHT_WIDTH+$clog2(NUM_FEATURES)-1:0] acc[NUM_NEURONS-1:0];
     
     // Control counters
     logic [$clog2(NUM_FEATURES)-1:0] feature_ctr;

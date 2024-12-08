@@ -97,7 +97,8 @@ module inference_top(
     logic signed [15:0] pool1_feature,       pool2_feature;
     
     logic               fc1_neuron_valid, fc2_neuron_valid, fc3_neuron_valid;
-    logic signed [x:0] fc1_neuron, fc2_neuron, fc3_neuron;
+    // FEATURE_WIDTH+WEIGHT_WIDTH+$clog2(NUM_FEATURES)-1
+    logic signed [16+16+$clog2(16*5*5):0] fc1_neuron, fc2_neuron, fc3_neuron;
     
     // Bump 12MHz input clock line to 100MHz for internal use
     clk_wiz_0         mmcm0 (.clk    (clk),
