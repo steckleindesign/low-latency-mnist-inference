@@ -96,6 +96,9 @@ module inference_top(
     logic               pool1_feature_valid, pool2_feature_valid;
     logic signed [15:0] pool1_feature,       pool2_feature;
     
+    logic               fc1_neuron_valid, fc2_neuron_valid, fc3_neuron_valid;
+    logic signed [x:0] fc1_neuron, fc2_neuron, fc3_neuron;
+    
     // Bump 12MHz input clock line to 100MHz for internal use
     clk_wiz_0         mmcm0 (.clk    (clk),
                              .reset  (rst),
@@ -127,7 +130,7 @@ module inference_top(
                              .INPUT_HEIGHT(32),
                              .FILTER_SIZE ( 5),
                              .NUM_FILTERS ( 6)
-                            ) conv1 (
+                            ) conv_1 (
                              .i_clk          (clk100m),
                              .i_rst          (rst),
                              .i_feature_valid(spi_pixel_valid),
@@ -142,7 +145,7 @@ module inference_top(
                              .NUM_CHANNELS(6),
                              .POOL_SIZE   (2),
                              .STRIDE      (2)
-                            ) maxpool1 (
+                            ) max_pool_1 (
                              .i_clk          (clk100m),
                              .i_rst          (rst),
                              .i_feature_valid(conv1_feature_valid),
@@ -156,7 +159,7 @@ module inference_top(
                              .INPUT_HEIGHT(14),
                              .FILTER_SIZE   ( 5),
                              .NUM_FILTERS   (16)
-                            ) conv2 (
+                            ) conv_2 (
                              .i_clk          (clk100m),
                              .i_rst          (rst),
                              .i_feature_valid(pool1_feature_valid),
@@ -168,10 +171,10 @@ module inference_top(
     pool                   #(
                              .INPUT_WIDTH (28),
                              .INPUT_HEIGHT(28),
-                             .NUM_CHANNELS(6),
+                             .NUM_CHANNELS(16),
                              .POOL_SIZE   (2),
                              .STRIDE      (2)
-                            ) maxpool2 (
+                            ) max_pool_2 (
                              .i_clk          (clk100m),
                              .i_rst          (rst),
                              .i_feature_valid(conv2_feature_valid),
@@ -179,7 +182,18 @@ module inference_top(
                              .o_feature_valid(pool2_feature_valid),
                              .o_feature      (pool2_feature));
     
-    // Can FC layers be collapsed?
+    fc                     #(
+                             .FEATURE_WIDTH(16),
+                             .NUM_FEATURES (16*5*5),
+                             .NUM_NEURONS  (120),
+                             .OUTPUT_DIMENSION(84)
+                            ) fully_connected_1 (
+                             .i_clk(clk100m),
+                             .i_rst(rst),
+                             .i_feature_valid(pool2_feature_valid),
+                             .i_feature(pool2_feature),
+                             .o_neuron_valid(fc1_neuron_valid),
+                             .o_neuron(fc1_neuron));
     
     assign led   = 2'b11;
     assign led_r = 1'b1;
