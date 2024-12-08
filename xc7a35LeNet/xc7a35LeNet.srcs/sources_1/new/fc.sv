@@ -12,20 +12,21 @@ module fc #(
     input         i_clk,
     input         i_rst,
     input         i_feature_valid,
-    input  [15:0] i_fefature,
-    output        o_neuron_valid,
+    input  [15:0] i_feature,
+    output logic       o_neuron_valid,
     // Needs to be parameterized
-    output [FEATURE_WIDTH+WEIGHT_WIDTH+$clog2(NUM_FEATURES)-1:0] o_neuron
+    output logic [ACC_WIDTH-1:0] o_neuron
 );
 
     localparam WEIGHT_WIDTH = 16;
+    localparam ACC_WIDTH    = FEATURE_WIDTH+WEIGHT_WIDTH+$clog2(NUM_FEATURES);
     
     // Need to load in trained weights/biases
     // Time multiplexing of DSP48s?
     
     // Accumulate value for each neuron
     // Should we pass to next layer incrementally/serially to save memory?
-    logic signed [FEATURE_WIDTH+WEIGHT_WIDTH+$clog2(NUM_FEATURES)-1:0] acc[NUM_NEURONS-1:0];
+    logic signed [ACC_WIDTH-1:0] acc[NUM_NEURONS-1:0];
     
     // Control counters
     logic [$clog2(NUM_FEATURES)-1:0] feature_ctr;
@@ -41,7 +42,7 @@ module fc #(
     state_t state, next_state;
     
     // Should check if its actually bad practice to use ternary operator for state transition
-    always_ff @(posedge i_clk or nedegde i_rst) begin
+    always_ff @(posedge i_clk or negedge i_rst) begin
         if (~i_rst) begin
             state <= IDLE;
         end else begin

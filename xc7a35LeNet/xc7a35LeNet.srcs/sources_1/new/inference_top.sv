@@ -75,7 +75,7 @@ module inference_top(
     /* TODO  list:
         Send logits out on MISO line
         Filter weights/biases
-        Fully connected layer
+        Async reset resynchronization logic
     */
     
     // MMCM
@@ -158,8 +158,8 @@ module inference_top(
     conv                   #(
                              .INPUT_WIDTH (14),
                              .INPUT_HEIGHT(14),
-                             .FILTER_SIZE   ( 5),
-                             .NUM_FILTERS   (16)
+                             .FILTER_SIZE ( 5),
+                             .NUM_FILTERS (16)
                             ) conv_2 (
                              .i_clk          (clk100m),
                              .i_rst          (rst),
@@ -183,6 +183,7 @@ module inference_top(
                              .o_feature_valid(pool2_feature_valid),
                              .o_feature      (pool2_feature));
     
+    // Fully Connected Layer 1
     fc                     #(
                              .FEATURE_WIDTH(16),
                              .NUM_FEATURES (16*5*5),
@@ -195,7 +196,41 @@ module inference_top(
                              .i_feature(pool2_feature),
                              .o_neuron_valid(fc1_neuron_valid),
                              .o_neuron(fc1_neuron));
+                             
+    // Fully Connected Layer 2
+    fc                     #(
+                             .FEATURE_WIDTH(16+16+$clog2(16*5*5)),
+                             .NUM_FEATURES (120),
+                             .NUM_NEURONS  (84),
+                             .OUTPUT_DIMENSION(10)
+                            ) fully_connected_2 (
+                             .i_clk(clk100m),
+                             .i_rst(rst),
+                             .i_feature_valid(fc1_neuron_valid),
+                             .i_feature(fc1_neuron),
+                             .o_neuron_valid(),
+                             .o_neuron());
+                             
+    // Fully Connected Layer 3
+    fc                     #(
+                             .FEATURE_WIDTH(16+16+$clog2(16*5*5)+$clog2(120)),
+                             .NUM_FEATURES (84),
+                             .NUM_NEURONS  (10),
+                             .OUTPUT_DIMENSION(1)
+                            ) fully_connected_3 (
+                             .i_clk(clk100m),
+                             .i_rst(rst),
+                             .i_feature_valid(),
+                             .i_feature(),
+                             // class valid signal will connect to output pad
+                             // this valid signal will be traced to the MCU
+                             // the MCU will configure an interrupt pin for the incoming valid line
+                             // upon the interrupt, the MCU will execute a SPI read
+                             // directly after the class is valid, the FPGA should send the logits to the SPI controller
+                             .o_class_valid(),
+                             .o_class());
     
+    // LEDs as constant hue for now, save all resources for CNN
     assign led   = 2'b11;
     assign led_r = 1'b1;
     assign led_g = 1'b1;
