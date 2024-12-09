@@ -67,15 +67,18 @@ module inference_top(
     input  logic       nss,
     input  logic       mosi,
     output logic       miso,
+    // Logits ready signal MCU interrupt
+    output logic       logits_valid,
     // LEDs
     output logic [1:0] led,
     output logic       led_r, led_g, led_b
 );
 
     /* TODO  list:
-        Send logits out on MISO line
+        Async reset re-sync logic
+        Send output out on MISO line
         Filter weights/biases
-        Async reset resynchronization logic
+        Output layer
     */
     
     // MMCM
@@ -86,9 +89,9 @@ module inference_top(
     logic       spi_wr_req;
     logic       spi_rd_req;
     logic [7:0] spi_wr_data;
-    logic [7:0] spi_rd_data;
+    logic [7:0] logit; // spi_rd_data;
     
-    // Valid pixel for input (to first convolution layer)
+    // Valid signals, features
     logic               pixel_valid;
     logic         [7:0] w_pixel;
     logic               conv1_feature_valid, conv2_feature_valid;
@@ -115,7 +118,7 @@ module inference_top(
                              .o_wr_req (spi_wr_req),
                              .o_wr_data(spi_wr_data),
                              .o_rd_req (spi_rd_req),
-                             .i_rd_data(spi_rd_data));
+                             .i_rd_data(logit));
                              
     // Grayscale pixel data
     pixel_curation    cur   (.i_clk      (clk100m),
@@ -193,9 +196,9 @@ module inference_top(
                              .i_clk(clk100m),
                              .i_rst(rst),
                              .i_feature_valid(pool2_feature_valid),
-                             .i_feature(pool2_feature),
-                             .o_neuron_valid(fc1_neuron_valid),
-                             .o_neuron(fc1_neuron));
+                             .i_feature      (pool2_feature),
+                             .o_neuron_valid (fc1_neuron_valid),
+                             .o_neuron       (fc1_neuron));
                              
     // Fully Connected Layer 2
     fc                     #(
@@ -207,28 +210,27 @@ module inference_top(
                              .i_clk(clk100m),
                              .i_rst(rst),
                              .i_feature_valid(fc1_neuron_valid),
-                             .i_feature(fc1_neuron),
-                             .o_neuron_valid(),
-                             .o_neuron());
+                             .i_feature      (fc1_neuron),
+                             .o_neuron_valid (fc2_neuron_valid),
+                             .o_neuron       (fc2_neuron));
                              
-    // Fully Connected Layer 3
-    fc                     #(
+    // Fully Connected Layer 3 (Output Layer)
+    output_layer          #(
                              .FEATURE_WIDTH(16+16+$clog2(16*5*5)+$clog2(120)),
                              .NUM_FEATURES (84),
-                             .NUM_NEURONS  (10),
-                             .OUTPUT_DIMENSION(1)
-                            ) fully_connected_3 (
+                             .NUM_CLASSES  (10)
+                            ) output_layer_inst (
                              .i_clk(clk100m),
                              .i_rst(rst),
-                             .i_feature_valid(),
-                             .i_feature(),
+                             .i_feature_valid(fc2_neuron_valid),
+                             .i_feature      (fc2_neuron),
                              // class valid signal will connect to output pad
                              // this valid signal will be traced to the MCU
                              // the MCU will configure an interrupt pin for the incoming valid line
                              // upon the interrupt, the MCU will execute a SPI read
                              // directly after the class is valid, the FPGA should send the logits to the SPI controller
-                             .o_class_valid(),
-                             .o_class());
+                             .o_logits_valid (logits_valid),
+                             .o_logits       (logit));
     
     // LEDs as constant hue for now, save all resources for CNN
     assign led   = 2'b11;
