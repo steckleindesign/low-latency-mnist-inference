@@ -77,8 +77,7 @@ module inference_top(
     /* TODO  list:
         Async reset re-sync logic
         Send output out on MISO line
-        Filter weights/biases
-        Output layer
+        Fix weight indexing, conv pattern
     */
     
     // MMCM
@@ -128,8 +127,11 @@ module inference_top(
                              .o_pixel    (spi_pixel),
                              .o_pix_valid(spi_pixel_valid));
     
+    // Separate files for weights and biases?
+    
     // Convolutional Layer 1
     conv                   #(
+                             .WEIGHTS_FILE("conv1_weights"),
                              .INPUT_WIDTH (32),
                              .INPUT_HEIGHT(32),
                              .FILTER_SIZE ( 5),
@@ -159,6 +161,7 @@ module inference_top(
                             
     // Convolutional Layer 2
     conv                   #(
+                             .WEIGHTS_FILE("conv2_weights"),
                              .INPUT_WIDTH (14),
                              .INPUT_HEIGHT(14),
                              .FILTER_SIZE ( 5),
@@ -188,10 +191,10 @@ module inference_top(
     
     // Fully Connected Layer 1
     fc                     #(
+                             .WEIGHTS_FILE("fc1_weights"),
                              .FEATURE_WIDTH(16),
                              .NUM_FEATURES (16*5*5),
-                             .NUM_NEURONS  (120),
-                             .OUTPUT_DIMENSION(84)
+                             .NUM_NEURONS  (120)
                             ) fully_connected_1 (
                              .i_clk(clk100m),
                              .i_rst(rst),
@@ -202,10 +205,10 @@ module inference_top(
                              
     // Fully Connected Layer 2
     fc                     #(
+                             .WEIGHTS_FILE("fc2_weights"),
                              .FEATURE_WIDTH(16+16+$clog2(16*5*5)),
                              .NUM_FEATURES (120),
-                             .NUM_NEURONS  (84),
-                             .OUTPUT_DIMENSION(10)
+                             .NUM_NEURONS  (84)
                             ) fully_connected_2 (
                              .i_clk(clk100m),
                              .i_rst(rst),
@@ -216,9 +219,9 @@ module inference_top(
                              
     // Fully Connected Layer 3 (Output Layer)
     output_layer          #(
+                             .WEIGHTS_FILE("fc3_weights"),
                              .FEATURE_WIDTH(16+16+$clog2(16*5*5)+$clog2(120)),
-                             .NUM_FEATURES (84),
-                             .NUM_CLASSES  (10)
+                             .NUM_FEATURES (84)
                             ) output_layer_inst (
                              .i_clk(clk100m),
                              .i_rst(rst),

@@ -57,8 +57,7 @@ if {$::dispatch::connected} {
 
 OPTRACE "synth_1" START { ROLLUP_AUTO }
 set_param checkpoint.writeSynthRtdsInDcp 1
-set_param chipscope.maxJobs 4
-set_msg_config -id {Common 17-41} -limit 10000000
+set_param synth.incrementalSynthesisCache ./.Xil/Vivado-3542-fpgadev/incrSyn
 set_msg_config -id {Synth 8-256} -limit 10000
 set_msg_config -id {Synth 8-638} -limit 10000
 OPTRACE "Creating in-memory project" START { }
@@ -78,7 +77,11 @@ set_property ip_cache_permissions {read write} [current_project]
 OPTRACE "Creating in-memory project" END { }
 OPTRACE "Adding files" START { }
 read_verilog -library xil_defaultlib -sv {
+  /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv
+  /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv
+  /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/output_layer.sv
   /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pixel_curation.sv
+  /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pool.sv
   /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv
   /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv
 }

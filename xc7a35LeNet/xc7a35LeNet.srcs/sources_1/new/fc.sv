@@ -1,27 +1,30 @@
 `timescale 1ns / 1ps
 
 module fc #(
+    parameter string WEIGHTS_FILE     = "weights.mem",
     // defaults coorespond to first FC layer of LeNet-5
-    parameter FEATURE_WIDTH    = 16,
-    parameter NUM_FEATURES     = 16*5*5, // 400
-    parameter NUM_NEURONS      = 120,
+    parameter        FEATURE_WIDTH    = 16,
+    parameter        NUM_FEATURES     = 16*5*5, // 400
+    parameter        NUM_NEURONS      = 120,
     // Could remove this count to save incremental resources
     // Keep it now for clarity
-    parameter OUTPUT_DIMENSION = 84
+    parameter        OUTPUT_DIMENSION = 84
 )(
-    input         i_clk,
-    input         i_rst,
-    input         i_feature_valid,
-    input  [15:0] i_feature,
-    output logic       o_neuron_valid,
-    // Needs to be parameterized
+    input                        i_clk,
+    input                        i_rst,
+    input                        i_feature_valid,
+    input                 [15:0] i_feature,
+    output logic                 o_neuron_valid,
     output logic [ACC_WIDTH-1:0] o_neuron
 );
 
     localparam WEIGHT_WIDTH = 16;
     localparam ACC_WIDTH    = FEATURE_WIDTH+WEIGHT_WIDTH+$clog2(NUM_FEATURES);
     
-    // Need to load in trained weights/biases
+    (* rom_style="block" *) logic signed [15:0]
+    weights [NUM_NEURONS][NUM_FEATURES+1]; // 1 bias for each neuron
+    initial $readmemb(WEIGHTS_FILE, weights);
+    
     // Time multiplexing of DSP48s?
     
     // Accumulate value for each neuron
@@ -85,7 +88,7 @@ module fc #(
         if (~i_rst)
             acc = '{default: 0};
         else if (state == MACC && i_feature_valid)
-            acc[neuron_ctr] <= acc[neuron_ctr] + i_feature; // *[weight];
+            acc[neuron_ctr] <= acc[neuron_ctr] + i_feature * weight;
     end
             
     always_ff @(posedge i_clk or negedge i_rst) begin
@@ -103,7 +106,7 @@ module fc #(
             o_neuron_valid <= 1'b0;
             if (state == SEND) begin
                 o_neuron_valid <= 1'b1;
-                o_neuron       <= acc[neuron_ctr]; // + [bias];
+                o_neuron       <= acc[neuron_ctr] + bias;
             end
         end
     end

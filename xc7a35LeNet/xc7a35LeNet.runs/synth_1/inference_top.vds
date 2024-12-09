@@ -3,8 +3,8 @@
 # SW Build 5076996 on Wed May 22 18:36:09 MDT 2024
 # IP Build 5075265 on Wed May 22 21:45:21 MDT 2024
 # SharedData Build 5076995 on Wed May 22 18:29:18 MDT 2024
-# Start of session at: Sun Nov 17 21:13:33 2024
-# Process ID: 533149
+# Start of session at: Sun Dec  8 22:22:21 2024
+# Process ID: 315038
 # Current directory: /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.runs/synth_1
 # Command line: vivado -log inference_top.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source inference_top.tcl
 # Log file: /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.runs/synth_1/inference_top.vds
@@ -13,13 +13,13 @@
 # Platform          :Ubuntu
 # Operating System  :Ubuntu 22.04.4 LTS
 # Processor Detail  :AMD Ryzen 9 7940HS w/ Radeon 780M Graphics
-# CPU Frequency     :5015.383 MHz
+# CPU Frequency     :400.000 MHz
 # CPU Physical cores:8
 # CPU Logical cores :16
 # Host memory       :66566 MB
 # Swap memory       :2147 MB
 # Total Virtual     :68713 MB
-# Available Virtual :53621 MB
+# Available Virtual :56056 MB
 #-----------------------------------------------------------
 source inference_top.tcl -notrace
 Command: read_checkpoint -auto_incremental -incremental /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/utils_1/imports/synth_1/inference_top.dcp
@@ -35,149 +35,311 @@ INFO: [Designutils 20-5440] No compile time benefit to using incremental synthes
 INFO: [Designutils 20-4379] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
 INFO: [Synth 8-7079] Multithreading enabled for synth_design using a maximum of 4 processes.
 INFO: [Synth 8-7078] Launching helper process for spawning children vivado processes
-INFO: [Synth 8-7075] Helper process launched with PID 533174
+INFO: [Synth 8-7075] Helper process launched with PID 315075
 ---------------------------------------------------------------------------------
-Starting RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 2127.250 ; gain = 415.621 ; free physical = 41300 ; free virtual = 49762
+Starting RTL Elaboration : Time (s): cpu = 00:00:02 ; elapsed = 00:00:02 . Memory (MB): peak = 2125.375 ; gain = 412.746 ; free physical = 39952 ; free virtual = 52117
 ---------------------------------------------------------------------------------
+WARNING: [Synth 8-6901] identifier 'ACC_WIDTH' is used before its declaration [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:18]
 INFO: [Synth 8-11241] undeclared symbol 'o_wr_addr', assumed default net type 'wire' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:61]
 INFO: [Synth 8-11241] undeclared symbol 'o_rd_addr', assumed default net type 'wire' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:62]
-INFO: [Synth 8-11241] undeclared symbol 'clk100m', assumed default net type 'wire' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:107]
-INFO: [Synth 8-6157] synthesizing module 'inference_top' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:43]
-INFO: [Synth 8-6157] synthesizing module 'clk_wiz_0' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.runs/synth_1/.Xil/Vivado-533149-fpgadev/realtime/clk_wiz_0_stub.v:6]
-INFO: [Synth 8-6155] done synthesizing module 'clk_wiz_0' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.runs/synth_1/.Xil/Vivado-533149-fpgadev/realtime/clk_wiz_0_stub.v:6]
+INFO: [Synth 8-11241] undeclared symbol 'spi_pixel', assumed default net type 'wire' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:127]
+INFO: [Synth 8-11241] undeclared symbol 'spi_pixel_valid', assumed default net type 'wire' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:128]
+INFO: [Synth 8-6157] synthesizing module 'inference_top' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:61]
+INFO: [Synth 8-6157] synthesizing module 'clk_wiz_0' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.runs/synth_1/.Xil/Vivado-315038-fpgadev/realtime/clk_wiz_0_stub.v:6]
+INFO: [Synth 8-6155] done synthesizing module 'clk_wiz_0' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.runs/synth_1/.Xil/Vivado-315038-fpgadev/realtime/clk_wiz_0_stub.v:6]
 INFO: [Synth 8-6157] synthesizing module 'spi_interface' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:11]
 INFO: [Synth 8-155] case statement is not full and has no default [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:111]
 INFO: [Synth 8-6155] done synthesizing module 'spi_interface' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:11]
-WARNING: [Synth 8-4446] all outputs are unconnected for this instance and logic may be removed [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:107]
 INFO: [Synth 8-6157] synthesizing module 'pixel_curation' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pixel_curation.sv:9]
 INFO: [Synth 8-6155] done synthesizing module 'pixel_curation' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pixel_curation.sv:9]
-INFO: [Synth 8-6155] done synthesizing module 'inference_top' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:43]
+WARNING: [Synth 8-689] width (1) of port connection 'o_pixel' does not match port width (8) of module 'pixel_curation' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:127]
+INFO: [Synth 8-6157] synthesizing module 'conv' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:8]
+	Parameter INPUT_WIDTH bound to: 32 - type: integer 
+	Parameter INPUT_HEIGHT bound to: 32 - type: integer 
+	Parameter FILTER_SIZE bound to: 5 - type: integer 
+	Parameter NUM_FILTERS bound to: 6 - type: integer 
+INFO: [Synth 8-226] default block is never used [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:63]
+INFO: [Synth 8-155] case statement is not full and has no default [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:91]
+INFO: [Synth 8-6155] done synthesizing module 'conv' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:8]
+WARNING: [Synth 8-689] width (1) of port connection 'i_feature' does not match port width (8) of module 'conv' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:140]
+INFO: [Synth 8-6157] synthesizing module 'pool' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pool.sv:6]
+	Parameter INPUT_WIDTH bound to: 28 - type: integer 
+	Parameter INPUT_HEIGHT bound to: 28 - type: integer 
+	Parameter NUM_CHANNELS bound to: 6 - type: integer 
+	Parameter POOL_SIZE bound to: 2 - type: integer 
+	Parameter STRIDE bound to: 2 - type: integer 
+INFO: [Synth 8-226] default block is never used [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pool.sv:45]
+INFO: [Synth 8-6155] done synthesizing module 'pool' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pool.sv:6]
+INFO: [Synth 8-6157] synthesizing module 'conv__parameterized0' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:8]
+	Parameter INPUT_WIDTH bound to: 14 - type: integer 
+	Parameter INPUT_HEIGHT bound to: 14 - type: integer 
+	Parameter FILTER_SIZE bound to: 5 - type: integer 
+	Parameter NUM_FILTERS bound to: 16 - type: integer 
+INFO: [Synth 8-226] default block is never used [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:63]
+INFO: [Synth 8-155] case statement is not full and has no default [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:91]
+INFO: [Synth 8-6155] done synthesizing module 'conv__parameterized0' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:8]
+WARNING: [Synth 8-689] width (16) of port connection 'i_feature' does not match port width (8) of module 'conv__parameterized0' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:169]
+INFO: [Synth 8-6157] synthesizing module 'pool__parameterized0' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pool.sv:6]
+	Parameter INPUT_WIDTH bound to: 28 - type: integer 
+	Parameter INPUT_HEIGHT bound to: 28 - type: integer 
+	Parameter NUM_CHANNELS bound to: 16 - type: integer 
+	Parameter POOL_SIZE bound to: 2 - type: integer 
+	Parameter STRIDE bound to: 2 - type: integer 
+INFO: [Synth 8-226] default block is never used [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pool.sv:45]
+INFO: [Synth 8-6155] done synthesizing module 'pool__parameterized0' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pool.sv:6]
+INFO: [Synth 8-6157] synthesizing module 'fc' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:3]
+	Parameter FEATURE_WIDTH bound to: 16 - type: integer 
+	Parameter NUM_FEATURES bound to: 400 - type: integer 
+	Parameter NUM_NEURONS bound to: 120 - type: integer 
+	Parameter OUTPUT_DIMENSION bound to: 84 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'fc' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:3]
+WARNING: [Synth 8-689] width (42) of port connection 'o_neuron' does not match port width (41) of module 'fc' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:200]
+INFO: [Synth 8-6157] synthesizing module 'fc__parameterized0' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:3]
+	Parameter FEATURE_WIDTH bound to: 41 - type: integer 
+	Parameter NUM_FEATURES bound to: 120 - type: integer 
+	Parameter NUM_NEURONS bound to: 84 - type: integer 
+	Parameter OUTPUT_DIMENSION bound to: 10 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'fc__parameterized0' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:3]
+WARNING: [Synth 8-689] width (42) of port connection 'i_feature' does not match port width (16) of module 'fc__parameterized0' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:212]
+WARNING: [Synth 8-689] width (42) of port connection 'o_neuron' does not match port width (64) of module 'fc__parameterized0' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:214]
+INFO: [Synth 8-6157] synthesizing module 'output_layer' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/output_layer.sv:3]
+	Parameter FEATURE_WIDTH bound to: 48 - type: integer 
+	Parameter NUM_FEATURES bound to: 84 - type: integer 
+	Parameter NUM_CLASSES bound to: 10 - type: integer 
+INFO: [Synth 8-6155] done synthesizing module 'output_layer' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/output_layer.sv:3]
+WARNING: [Synth 8-689] width (42) of port connection 'i_feature' does not match port width (16) of module 'output_layer' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:225]
+WARNING: [Synth 8-689] width (8) of port connection 'o_logits' does not match port width (4) of module 'output_layer' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:232]
+INFO: [Synth 8-6155] done synthesizing module 'inference_top' (0#1) [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:61]
 WARNING: [Synth 8-6014] Unused sequential element wr_addr_r_reg was removed.  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:61]
 WARNING: [Synth 8-6014] Unused sequential element rd_addr_r_reg was removed.  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:62]
 WARNING: [Synth 8-7137] Register data_in_gated_reg in module spi_interface has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:65]
 WARNING: [Synth 8-7137] Register hold_rd_data_r_reg in module spi_interface has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:109]
-WARNING: [Synth 8-3848] Net o_image_vector in module/entity pixel_curation does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pixel_curation.sv:13]
-WARNING: [Synth 8-3848] Net w_rd_data in module/entity inference_top does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:89]
-WARNING: [Synth 8-3848] Net clk100m in module/entity inference_top does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/inference_top.sv:107]
+WARNING: [Synth 8-7137] Register o_pix_valid_reg in module pixel_curation has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pixel_curation.sv:34]
+WARNING: [Synth 8-7137] Register o_pixel_reg in module pixel_curation has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pixel_curation.sv:42]
+WARNING: [Synth 8-6014] Unused sequential element i_reg was removed.  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:161]
+WARNING: [Synth 8-7137] Register o_feature_reg in module conv has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:112]
+WARNING: [Synth 8-3848] Net filter_weights[5][24] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][24] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][24] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][24] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][24] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][24] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][23] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][23] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][23] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][23] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][23] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][23] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][22] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][22] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][22] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][22] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][22] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][22] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][21] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][21] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][21] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][21] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][21] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][21] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][20] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][20] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][20] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][20] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][20] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][20] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][19] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][19] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][19] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][19] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][19] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][19] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][18] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][18] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][18] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][18] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][18] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][18] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][17] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][17] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][17] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][17] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][17] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][17] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][16] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][16] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][16] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][16] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][16] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][16] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][15] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][15] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][15] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][15] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][15] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][15] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][14] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][14] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][14] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][14] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][14] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][14] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][13] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][13] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][13] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][13] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][13] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][13] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][12] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][12] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][12] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][12] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][12] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][12] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][11] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][11] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][11] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][11] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][11] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][11] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][10] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][10] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][10] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][10] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][10] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][10] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][9] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][9] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][9] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][9] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[1][9] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[0][9] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[5][8] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[4][8] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[3][8] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+WARNING: [Synth 8-3848] Net filter_weights[2][8] in module/entity conv does not have driver. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:28]
+INFO: [Common 17-14] Message 'Synth 8-3848' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+WARNING: [Synth 8-6014] Unused sequential element pool_reg[3] was removed.  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pool.sv:59]
+WARNING: [Synth 8-6014] Unused sequential element max_ab_reg was removed.  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pool.sv:70]
+WARNING: [Synth 8-6014] Unused sequential element max_cd_reg was removed.  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pool.sv:71]
+WARNING: [Synth 8-7137] Register o_feature_reg in module pool has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/pool.sv:72]
+WARNING: [Synth 8-6014] Unused sequential element i_reg was removed.  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:161]
+WARNING: [Synth 8-7137] Register o_feature_reg in module conv__parameterized0 has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:112]
+WARNING: [Synth 8-7137] Register feature_ctr_reg in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:72]
+WARNING: [Synth 8-7137] Register neuron_ctr_reg in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:73]
+WARNING: [Synth 8-7137] Register acc_reg[119] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[118] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[117] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[116] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[115] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[114] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[113] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[112] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[111] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[110] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[109] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[108] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[107] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[106] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[105] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[104] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[103] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[102] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[101] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[100] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[99] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[98] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[97] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[96] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[95] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[94] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[93] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[92] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[91] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[90] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[89] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[88] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[87] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[86] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[85] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[84] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[83] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[82] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[81] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[80] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[79] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[78] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[77] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[76] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[75] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[74] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[73] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[72] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[71] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[70] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[69] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[68] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[67] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[66] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[65] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[64] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[63] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[62] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[61] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[60] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[59] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[58] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[57] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[56] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[55] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[54] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[53] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[52] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[51] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[50] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[49] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[48] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[47] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[46] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[45] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[44] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[43] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[42] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[41] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[40] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[39] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[38] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[37] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[36] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[35] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[34] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[33] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[32] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[31] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[30] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+WARNING: [Synth 8-7137] Register acc_reg[29] in module fc has both Set and reset with same priority. This may cause simulation mismatches. Consider rewriting code  [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:86]
+INFO: [Common 17-14] Message 'Synth 8-7137' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+WARNING: [Synth 8-87] always_comb on 'next_state_reg' did not result in combinational logic [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:57]
+WARNING: [Synth 8-87] always_comb on 'next_state_reg' did not result in combinational logic [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:57]
+WARNING: [Synth 8-87] always_comb on 'next_state_reg' did not result in combinational logic [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/output_layer.sv:52]
 WARNING: [Synth 8-3917] design inference_top has port led[1] driven by constant 1
 WARNING: [Synth 8-3917] design inference_top has port led[0] driven by constant 1
 WARNING: [Synth 8-3917] design inference_top has port led_r driven by constant 1
 WARNING: [Synth 8-3917] design inference_top has port led_g driven by constant 1
 WARNING: [Synth 8-3917] design inference_top has port led_b driven by constant 0
-WARNING: [Synth 8-7129] Port o_image_vector[1023] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1022] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1021] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1020] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1019] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1018] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1017] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1016] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1015] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1014] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1013] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1012] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1011] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1010] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1009] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1008] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1007] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1006] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1005] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1004] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1003] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1002] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1001] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[1000] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[999] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[998] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[997] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[996] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[995] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[994] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[993] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[992] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[991] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[990] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[989] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[988] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[987] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[986] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[985] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[984] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[983] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[982] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[981] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[980] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[979] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[978] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[977] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[976] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[975] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[974] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[973] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[972] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[971] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[970] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[969] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[968] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[967] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[966] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[965] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[964] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[963] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[962] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[961] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[960] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[959] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[958] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[957] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[956] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[955] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[954] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[953] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[952] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[951] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[950] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[949] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[948] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[947] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[946] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[945] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[944] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[943] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[942] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[941] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[940] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[939] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[938] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[937] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[936] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[935] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[934] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[933] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[932] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[931] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[930] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[929] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[928] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[927] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[926] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[925] in module pixel_curation is either unconnected or has no load
-WARNING: [Synth 8-7129] Port o_image_vector[924] in module pixel_curation is either unconnected or has no load
-INFO: [Common 17-14] Message 'Synth 8-7129' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
 ---------------------------------------------------------------------------------
-Finished RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 2203.219 ; gain = 491.590 ; free physical = 41202 ; free virtual = 49665
+Finished RTL Elaboration : Time (s): cpu = 00:00:03 ; elapsed = 00:00:04 . Memory (MB): peak = 2306.344 ; gain = 593.715 ; free physical = 39733 ; free virtual = 51900
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 2218.062 ; gain = 506.434 ; free physical = 41202 ; free virtual = 49665
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:04 ; elapsed = 00:00:04 . Memory (MB): peak = 2321.188 ; gain = 608.559 ; free physical = 39733 ; free virtual = 51901
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:03 ; elapsed = 00:00:03 . Memory (MB): peak = 2218.062 ; gain = 506.434 ; free physical = 41202 ; free virtual = 49665
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:04 ; elapsed = 00:00:04 . Memory (MB): peak = 2321.188 ; gain = 608.559 ; free physical = 39733 ; free virtual = 51901
 ---------------------------------------------------------------------------------
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2218.062 ; gain = 0.000 ; free physical = 41202 ; free virtual = 49665
+Netlist sorting complete. Time (s): cpu = 00:00:00.14 ; elapsed = 00:00:00.14 . Memory (MB): peak = 2321.188 ; gain = 0.000 ; free physical = 39749 ; free virtual = 51916
 INFO: [Project 1-570] Preparing netlist for logic optimization
 
 Processing XDC Constraints
@@ -190,22 +352,22 @@ INFO: [Project 1-236] Implementation specific constraints were found while readi
 Resolution: To avoid this warning, move constraints listed in [.Xil/inference_top_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
 Completed Processing XDC Constraints
 
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2361.812 ; gain = 0.000 ; free physical = 41195 ; free virtual = 49658
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2460.938 ; gain = 0.000 ; free physical = 39745 ; free virtual = 51913
 INFO: [Project 1-111] Unisim Transformation Summary:
 No Unisim elements were transformed.
 
-Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2361.812 ; gain = 0.000 ; free physical = 41195 ; free virtual = 49658
+Constraint Validation Runtime : Time (s): cpu = 00:00:00.03 ; elapsed = 00:00:00.02 . Memory (MB): peak = 2460.938 ; gain = 0.000 ; free physical = 39745 ; free virtual = 51913
 INFO: [Designutils 20-5440] No compile time benefit to using incremental synthesis; A full resynthesis will be run
 INFO: [Designutils 20-4379] Flow is switching to default flow due to incremental criteria not met. If you would like to alter this behaviour and have the flow terminate instead, please set the following parameter config_implementation {autoIncr.Synth.RejectBehavior Terminate}
 ---------------------------------------------------------------------------------
-Finished Constraint Validation : Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2361.812 ; gain = 650.184 ; free physical = 41194 ; free virtual = 49656
+Finished Constraint Validation : Time (s): cpu = 00:00:09 ; elapsed = 00:00:09 . Memory (MB): peak = 2460.938 ; gain = 748.309 ; free physical = 39726 ; free virtual = 51893
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Loading Part and Timing Information
 ---------------------------------------------------------------------------------
 Loading part: xc7a35tcpg236-1
 ---------------------------------------------------------------------------------
-Finished Loading Part and Timing Information : Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41194 ; free virtual = 49656
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:09 ; elapsed = 00:00:09 . Memory (MB): peak = 2468.941 ; gain = 756.312 ; free physical = 39726 ; free virtual = 51893
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying 'set_property' XDC Constraints
@@ -214,25 +376,213 @@ Applied set_property IO_BUFFER_TYPE = NONE for clk. (constraint file  /home/pste
 Applied set_property CLOCK_BUFFER_TYPE = NONE for clk. (constraint file  /home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.gen/sources_1/ip/clk_wiz_0/clk_wiz_0/clk_wiz_0_in_context.xdc, line 4).
 Applied set_property KEEP_HIERARCHY = SOFT for mmcm0. (constraint file  auto generated constraint).
 ---------------------------------------------------------------------------------
-Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41194 ; free virtual = 49656
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:09 ; elapsed = 00:00:09 . Memory (MB): peak = 2468.941 ; gain = 756.312 ; free physical = 39726 ; free virtual = 51893
 ---------------------------------------------------------------------------------
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[0][0]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[0][1]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[0][2]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[0][3]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[0][4]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][27]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][26]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][25]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][24]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][23]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][22]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][21]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][20]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][19]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][18]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][17]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][16]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][15]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][14]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][13]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][12]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][11]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][10]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][9]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][8]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][7]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][6]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][5]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][4]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][3]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][2]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][1]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[3][0]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[3][1]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[3][2]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[3][3]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[3][4]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[2][0]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[2][1]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[2][2]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[2][3]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[2][4]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[1][0]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[1][1]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[1][2]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[1][3]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'window_reg[1][4]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:130]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][31]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][30]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][29]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][28]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[0][0]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][31]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][30]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][29]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][28]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][27]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][26]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][25]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][24]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][23]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][22]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][21]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][20]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][19]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][18]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][17]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][16]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][15]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][14]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][13]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][12]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][11]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][10]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][9]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][8]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][7]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][6]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][5]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][4]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][3]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][2]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][1]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[1][0]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][31]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][30]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][29]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][28]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][27]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][26]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][25]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][24]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][23]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][22]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][21]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][20]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][19]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][18]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][17]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+WARNING: [Synth 8-3936] Found unconnected internal register 'line_buffer_reg[2][16]' and it is trimmed from '8' to '1' bits. [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:135]
+INFO: [Common 17-14] Message 'Synth 8-3936' appears 100 times and further instances of the messages will be disabled. Use the Tcl command set_msg_config to change the current settings.
+INFO: [Synth 8-802] inferred FSM for state register 'curr_state_reg' in module 'conv'
+INFO: [Synth 8-802] inferred FSM for state register 'curr_state_reg' in module 'conv__parameterized0'
+INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'fc'
+INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'fc__parameterized0'
+INFO: [Synth 8-802] inferred FSM for state register 'state_reg' in module 'output_layer'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                    IDLE |                             0001 |                               00
+             LOAD_WINDOW |                             0010 |                               01
+                    MACC |                             0100 |                               10
+                DATA_OUT |                             1000 |                               11
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'curr_state_reg' using encoding 'one-hot' in module 'conv'
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                    IDLE |                             0001 |                               00
+             LOAD_WINDOW |                             0010 |                               01
+                    MACC |                             0100 |                               10
+                DATA_OUT |                             1000 |                               11
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'curr_state_reg' using encoding 'one-hot' in module 'conv__parameterized0'
+WARNING: [Synth 8-327] inferring latch for variable 'FSM_sequential_next_state_reg' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:57]
+WARNING: [Synth 8-327] inferring latch for variable 'FSM_onehot_next_state_reg' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:57]
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                    IDLE |                              001 |                               00
+                    MACC |                              010 |                               01
+                    SEND |                              100 |                               10
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'one-hot' in module 'fc'
+WARNING: [Synth 8-327] inferring latch for variable 'FSM_onehot_next_state_reg' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:57]
+WARNING: [Synth 8-327] inferring latch for variable 'FSM_sequential_next_state_reg' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:57]
+WARNING: [Synth 8-327] inferring latch for variable 'FSM_onehot_next_state_reg' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:57]
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                    IDLE |                              001 |                               00
+                    MACC |                              010 |                               01
+                    SEND |                              100 |                               10
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'one-hot' in module 'fc__parameterized0'
+WARNING: [Synth 8-327] inferring latch for variable 'FSM_onehot_next_state_reg' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/fc.sv:57]
+WARNING: [Synth 8-327] inferring latch for variable 'FSM_sequential_next_state_reg' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/output_layer.sv:52]
+WARNING: [Synth 8-327] inferring latch for variable 'FSM_onehot_next_state_reg' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/output_layer.sv:52]
+---------------------------------------------------------------------------------------------------
+                   State |                     New Encoding |                Previous Encoding 
+---------------------------------------------------------------------------------------------------
+                    IDLE |                              001 |                               00
+                    MACC |                              010 |                               01
+                  RESULT |                              100 |                               10
+---------------------------------------------------------------------------------------------------
+INFO: [Synth 8-3354] encoded FSM with state register 'state_reg' using encoding 'one-hot' in module 'output_layer'
+WARNING: [Synth 8-327] inferring latch for variable 'FSM_onehot_next_state_reg' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/output_layer.sv:52]
 ---------------------------------------------------------------------------------
-Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:06 ; elapsed = 00:00:06 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41192 ; free virtual = 49656
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:12 ; elapsed = 00:00:12 . Memory (MB): peak = 2468.941 ; gain = 756.312 ; free physical = 39728 ; free virtual = 51899
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start RTL Component Statistics 
 ---------------------------------------------------------------------------------
 Detailed RTL Component Info : 
 +---Adders : 
-	   2 Input    3 Bit       Adders := 1     
+	   2 Input   71 Bit       Adders := 1     
+	   2 Input   64 Bit       Adders := 1     
+	   2 Input   41 Bit       Adders := 1     
+	   2 Input   32 Bit       Adders := 2     
+	   2 Input    9 Bit       Adders := 1     
+	   2 Input    7 Bit       Adders := 4     
+	   2 Input    5 Bit       Adders := 4     
+	   2 Input    4 Bit       Adders := 4     
+	   2 Input    3 Bit       Adders := 4     
+	   2 Input    2 Bit       Adders := 2     
+	   2 Input    1 Bit       Adders := 2     
 +---Registers : 
-	                8 Bit    Registers := 3     
-	                3 Bit    Registers := 1     
-	                1 Bit    Registers := 8     
+	               71 Bit    Registers := 11    
+	               64 Bit    Registers := 85    
+	               41 Bit    Registers := 121   
+	               16 Bit    Registers := 10    
+	                9 Bit    Registers := 1     
+	                8 Bit    Registers := 4     
+	                7 Bit    Registers := 2     
+	                5 Bit    Registers := 2     
+	                4 Bit    Registers := 2     
+	                3 Bit    Registers := 2     
+	                2 Bit    Registers := 2     
+	                1 Bit    Registers := 263   
 +---Muxes : 
+	   2 Input   71 Bit        Muxes := 20    
+	   2 Input   64 Bit        Muxes := 84    
+	   2 Input   41 Bit        Muxes := 120   
+	   2 Input   16 Bit        Muxes := 6     
 	   2 Input    8 Bit        Muxes := 2     
 	   2 Input    7 Bit        Muxes := 1     
-	   4 Input    1 Bit        Muxes := 4     
+	   2 Input    5 Bit        Muxes := 3     
+	   4 Input    5 Bit        Muxes := 2     
+	   4 Input    4 Bit        Muxes := 3     
+	   2 Input    4 Bit        Muxes := 13    
+	   2 Input    3 Bit        Muxes := 1     
+	   4 Input    3 Bit        Muxes := 1     
+	   3 Input    1 Bit        Muxes := 8     
+	   2 Input    1 Bit        Muxes := 76    
+	   4 Input    1 Bit        Muxes := 14    
 ---------------------------------------------------------------------------------
 Finished RTL Component Statistics 
 ---------------------------------------------------------------------------------
@@ -254,50 +604,117 @@ WARNING: [Synth 8-3917] design inference_top has port led[0] driven by constant 
 WARNING: [Synth 8-3917] design inference_top has port led_r driven by constant 1
 WARNING: [Synth 8-3917] design inference_top has port led_g driven by constant 1
 WARNING: [Synth 8-3917] design inference_top has port led_b driven by constant 0
-CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[7]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/spi0/dout_sr_reg[7]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
-CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[6]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/spi0/dout_sr_reg[6]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
-CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[5]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/spi0/dout_sr_reg[5]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
-CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[4]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/spi0/dout_sr_reg[4]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
-CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[3]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/spi0/dout_sr_reg[3]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
-CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[2]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/spi0/dout_sr_reg[2]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
-CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[1]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/spi0/dout_sr_reg[1]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
-CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'spi0/dout_sr_reg[0]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/spi0/dout_sr_reg[0]/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
 CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/spi_interface.sv:92]
+WARNING: [Synth 8-3332] Sequential element (FSM_onehot_curr_state_reg[1]) is unused and will be removed from module conv.
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_1/row_ctr_reg[4]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_1/row_ctr_reg[3]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_1/row_ctr_reg[2]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_1/row_ctr_reg[1]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_1/row_ctr_reg[0]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_1/col_ctr_reg[4]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_1/col_ctr_reg[3]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_1/col_ctr_reg[2]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_1/col_ctr_reg[1]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_1/col_ctr_reg[0]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+WARNING: [Synth 8-3332] Sequential element (FSM_onehot_curr_state_reg[1]) is unused and will be removed from module conv__parameterized0.
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_2/row_ctr_reg[3]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_2/row_ctr_reg[2]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_2/row_ctr_reg[1]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_2/row_ctr_reg[0]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:85]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_2/col_ctr_reg[3]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_2/col_ctr_reg[2]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_2/col_ctr_reg[1]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_2/col_ctr_reg[0]__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:86]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'i_0/conv_2/mac_accum_reg__0/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:89]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:89]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:89]
 ---------------------------------------------------------------------------------
-Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:07 ; elapsed = 00:00:07 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49658
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:36 ; elapsed = 00:00:37 . Memory (MB): peak = 2468.941 ; gain = 756.312 ; free physical = 39757 ; free virtual = 51953
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Applying XDC Timing Constraints
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:09 ; elapsed = 00:00:09 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41189 ; free virtual = 49656
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:39 ; elapsed = 00:00:40 . Memory (MB): peak = 2468.941 ; gain = 756.312 ; free physical = 39794 ; free virtual = 51997
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Timing Optimization
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Timing Optimization : Time (s): cpu = 00:00:09 ; elapsed = 00:00:09 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41189 ; free virtual = 49656
+Finished Timing Optimization : Time (s): cpu = 00:01:07 ; elapsed = 00:01:08 . Memory (MB): peak = 2627.941 ; gain = 915.312 ; free physical = 39627 ; free virtual = 51830
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Technology Mapping
 ---------------------------------------------------------------------------------
+WARNING: [Synth 8-3332] Sequential element (conv_1/FSM_onehot_curr_state_reg[0]) is unused and will be removed from module inference_top.
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'conv_1/o_feature_valid_reg/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:172]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:172]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:172]
+WARNING: [Synth 8-3332] Sequential element (conv_2/FSM_onehot_curr_state_reg[0]) is unused and will be removed from module inference_top.
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 1st driver pin 'conv_2/o_feature_valid_reg/Q' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:172]
+CRITICAL WARNING: [Synth 8-6859] multi-driven net on pin Q with 2nd driver pin 'GND' [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:172]
+CRITICAL WARNING: [Synth 8-6858] multi-driven net Q is connected to at least one constant driver which has been preserved, other driver is ignored [/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.srcs/sources_1/new/conv.sv:172]
 ---------------------------------------------------------------------------------
-Finished Technology Mapping : Time (s): cpu = 00:00:09 ; elapsed = 00:00:09 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41189 ; free virtual = 49656
+Finished Technology Mapping : Time (s): cpu = 00:01:08 ; elapsed = 00:01:10 . Memory (MB): peak = 2627.941 ; gain = 915.312 ; free physical = 39627 ; free virtual = 51830
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start IO Insertion
@@ -315,37 +732,37 @@ Start Final Netlist Cleanup
 Finished Final Netlist Cleanup
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished IO Insertion : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+Finished IO Insertion : Time (s): cpu = 00:01:11 ; elapsed = 00:01:12 . Memory (MB): peak = 2627.941 ; gain = 915.312 ; free physical = 39625 ; free virtual = 51829
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Instances
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Instances : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+Finished Renaming Generated Instances : Time (s): cpu = 00:01:11 ; elapsed = 00:01:12 . Memory (MB): peak = 2627.941 ; gain = 915.312 ; free physical = 39625 ; free virtual = 51829
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Rebuilding User Hierarchy
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:01:11 ; elapsed = 00:01:12 . Memory (MB): peak = 2627.941 ; gain = 915.312 ; free physical = 39625 ; free virtual = 51829
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Ports
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Ports : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+Finished Renaming Generated Ports : Time (s): cpu = 00:01:11 ; elapsed = 00:01:12 . Memory (MB): peak = 2627.941 ; gain = 915.312 ; free physical = 39625 ; free virtual = 51829
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Handling Custom Attributes
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Handling Custom Attributes : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+Finished Handling Custom Attributes : Time (s): cpu = 00:01:11 ; elapsed = 00:01:12 . Memory (MB): peak = 2627.941 ; gain = 915.312 ; free physical = 39625 ; free virtual = 51829
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Renaming Generated Nets
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
-Finished Renaming Generated Nets : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+Finished Renaming Generated Nets : Time (s): cpu = 00:01:11 ; elapsed = 00:01:12 . Memory (MB): peak = 2627.941 ; gain = 915.312 ; free physical = 39625 ; free virtual = 51829
 ---------------------------------------------------------------------------------
 ---------------------------------------------------------------------------------
 Start Writing Synthesis Report
@@ -363,31 +780,44 @@ Report Cell Usage:
 |      |Cell    |Count |
 +------+--------+------+
 |1     |clk_wiz |     1|
-|2     |OBUF    |     6|
+|2     |LUT1    |     6|
+|3     |LUT2    |     8|
+|4     |LUT3    |     8|
+|5     |LUT4    |    11|
+|6     |LUT5    |    13|
+|7     |LUT6    |    26|
+|8     |FDCE    |    53|
+|9     |FDPE    |     3|
+|10    |LD      |     9|
+|11    |IBUF    |     1|
+|12    |OBUF    |     7|
 +------+--------+------+
 ---------------------------------------------------------------------------------
-Finished Writing Synthesis Report : Time (s): cpu = 00:00:11 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+Finished Writing Synthesis Report : Time (s): cpu = 00:01:11 ; elapsed = 00:01:12 . Memory (MB): peak = 2627.941 ; gain = 915.312 ; free physical = 39625 ; free virtual = 51829
 ---------------------------------------------------------------------------------
-Synthesis finished with 0 errors, 24 critical warnings and 6 warnings.
-Synthesis Optimization Runtime : Time (s): cpu = 00:00:10 ; elapsed = 00:00:11 . Memory (MB): peak = 2369.816 ; gain = 514.438 ; free physical = 41190 ; free virtual = 49657
-Synthesis Optimization Complete : Time (s): cpu = 00:00:11 ; elapsed = 00:00:12 . Memory (MB): peak = 2369.824 ; gain = 658.188 ; free physical = 41190 ; free virtual = 49657
+Synthesis finished with 0 errors, 87 critical warnings and 253 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:01:08 ; elapsed = 00:01:09 . Memory (MB): peak = 2627.941 ; gain = 775.562 ; free physical = 39625 ; free virtual = 51829
+Synthesis Optimization Complete : Time (s): cpu = 00:01:11 ; elapsed = 00:01:12 . Memory (MB): peak = 2627.949 ; gain = 915.312 ; free physical = 39625 ; free virtual = 51829
 INFO: [Project 1-571] Translating synthesized netlist
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2369.824 ; gain = 0.000 ; free physical = 41252 ; free virtual = 49720
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.01 . Memory (MB): peak = 2627.949 ; gain = 0.000 ; free physical = 39914 ; free virtual = 52117
+INFO: [Netlist 29-17] Analyzing 9 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
 INFO: [Project 1-570] Preparing netlist for logic optimization
 INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
-Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2369.824 ; gain = 0.000 ; free physical = 41465 ; free virtual = 49932
+Netlist sorting complete. Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2683.969 ; gain = 0.000 ; free physical = 39911 ; free virtual = 52115
 INFO: [Project 1-111] Unisim Transformation Summary:
-No Unisim elements were transformed.
+  A total of 9 instances were transformed.
+  LD => LDCE: 9 instances
 
-Synth Design complete | Checksum: 3064e8b7
+Synth Design complete | Checksum: 2e753ad2
 INFO: [Common 17-83] Releasing license: Synthesis
-33 Infos, 119 Warnings, 24 Critical Warnings and 0 Errors encountered.
+68 Infos, 343 Warnings, 87 Critical Warnings and 0 Errors encountered.
 synth_design completed successfully
-synth_design: Time (s): cpu = 00:00:15 ; elapsed = 00:00:14 . Memory (MB): peak = 2369.824 ; gain = 951.266 ; free physical = 41466 ; free virtual = 49933
-INFO: [Common 17-2834] synth_design peak Physical Memory [PSS] (MB): overall = 1866.220; main = 1524.030; forked = 391.301
-INFO: [Common 17-2834] synth_design peak Virtual Memory [VSS] (MB): overall = 3401.090; main = 2369.820; forked = 1031.270
+synth_design: Time (s): cpu = 00:01:15 ; elapsed = 00:01:14 . Memory (MB): peak = 2683.969 ; gain = 1266.410 ; free physical = 39911 ; free virtual = 52115
+INFO: [Common 17-2834] synth_design peak Physical Memory [PSS] (MB): overall = 2200.198; main = 1860.490; forked = 391.195
+INFO: [Common 17-2834] synth_design peak Virtual Memory [VSS] (MB): overall = 3659.215; main = 2683.973; forked = 1031.270
 INFO: [runtcl-6] Synthesis results are not added to the cache due to CRITICAL_WARNING
-Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2393.828 ; gain = 0.000 ; free physical = 41466 ; free virtual = 49933
+Write ShapeDB Complete: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00 . Memory (MB): peak = 2707.980 ; gain = 0.000 ; free physical = 39911 ; free virtual = 52115
 INFO: [Common 17-1381] The checkpoint '/home/pstecklein/repos/low-latency-mnist-inference/xc7a35LeNet/xc7a35LeNet.runs/synth_1/inference_top.dcp' has been generated.
 INFO: [Vivado 12-24828] Executing command : report_utilization -file inference_top_utilization_synth.rpt -pb inference_top_utilization_synth.pb
-INFO: [Common 17-206] Exiting Vivado at Sun Nov 17 21:13:52 2024...
+INFO: [Common 17-206] Exiting Vivado at Sun Dec  8 22:23:41 2024...

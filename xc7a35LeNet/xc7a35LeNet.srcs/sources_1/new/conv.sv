@@ -6,10 +6,11 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module conv #(
-    parameter INPUT_WIDTH  = 32,
-    parameter INPUT_HEIGHT = 32,
-    parameter FILTER_SIZE  = 5,
-    parameter NUM_FILTERS  = 6
+    parameter string WEIGHTS_FILE = "weights.mem",
+    parameter        INPUT_WIDTH  = 32,
+    parameter        INPUT_HEIGHT = 32,
+    parameter        FILTER_SIZE  = 5,
+    parameter        NUM_FILTERS  = 6
 ) (
     input  logic               i_clk,
     input  logic               i_rst,
@@ -25,14 +26,16 @@ module conv #(
     localparam OUTPUT_WIDTH  = INPUT_WIDTH - FILTER_SIZE + 1;
     
     // Focus on how we want to load the weights in
-    logic signed [7:0] filter_weights[NUM_FILTERS-1:0][FILTER_SIZE*FILTER_SIZE-1:0];
+    (* rom_style = "block" *) logic signed [7:0]
+    filter_weights [NUM_FILTERS-1:0][OUTPUT_WIDTH-1:0][OUTPUT_HEIGHT-1:0];
+    initial $readmemb(WEIGHTS_FILE, filter_weights);
 
     // For height=5 filter, we only need to store 4 rows of pixel data
     // We could reduce latency if we get creative with the fill order of the LB
     logic        [7:0] line_buffer[FILTER_SIZE-2:0][INPUT_WIDTH-1:0];
     
     // Window is pixel block to be element-wise multiplied with filter kernel (5x5 for conv1 of LeNet-5)
-    logic        [7:0] window[FILTER_SIZE-1:0][FILTER_SIZE-1:0];
+    logic signed [7:0] window[FILTER_SIZE-1:0][FILTER_SIZE-1:0];
     
     // control counters
     logic [$clog2(INPUT_HEIGHT)-1:0] row_ctr;
@@ -160,8 +163,8 @@ module conv #(
             integer i;   // static so initialized once here (or is it init each cycle?)
             i = mac_ctr; // value is set each time always block is entered
             mac_accum <= mac_accum +
-                $signed(window[i/FILTER_SIZE][i%FILTER_SIZE]) *
-                $signed(filter_weights[filter_ctr][i]);
+                window[i/FILTER_SIZE][i%FILTER_SIZE] *
+                filter_weights[filter_ctr][i];
         end
     end
     
