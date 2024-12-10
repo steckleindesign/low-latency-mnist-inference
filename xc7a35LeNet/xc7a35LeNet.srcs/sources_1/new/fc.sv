@@ -88,7 +88,7 @@ module fc #(
         if (~i_rst)
             acc = '{default: 0};
         else if (state == MACC && i_feature_valid)
-            acc[neuron_ctr] <= acc[neuron_ctr] + i_feature * weight;
+            acc[neuron_ctr] <= acc[neuron_ctr] + i_feature * weights;
     end
             
     always_ff @(posedge i_clk or negedge i_rst) begin

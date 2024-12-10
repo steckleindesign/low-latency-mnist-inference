@@ -1,10 +1,11 @@
 `timescale 1ns / 1ps
 
 module output_layer #(
+    parameter string WEIGHTS_FILE = "weights.mem",
     // Definitely need to overwrite feature width (depends on previous FC layer)
-    parameter FEATURE_WIDTH    = 16,
-    parameter NUM_FEATURES     = 84,
-    parameter NUM_CLASSES      = 10
+    parameter FEATURE_WIDTH       = 16,
+    parameter NUM_FEATURES        = 84,
+    parameter NUM_CLASSES         = 10
 )(
     input               i_clk,
     input               i_rst,

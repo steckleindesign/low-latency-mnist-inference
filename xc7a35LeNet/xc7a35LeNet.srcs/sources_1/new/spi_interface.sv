@@ -69,12 +69,15 @@ module spi_interface(
     
     // Falling edge to meet setup/hold time (MCU is controller, FPGA is peripheral)
     // Check timing analysis, path is half of SCK cyc!!!
-    always_ff @(negedge i_sck)
-    begin        
-        // Need to hold incoming data from device registers module
-        // Drive CIPO line via data-out shift register
-        // CIPO idles low outside of a read cycle
-        dout_sr <= hold_rd_data_r ? i_rd_data : rd_byte_r ? { dout_sr[6:0], 1'b0 } : 8'b0;
+    always_ff @(negedge i_sck or posedge i_nss)
+    begin
+        if (i_nss)
+            dout_sr <= 8'b0;
+        else
+            // Need to hold incoming data from device registers module
+            // Drive CIPO line via data-out shift register
+            // CIPO idles low outside of a read cycle
+            dout_sr <= hold_rd_data_r ? i_rd_data : rd_byte_r ? { dout_sr[6:0], 1'b0 } : 8'b0;
     end
     
     // CS acts as asynchronous reset
@@ -88,8 +91,7 @@ module spi_interface(
             rd_req_r    <= 1'b0;
             pp_side_r   <= 1'b0;
             din_sr[0]   <= 8'b0;
-            din_sr[1]   <= 8'b0;
-            dout_sr     <= 8'b0; // Multi-driven net warning here
+            din_sr[1]   <= 8'b0; // Multi-driven net warning here
             cmd_byte_r  <= 1'b1;
             null_byte_r <= 1'b0;
             data_byte_r <= 1'b0;

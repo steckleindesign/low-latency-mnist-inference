@@ -36,6 +36,8 @@ module conv #(
     
     // Window is pixel block to be element-wise multiplied with filter kernel (5x5 for conv1 of LeNet-5)
     logic signed [7:0] window[FILTER_SIZE-1:0][FILTER_SIZE-1:0];
+    // Indexed window, weight value to be used for * operation
+    logic signed [7:0] window_value, weight_value;
     
     // control counters
     logic [$clog2(INPUT_HEIGHT)-1:0] row_ctr;
@@ -157,15 +159,13 @@ module conv #(
         end
     end
     
-    // MACC operation (DSP48E1!!!)
+    // MACC operation (DSP48E1)
     always_ff @(posedge i_clk) begin
-        if (curr_state == MACC) begin
-            integer i;   // static so initialized once here (or is it init each cycle?)
-            i = mac_ctr; // value is set each time always block is entered
-            mac_accum <= mac_accum +
-                window[i/FILTER_SIZE][i%FILTER_SIZE] *
-                filter_weights[filter_ctr][i];
-        end
+        window_value <= window[mac_ctr/FILTER_SIZE][mac_ctr%FILTER_SIZE];
+        // Need to simplify this!
+        weight_value <= filter_weights[filter_ctr][row_ctr - FILTER_SIZE/2 + mac_ctr/FILTER_SIZE][col_ctr - FILTER_SIZE/2 + mac_ctr%FILTER_SIZE];
+        if (curr_state == MACC)
+            mac_accum <= mac_accum + window_value * weight_value;
     end
     
     // review synthesis to check if logical AND results in different RTL circuit

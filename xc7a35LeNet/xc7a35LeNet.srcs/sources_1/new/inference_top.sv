@@ -131,7 +131,7 @@ module inference_top(
     
     // Convolutional Layer 1
     conv                   #(
-                             .WEIGHTS_FILE("conv1_weights"),
+                             .WEIGHTS_FILE("conv1_weights.mem"),
                              .INPUT_WIDTH (32),
                              .INPUT_HEIGHT(32),
                              .FILTER_SIZE ( 5),
@@ -161,7 +161,7 @@ module inference_top(
                             
     // Convolutional Layer 2
     conv                   #(
-                             .WEIGHTS_FILE("conv2_weights"),
+                             .WEIGHTS_FILE("conv2_weights.mem"),
                              .INPUT_WIDTH (14),
                              .INPUT_HEIGHT(14),
                              .FILTER_SIZE ( 5),
@@ -191,7 +191,7 @@ module inference_top(
     
     // Fully Connected Layer 1
     fc                     #(
-                             .WEIGHTS_FILE("fc1_weights"),
+                             .WEIGHTS_FILE("fc1_weights.mem"),
                              .FEATURE_WIDTH(16),
                              .NUM_FEATURES (16*5*5),
                              .NUM_NEURONS  (120)
@@ -219,9 +219,10 @@ module inference_top(
                              
     // Fully Connected Layer 3 (Output Layer)
     output_layer          #(
-                             .WEIGHTS_FILE("fc3_weights"),
+                             .WEIGHTS_FILE("fc3_weights.mem"),
                              .FEATURE_WIDTH(16+16+$clog2(16*5*5)+$clog2(120)),
-                             .NUM_FEATURES (84)
+                             .NUM_FEATURES (84),
+                             .NUM_CLASSES  (10)
                             ) output_layer_inst (
                              .i_clk(clk100m),
                              .i_rst(rst),
