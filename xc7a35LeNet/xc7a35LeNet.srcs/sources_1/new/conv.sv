@@ -7,6 +7,7 @@
 
 module conv #(
     parameter string WEIGHTS_FILE = "weights.mem",
+    parameter string BIASES_FILE  = "biases.mem",
     parameter        INPUT_WIDTH  = 32,
     parameter        INPUT_HEIGHT = 32,
     parameter        FILTER_SIZE  = 5,
@@ -25,10 +26,15 @@ module conv #(
     localparam OUTPUT_HEIGHT = INPUT_HEIGHT - FILTER_SIZE + 1;
     localparam OUTPUT_WIDTH  = INPUT_WIDTH - FILTER_SIZE + 1;
     
-    // Focus on how we want to load the weights in
+    // Initialize trainable parameters
+    // Weights
     (* rom_style = "block" *) logic signed [7:0]
-    filter_weights [NUM_FILTERS-1:0][OUTPUT_WIDTH-1:0][OUTPUT_HEIGHT-1:0];
-    initial $readmemb(WEIGHTS_FILE, filter_weights);
+    weights [NUM_FILTERS-1:0][OUTPUT_WIDTH-1:0][OUTPUT_HEIGHT-1:0];
+    initial $readmemb(WEIGHTS_FILE, weights);
+    // Biases
+    (* rom_style = "block" *) logic signed [7:0]
+    biases [NUM_FILTERS-1:0][OUTPUT_WIDTH-1:0][OUTPUT_HEIGHT-1:0];
+    initial $readmemb(BIASES_FILE, biases);
 
     // For height=5 filter, we only need to store 4 rows of pixel data
     // We could reduce latency if we get creative with the fill order of the LB
@@ -100,17 +106,13 @@ module conv #(
                         col_ctr         <=  'b0;
                         filter_ctr      <=  'b0;
                         mac_ctr         <=  'b0;
-                        mac_accum       <=  'b0;
+                        mac_accum       <= biases[0][0][0];
                         o_feature_valid <= 1'b0;
                     end
                 end
                 // LOAD_WINDOW: Window is loaded with data from buffers...
                 MACC: begin
-                    mac_ctr <= mac_ctr + 1'b1;
-                    if (mac_ctr == WINDOW_AREA-1) begin
-                        mac_ctr   <= 'b0;
-                        mac_accum <= 'b0;
-                    end
+                    mac_ctr <= mac_ctr == WINDOW_AREA-1 ? 'b0 : mac_ctr + 1'b1;
                 end
                 DATA_OUT: begin
                     o_feature_valid <= 1'b1;
@@ -161,9 +163,12 @@ module conv #(
     
     // MACC operation (DSP48E1)
     always_ff @(posedge i_clk) begin
+        // Biases is first added to accumulate for efficiency
+        // While we are in the MACC state, the weight*feature operations are added
+        mac_accum    <= biases[filter_ctr][row_ctr][col_ctr];
         window_value <= window[mac_ctr/FILTER_SIZE][mac_ctr%FILTER_SIZE];
-        // Need to simplify this!
-        weight_value <= filter_weights[filter_ctr][row_ctr - FILTER_SIZE/2 + mac_ctr/FILTER_SIZE][col_ctr - FILTER_SIZE/2 + mac_ctr%FILTER_SIZE];
+        // Need to simplify this! Maybe weights should also be a 2D SR
+        weight_value <= weights[filter_ctr][row_ctr - FILTER_SIZE/2 + mac_ctr/FILTER_SIZE][col_ctr - FILTER_SIZE/2 + mac_ctr%FILTER_SIZE];
         if (curr_state == MACC)
             mac_accum <= mac_accum + window_value * weight_value;
     end

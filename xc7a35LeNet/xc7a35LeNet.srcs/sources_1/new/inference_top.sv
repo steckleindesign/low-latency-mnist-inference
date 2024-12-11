@@ -77,7 +77,7 @@ module inference_top(
     /* TODO  list:
         Async reset re-sync logic
         Send output out on MISO line
-        Fix weight indexing, conv pattern
+        conv pattern
     */
     
     // MMCM
@@ -88,7 +88,7 @@ module inference_top(
     logic       spi_wr_req;
     logic       spi_rd_req;
     logic [7:0] spi_wr_data;
-    logic [7:0] logit; // spi_rd_data;
+    logic [7:0] logit; // spi_rd_data
     
     // Valid signals, features
     logic               pixel_valid;
@@ -132,6 +132,7 @@ module inference_top(
     // Convolutional Layer 1
     conv                   #(
                              .WEIGHTS_FILE("conv1_weights.mem"),
+                             .BIASES_FILE ("conv1_biases.mem"),
                              .INPUT_WIDTH (32),
                              .INPUT_HEIGHT(32),
                              .FILTER_SIZE ( 5),
@@ -162,6 +163,7 @@ module inference_top(
     // Convolutional Layer 2
     conv                   #(
                              .WEIGHTS_FILE("conv2_weights.mem"),
+                             .BIASES_FILE ("conv2_biases.mem"),
                              .INPUT_WIDTH (14),
                              .INPUT_HEIGHT(14),
                              .FILTER_SIZE ( 5),
@@ -192,6 +194,7 @@ module inference_top(
     // Fully Connected Layer 1
     fc                     #(
                              .WEIGHTS_FILE("fc1_weights.mem"),
+                             .BIASES_FILE ("fc1_biases.mem"),
                              .FEATURE_WIDTH(16),
                              .NUM_FEATURES (16*5*5),
                              .NUM_NEURONS  (120)
@@ -206,6 +209,7 @@ module inference_top(
     // Fully Connected Layer 2
     fc                     #(
                              .WEIGHTS_FILE("fc2_weights"),
+                             .BIASES_FILE ("fc2_biases.mem"),
                              .FEATURE_WIDTH(16+16+$clog2(16*5*5)),
                              .NUM_FEATURES (120),
                              .NUM_NEURONS  (84)
@@ -220,6 +224,7 @@ module inference_top(
     // Fully Connected Layer 3 (Output Layer)
     output_layer          #(
                              .WEIGHTS_FILE("fc3_weights.mem"),
+                             .BIASES_FILE ("fc3_biases.mem"),
                              .FEATURE_WIDTH(16+16+$clog2(16*5*5)+$clog2(120)),
                              .NUM_FEATURES (84),
                              .NUM_CLASSES  (10)
