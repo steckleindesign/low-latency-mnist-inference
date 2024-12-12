@@ -6,7 +6,10 @@ module fc #(
     // defaults coorespond to first FC layer of LeNet-5
     parameter        FEATURE_WIDTH = 16,
     parameter        NUM_FEATURES  = 16*5*5, // 400
-    parameter        NUM_NEURONS   = 120
+    parameter        NUM_NEURONS   = 120,
+    // Dependent local parameters
+    localparam WEIGHT_WIDTH = 16,
+    localparam ACC_WIDTH = FEATURE_WIDTH+WEIGHT_WIDTH+$clog2(NUM_FEATURES)
 )(
     input                        i_clk,
     input                        i_rst,
@@ -15,9 +18,6 @@ module fc #(
     output logic                 o_neuron_valid,
     output logic [ACC_WIDTH-1:0] o_neuron
 );
-
-    localparam WEIGHT_WIDTH = 16;
-    localparam ACC_WIDTH    = FEATURE_WIDTH+WEIGHT_WIDTH+$clog2(NUM_FEATURES);
     
     // Initialize trainable parameters
     // Weights
