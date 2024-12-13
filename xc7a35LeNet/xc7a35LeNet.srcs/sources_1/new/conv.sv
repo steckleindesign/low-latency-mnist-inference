@@ -1,8 +1,6 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-/*
-    Need to account for number of cycles between pixel valid pulses (roughly 16 clk100m cycs)
-*/
+
 //////////////////////////////////////////////////////////////////////////////////
 
 module conv #(
@@ -54,7 +52,7 @@ module conv #(
     logic [$clog2(WINDOW_AREA)-1:0]  mac_ctr;
         
     // MACC accumulate
-    logic signed mac_accum;
+    logic signed [15:0] mac_accum;
     
     typedef enum logic {
         IDLE, MACC

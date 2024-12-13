@@ -130,7 +130,7 @@ module inference_top(
     // Separate files for weights and biases?
     
     // Convolutional Layer 1
-    conv                   #(
+    conv1                  #(
                              .WEIGHTS_FILE("conv1_weights.mem"),
                              .BIASES_FILE ("conv1_biases.mem"),
                              .INPUT_WIDTH (32),
