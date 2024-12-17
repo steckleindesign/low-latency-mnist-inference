@@ -2,8 +2,20 @@
 //////////////////////////////////////////////////////////////////////////////////
 /*
     TODO: Determine how to fit in the +bias operation
-          See if we can do it in DSP48 without hurting max clock frequency
-          See the max clock frequency penalty when implemented in fabric
+            -See if we can do it in DSP48 without hurting max clock frequency
+            -See the max clock frequency penalty when implemented in fabric
+          
+          90 DSPS, 50 BRAMS (36Kb each)
+          6 filters for conv1, 5x5 filter (25 * ops), 28x28 conv ops (784)
+          = 6*(5*5)*(28*28) = 117600 * ops / 90 DSPs = 1306.6 = 1307 cycs theoretically
+          
+          Shift register functionality for 5x5 weight matrix should synthesize as array of SRLs
+          
+          At end of each row, we'll have to "tag in" complementary Shift register unit,
+          because throughout the row, the shift register will shift horizontally, but
+          at the end of each row, then shift register will need to shift down. So we will
+          have to multiply our shift register resources by 2 until a better solution is found.
+          
 */
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -18,10 +30,19 @@ module conv1 #(
     input  logic               i_clk,
     input  logic               i_rst,
     input  logic               i_feature_valid,
+    // For now we are just preloading pixels from RAM,
+    // So i_feature will be reading from a full RAM of pixels,
+    // No CDC needed, a new feature is available each clock cycle
     input  logic         [7:0] i_feature,
     output logic               o_feature_valid,
-    output logic signed [15:0] o_feature
+    output logic signed [15:0] o_feature,
+    output logic               o_buffer_full
 );
+
+    // Need to determine how to share DSPs with RAMs,
+    // Currently thinking 5 pixel RAMs (internal to conv1)
+    // 18 DSPs * 5 RAMs = 90 DSPs
+    // How to integrate this with shift register logic?
 
     // row cnt, col cnt range 2-30
     // outer 2 rings of 32x32 are all 0, and are stored in ram this way
@@ -51,9 +72,14 @@ module conv1 #(
 
     // For height=5 filter, we only need to store 4 rows of pixel data
     // We could reduce latency if we get creative with the fill order of the LB
-    logic        [7:0] line_buffer[FILTER_SIZE-2:0][INPUT_WIDTH-1:0];
+    // For now we will starting MACC operations once line buffer is full
+    logic         [7:0] line_buffer[FILTER_SIZE-2:0][INPUT_WIDTH-1:0];
 
-    logic        [7:0] window[FILTER_SIZE-1:0][FILTER_SIZE-1:0];
+    // 1040 is best idea so far, maybe be able to improve by reducing the 2x's
+    // Uses 2*ceil(FILTER_SIZE/32)*8 SRL32s, 2*5*8 = 80 SRL32s in out case
+    logic         [7:0] window[FILTER_SIZE-1:0][FILTER_SIZE-1:0];
+    // Uses 2*NUM_FILTERS*ceil(FILTER_SIZE/32)*16 SRL32s, 2*6*5*16 = 960 SRL32s in out case
+    logic signed [16:0] weight_window[NUM_FILTERS-1:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
     
     // Indexed window, weight value to be used for * operation
     logic        [7:0] window_value;
@@ -139,6 +165,10 @@ module conv1 #(
         end
     end
     
-    assign o_feature = mac_accum;
+    // How many features do we want to output in parallel?
+    assign o_feature     = mac_accum;
+    
+    // implement
+    assign o_buffer_full = 0;
 
 endmodule
