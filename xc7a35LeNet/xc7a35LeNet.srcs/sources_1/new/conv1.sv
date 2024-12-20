@@ -91,7 +91,7 @@ module conv1 #(
     // logic         [7:0] window_sr[FILTER_SIZE-1:0][FILTER_SIZE-1:0];
     
     // Indexed window, weight value to be used for * operation
-    logic         [7:0] feature_operands[2:0];
+    logic         [7:0] feature_operands[4:0][2:0];
     // logic signed [15:0] weight_operand;
     
     // Line buffer counters
@@ -143,11 +143,41 @@ module conv1 #(
         end
     end
     
+    // Mapping feature operands
+    always_comb begin
+        case(state)
+            ONE: begin
+                feature_operands[0] = line_buffer[feat_col_ctr-2];
+                feature_operands[1] = line_buffer[feat_col_ctr-1];
+                feature_operands[2] = line_buffer[feat_col_ctr  ];
+            end
+            TWO: begin
+                feature_operands[0] = line_buffer[feat_col_ctr+1];
+                feature_operands[1] = line_buffer[feat_col_ctr+2];
+                feature_operands[2] = line_buffer[feat_col_ctr-1];
+            end
+            THREE: begin
+                feature_operands[0] = line_buffer[feat_col_ctr-1];
+                feature_operands[1] = line_buffer[feat_col_ctr  ];
+                feature_operands[2] = line_buffer[feat_col_ctr+1];
+            end
+            FOUR: begin
+                feature_operands[0] = line_buffer[feat_col_ctr+2];
+                feature_operands[1] = line_buffer[feat_col_ctr-1];
+                feature_operands[2] = line_buffer[feat_col_ctr  ];
+            end
+            FIVE: begin
+                feature_operands[0] = line_buffer[feat_col_ctr  ];
+                feature_operands[1] = line_buffer[feat_col_ctr+1];
+                feature_operands[2] = line_buffer[feat_col_ctr+2];
+            end
+        endcase
+    end
+    
     always_ff @(posedge i_clk) begin
         if (macc_en) begin
             case(state)
                 ONE: begin
-                    
                     
                 end
                 TWO: begin
