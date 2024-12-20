@@ -42,6 +42,7 @@ module conv1 #(
     input  logic         [7:0] i_feature,
     output logic               o_feature_valid,
     output logic signed [15:0] o_feature,
+    // Letting pixel RAM know we can't take in any data
     output logic               o_buffer_full
 );
 
@@ -68,12 +69,12 @@ module conv1 #(
     
     // Initialize trainable parameters
     // Weights
-    (* rom_style = "block" *) logic signed [7:0]
-    weights [NUM_FILTERS-1:0][OUTPUT_WIDTH-1:0][OUTPUT_HEIGHT-1:0];
+    (* rom_style = "block" *) logic signed [15:0]
+    weights [NUM_FILTERS-1:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
     initial $readmemb(WEIGHTS_FILE, weights);
     // Biases
-    (* rom_style = "block" *) logic signed [7:0]
-    biases [NUM_FILTERS-1:0][OUTPUT_WIDTH-1:0][OUTPUT_HEIGHT-1:0];
+    (* rom_style = "block" *) logic signed [15:0]
+    biases [NUM_FILTERS-1:0];
     initial $readmemb(BIASES_FILE, biases);
 
     // For height=5 filter, we only need to store 4 rows of pixel data
@@ -82,22 +83,21 @@ module conv1 #(
     // For now we will starting MACC operations once line buffer is full
     // Also we will use a line buffer with FILTER_SIZE rows, 5 rows in our case
     // Again, we are not using the last 2 columns in this iteration (all 0's so its viable)
-    logic         [7:0] line_buffer[FILTER_SIZE-1:0][ROW_END:0];
+    logic         [7:0] line_buffer[FILTER_SIZE-1:0][COL_END:0];
 
     // 1040 is best idea so far, maybe be able to improve by reducing the 2x's
     // Uses 2*ceil(FILTER_SIZE/32)*8 SRL32s, 2*5*8 = 80 SRL32s in out case
-    logic         [7:0] window[FILTER_SIZE-1:0][FILTER_SIZE-1:0];
-    // Uses 2*NUM_FILTERS*ceil(FILTER_SIZE/32)*16 SRL32s, 2*6*5*16 = 960 SRL32s in out case
-    logic signed [16:0] weight_window[NUM_FILTERS-1:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
+    // Currently don't use a shift register for the pixels/features
+    // logic         [7:0] window_sr[FILTER_SIZE-1:0][FILTER_SIZE-1:0];
     
     // Indexed window, weight value to be used for * operation
-    logic        [7:0] window_value;
-    logic signed [7:0] weight_value;
+    logic         [7:0] feature_operands[2:0];
+    // logic signed [15:0] weight_operand;
     
     // Line buffer counters
     logic [$clog2(ROW_END)-1:0] lb_row_ctr;
     logic [$clog2(COL_END)-1:0] lb_col_ctr;
-    // Pixel window counters (gernalize to feature)
+    // Pixel window counters (generalize to feature)
     logic [$clog2(ROW_END)-1:0] feat_row_ctr;
     logic [$clog2(COL_END)-1:0] feat_col_ctr;
     // Do not need filter/MACC counter for this iteration
@@ -105,37 +105,81 @@ module conv1 #(
     // logic [$clog2(WINDOW_AREA)-1:0] mac_ctr;
     
     // Line buffer full flag
-    logic        lb_full;
+    logic               lb_full;
     // Is it ok to go FSM-less and just use this MACC enable?
-    logic        macc_en;
+    logic               macc_en;
     // Keep track of row count direction, we zig zag rows (Do we actually gain any efficiency this way?)
-    logic        row_cnt_direction;
+    logic               row_cnt_direction;
     // Is 16-wide ok?
     logic signed [15:0] macc_accum;
     
+    typedef enum logic [2:0] {
+        ONE, TWO, THREE, FOUR, FIVE
+    } state_t;
+    state_t state, next_state;
+    
     always_ff @(posedge i_clk) begin
-        // Sync reset
-        if (~i_rst)
+        if (i_rst)
+            state <= ONE;
+        else
+            state <= next_state;
+    end
+    
+    // Maybe just use a counter here instead of a FSM
+    always_comb begin
+        if (macc_en || i_feature_valid) begin
+            case(state)
+                ONE:
+                    next_state = TWO;
+                TWO:
+                    next_state = THREE;
+                THREE:
+                    next_state = FOUR;
+                FOUR:
+                    next_state = FIVE;
+                FIVE:
+                    next_state = ONE;
+            endcase
+        end
+    end
+    
+    always_ff @(posedge i_clk) begin
+        if (macc_en) begin
+            case(state)
+                ONE: begin
+                    
+                    
+                end
+                TWO: begin
+                    feat_col_ctr <= feat_col_ctr + 1;
+                    
+                end
+                THREE: begin
+                    
+                    
+                end
+                FOUR: begin
+                    feat_col_ctr <= feat_col_ctr + 1;
+                    // At state 4, we need to check if we are at the end of the row
+                    // and move down if so
+                    
+                end
+                FIVE: begin
+                    feat_col_ctr <= feat_col_ctr + 1;
+                    
+                end
+            endcase
+        end
+    end
+    
+    always_ff @(posedge i_clk) begin
+        // Active high sync reset
+        if (i_rst)
             macc_en <= 0;
         else begin
             if (macc_en) begin
-                // Generate window by shifting right by 1
-                for (int i = 0; i < FILTER_SIZE; i++)
-                    for (int j = 0; j < FILTER_SIZE-1; j++)
-                        window[i][j] <= window[i][j+1];
                 
-                // Last column of pixel window assigned values from equivalent column of line buffer
-                // Check synthesis here, is there simply FILTER_SIZE-1 SRLs?
-                for (int i = 0; i < FILTER_SIZE-1; i++)
-                    window[i][FILTER_SIZE-1] <= line_buffer[i][col_ctr];
-                
-                // The bottom right corner of the pixel window, will take the incoming pixel as its value
-                window[FILTER_SIZE-1][FILTER_SIZE-1] <= i_feature;
-                
-//                for (int i = 0; i < FILTER_SIZE-2; i++)
-//                    line_buffer[i][col_ctr] <= line_buffer[i+1][col_ctr];
-//                line_buffer[FILTER_SIZE-2][col_ctr]   <= i_feature;
-//                line_buffer[0][col_ctr-FILTER_SIZE+1] <= window[FILTER_SIZE-1][col_ctr-FILTER_SIZE+1];
+                lb_full <= lb_row_ctr == 3'd4 && lb_col_ctr == COL_END;
                 
                 if (feat_col_ctr == COL_END) begin
                     if (lb_row_ctr == ROW_END) begin
@@ -154,30 +198,7 @@ module conv1 #(
                         end
                     end
                 end
-                
-                window_value <= window[mac_ctr/FILTER_SIZE][mac_ctr%FILTER_SIZE];
-                // Need to simplify this! Maybe weights should also be a 2D SR
-                // Study BRAMS/SRLs to see how to go about this
-                weight_value <= weights[filter_ctr]
-                                       [row_ctr - FILTER_SIZE/2 + mac_ctr/FILTER_SIZE]
-                                       [col_ctr - FILTER_SIZE/2 + mac_ctr%FILTER_SIZE];
-                
-                mac_accum <= mac_accum + window_value * weight_value;
-                
-                col_ctr <= col_ctr + 1;
-                if (col_ctr == COL_END) begin
-                    col_ctr <= 0;
-                    row_ctr <= row_ctr + 1;
-                end
-                
-                mac_ctr <= mac_ctr == WINDOW_AREA-1 ? 0 : mac_ctr + 1;
-                
-                o_feature_valid <= 0;
-                if (mac_ctr == WINDOW_AREA-1) begin
-                    o_feature_valid <= 1;
-                    filter_ctr      <= filter_ctr == NUM_FILTERS-1 ? 0 : filter_ctr + 1;
-                end
-                
+                                
                 // Biases is first added to accumulate for efficiency
                 // While we are in the MACC state, the weight*feature operations are added
                 // mac_accum    <= biases[filter_ctr][row_ctr][col_ctr];
@@ -190,8 +211,7 @@ module conv1 #(
                     feat_col_ctr    <= COL_START;
                     // filter_ctr      <= 0;
                     // mac_ctr         <= 0;
-                    // Do we actually need to reset the feature/weight buffers to 0?
-                    window          <= '{default: 0};
+                    // Do we actually need to reset the line buffer to 0?
                     line_buffer     <= '{default: 0};
                     // mac_accum       <= 0; // biases[0][0][0];
                     macc_en         <= 1;
@@ -204,7 +224,9 @@ module conv1 #(
     // How many features do we want to output in parallel?
     assign o_feature     = mac_accum;
     
+    // o_feature_valid
+    
     // implement
-    assign o_buffer_full = 0;
+    assign o_buffer_full = lb_full;
 
 endmodule
