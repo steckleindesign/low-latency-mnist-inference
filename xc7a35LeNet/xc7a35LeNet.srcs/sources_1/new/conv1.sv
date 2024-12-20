@@ -46,14 +46,6 @@ module conv1 #(
     output logic               o_buffer_full
 );
 
-    // Need to determine how to share DSPs with RAMs,
-    // Currently thinking 5 pixel RAMs (internal to conv1)
-    // 18 DSPs * 5 RAMs = 90 DSPs
-    // How to integrate this with shift register logic?
-
-    // row cnt, col cnt range 2-30
-    // outer 2 rings of 32x32 are all 0, and are stored in ram this way
-    // so from first pixel input, we are fully ready for first convolution
     // we don't want to waste cycles on multiplying with 0s (whether 0 pixel/feature or outer rings)
     // ^ is it worth it to compare and skip features in single clock cycle to avoid *0 ?
     // The muxing implemented in fabric will probably take too much space, so will need to use DSP48 mux
@@ -78,32 +70,19 @@ module conv1 #(
     initial $readmemb(BIASES_FILE, biases);
 
     // For height=5 filter, we only need to store 4 rows of pixel data
-    // We could reduce latency if we get creative with the fill order of the LB
-    
     // For now we will starting MACC operations once line buffer is full
     // Also we will use a line buffer with FILTER_SIZE rows, 5 rows in our case
     // Again, we are not using the last 2 columns in this iteration (all 0's so its viable)
     logic         [7:0] line_buffer[FILTER_SIZE-1:0][COL_END:0];
-
-    // 1040 is best idea so far, maybe be able to improve by reducing the 2x's
-    // Uses 2*ceil(FILTER_SIZE/32)*8 SRL32s, 2*5*8 = 80 SRL32s in out case
-    // Currently don't use a shift register for the pixels/features
-    // logic         [7:0] window_sr[FILTER_SIZE-1:0][FILTER_SIZE-1:0];
-    
-    // Indexed window, weight value to be used for * operation
-    logic         [7:0] feature_operands[4:0][2:0];
-    // logic signed [15:0] weight_operand;
-    
-    // Line buffer counters
+    // Indexed features to be used for * operation
+    logic         [7:0] feature_operands[FILTER_SIZE-1:0][2:0];
+    logic signed  [7:0] weight_operands[NUM_FILTERS-1:0][FILTER_SIZE-1:0][2:0];
+    // Line buffer location
     logic [$clog2(ROW_END)-1:0] lb_row_ctr;
     logic [$clog2(COL_END)-1:0] lb_col_ctr;
-    // Pixel window counters (generalize to feature)
+    // Feature conv location
     logic [$clog2(ROW_END)-1:0] feat_row_ctr;
     logic [$clog2(COL_END)-1:0] feat_col_ctr;
-    // Do not need filter/MACC counter for this iteration
-    // logic [$clog2(NUM_FILTERS)-1:0] filter_ctr;
-    // logic [$clog2(WINDOW_AREA)-1:0] mac_ctr;
-    
     // Line buffer full flag
     logic               lb_full;
     // Is it ok to go FSM-less and just use this MACC enable?
@@ -111,8 +90,10 @@ module conv1 #(
     // Keep track of row count direction, we zig zag rows (Do we actually gain any efficiency this way?)
     logic               row_cnt_direction;
     // Is 16-wide ok?
-    logic signed [15:0] macc_accum;
-    
+    logic signed [15:0] macc_accum[NUM_FILTERS-1:0];
+    // Register outputs of DSPs
+    logic signed [23:0] mult_out[NUM_FILTERS-1:0][(FILTER_SIZE*3)-1:0];
+    // 5 state MACC sequence throughout conv1 layer execution
     typedef enum logic [2:0] {
         ONE, TWO, THREE, FOUR, FIVE
     } state_t;
@@ -143,33 +124,62 @@ module conv1 #(
         end
     end
     
-    // Mapping feature operands
     always_comb begin
         case(state)
             ONE: begin
                 feature_operands[0] = line_buffer[feat_col_ctr-2];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][0] = weights[i][0];
                 feature_operands[1] = line_buffer[feat_col_ctr-1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][1] = weights[i][1];
                 feature_operands[2] = line_buffer[feat_col_ctr  ];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][2] = weights[i][2];
             end
             TWO: begin
                 feature_operands[0] = line_buffer[feat_col_ctr+1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][0] = weights[i][3];
                 feature_operands[1] = line_buffer[feat_col_ctr+2];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][1] = weights[i][4];
                 feature_operands[2] = line_buffer[feat_col_ctr-1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][2] = weights[i][0];
             end
             THREE: begin
                 feature_operands[0] = line_buffer[feat_col_ctr-1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][0] = weights[i][1];
                 feature_operands[1] = line_buffer[feat_col_ctr  ];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][1] = weights[i][2];
                 feature_operands[2] = line_buffer[feat_col_ctr+1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][2] = weights[i][3];
             end
             FOUR: begin
                 feature_operands[0] = line_buffer[feat_col_ctr+2];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][0] = weights[i][4];
                 feature_operands[1] = line_buffer[feat_col_ctr-1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][1] = weights[i][0];
                 feature_operands[2] = line_buffer[feat_col_ctr  ];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][2] = weights[i][1];
             end
             FIVE: begin
                 feature_operands[0] = line_buffer[feat_col_ctr  ];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][0] = weights[i][2];
                 feature_operands[1] = line_buffer[feat_col_ctr+1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][1] = weights[i][3];
                 feature_operands[2] = line_buffer[feat_col_ctr+2];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][2] = weights[i][4];
             end
         endcase
     end
@@ -185,7 +195,6 @@ module conv1 #(
                     
                 end
                 THREE: begin
-                    
                     
                 end
                 FOUR: begin
@@ -208,9 +217,7 @@ module conv1 #(
             macc_en <= 0;
         else begin
             if (macc_en) begin
-                
                 lb_full <= lb_row_ctr == 3'd4 && lb_col_ctr == COL_END;
-                
                 if (feat_col_ctr == COL_END) begin
                     if (lb_row_ctr == ROW_END) begin
                         lb_col_ctr <= COL_START;
@@ -228,22 +235,16 @@ module conv1 #(
                         end
                     end
                 end
-                                
-                // Biases is first added to accumulate for efficiency
-                // While we are in the MACC state, the weight*feature operations are added
-                // mac_accum    <= biases[filter_ctr][row_ctr][col_ctr];
-                
             end else begin
                 if (i_feature_valid) begin
                     lb_row_ctr      <= ROW_START;
                     lb_col_ctr      <= COL_START;
                     feat_row_ctr    <= ROW_START;
                     feat_col_ctr    <= COL_START;
-                    // filter_ctr      <= 0;
-                    // mac_ctr         <= 0;
                     // Do we actually need to reset the line buffer to 0?
                     line_buffer     <= '{default: 0};
-                    // mac_accum       <= 0; // biases[0][0][0];
+                    for (int i = 0; i < NUM_FILTERS; i++)
+                        macc_accum[i] <= biases[i];
                     macc_en         <= 1;
                     o_feature_valid <= 0;
                 end
@@ -252,9 +253,8 @@ module conv1 #(
     end
     
     // How many features do we want to output in parallel?
-    assign o_feature     = mac_accum;
-    
-    // o_feature_valid
+    // assign o_feature
+    // assign o_feature_valid
     
     // implement
     assign o_buffer_full = lb_full;
