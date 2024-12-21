@@ -9,18 +9,18 @@
           6 filters for conv1, 5x5 filter (25 * ops), 28x28 conv ops (784)
           = 6*(5*5)*(28*28) = 117600 * ops / 90 DSPs = 1306.6 = 1307 cycs theoretically
           
-          Shift register functionality for 5x5 weight matrix should synthesize as array of SRLs
-          
-          At end of each row, we'll have to "tag in" complementary Shift register unit,
-          because throughout the row, the shift register will shift horizontally, but
-          at the end of each row, then shift register will need to shift down. So we will
-          have to multiply our shift register resources by 2 until a better solution is found.
-          
           Going to skip the last 2 columns (which are all 0's) so we can efficiently complete
           each row's * operations without a remainder of DSPs
           Will take us 46 clock cycles per row this way => (6*28*5*5 - 6*5*2) / 90 = 46
           Note that there are still improvements to be made, still many static 0's on
           the edges that we waste MACC (DSP) operations on
+          
+          // Accumulation architecture (adder tree) - research additional adder structures
+          // 5*5=25 accumulations per output feature, but only 15 * operations for
+          // a given output feature execute in a single clock cycle.
+          // 15 DSP outputs will take clog2(15)=4 clock cycles to add together.
+          // For each feature out, there will be a latency of 7 clock cycles (computed on paper notes)
+          // Study how to get outputs of DSP48s to carry chain resources efficiently
           
 */
 //////////////////////////////////////////////////////////////////////////////////
@@ -89,10 +89,12 @@ module conv1 #(
     logic               macc_en;
     // Keep track of row count direction, we zig zag rows (Do we actually gain any efficiency this way?)
     logic               row_cnt_direction;
+    // Adder tree valid signals implemented as SRL16
+    logic         [6:0] adder_tree_valid_sr[2:0];
     // Is 16-wide ok?
     logic signed [15:0] macc_accum[NUM_FILTERS-1:0];
     // Register outputs of DSPs
-    logic signed [23:0] mult_out[NUM_FILTERS-1:0][(FILTER_SIZE*3)-1:0];
+    logic signed [23:0] mult_out[NUM_FILTERS-1:0][FILTER_SIZE-1:0][2:0];
     // 5 state MACC sequence throughout conv1 layer execution
     typedef enum logic [2:0] {
         ONE, TWO, THREE, FOUR, FIVE
@@ -106,7 +108,6 @@ module conv1 #(
             state <= next_state;
     end
     
-    // Maybe just use a counter here instead of a FSM
     always_comb begin
         if (macc_en || i_feature_valid) begin
             case(state)
@@ -117,7 +118,7 @@ module conv1 #(
                 THREE:
                     next_state = FOUR;
                 FOUR:
-                    next_state = FIVE;
+                    next_state = (feat_col_ctr == COL_END) ? ONE : FIVE;
                 FIVE:
                     next_state = ONE;
             endcase
@@ -184,6 +185,80 @@ module conv1 #(
         endcase
     end
     
+    // Register DSP outputs
+    always_ff @(posedge i_clk)
+        for (int i = 0; i < NUM_FILTERS; i++)
+            for (int j = 0; j < 5; j++)
+                for (int k = 0; k < 3; k++)
+                    mult_out[i][j][k] <= weight_operands[i][j][k] * feature_operands[j][k];
+    
+    /*
+    Adder tree designs (3 structures in our case)
+    
+    Structure 1:
+    -------------------------
+    Cycle 1:
+        15 (input) -> 8
+        
+    Cycle 2:
+        8 + 10 (input) -> 9
+        
+    Cycle 3:
+        9 -> 5
+        
+    Cycle 4:
+        5 -> 3
+        
+    Cycle 5:
+        3 -> 2
+    
+    Cycle 6:
+        2 -> 1 (output)
+    -------------------------
+    
+    Structure 2:
+    -------------------------
+    Cycle 1:
+        5 (input) -> 3
+    
+    Cycle 2:
+        3 + 15 (input) -> 9
+        
+    Cycle 3:
+        9 + 5 (input) -> 7
+        
+    Cycle 4:
+        7 -> 4
+        
+    Cycle 5:
+        4 -> 2
+        
+    Cycle 6:
+        2 -> 1 (output)
+    -------------------------
+
+    Structure 3:
+    -------------------------
+    Cycle 1:
+        10 (input) -> 5
+        
+    Cycle 2:
+        5 + 15 (input) -> 10
+        
+    Cycle 3:
+        10 -> 5
+        
+    Cycle 4:
+        5 -> 3
+        
+    Cycle 5:
+        3 -> 2
+        
+    Cycle 6:
+        2 -> 1
+    -------------------------
+    */
+    
     always_ff @(posedge i_clk) begin
         if (macc_en) begin
             case(state)
@@ -198,10 +273,11 @@ module conv1 #(
                     
                 end
                 FOUR: begin
-                    feat_col_ctr <= feat_col_ctr + 1;
-                    // At state 4, we need to check if we are at the end of the row
-                    // and move down if so
-                    
+                    if (feat_col_ctr == COL_END) begin
+                        feat_row_ctr <= feat_row_ctr + 1;
+                        feat_col_ctr <= 0;
+                    end else
+                        feat_col_ctr <= feat_col_ctr + 1;
                 end
                 FIVE: begin
                     feat_col_ctr <= feat_col_ctr + 1;
@@ -212,7 +288,6 @@ module conv1 #(
     end
     
     always_ff @(posedge i_clk) begin
-        // Active high sync reset
         if (i_rst)
             macc_en <= 0;
         else begin
@@ -237,12 +312,13 @@ module conv1 #(
                 end
             end else begin
                 if (i_feature_valid) begin
-                    lb_row_ctr      <= ROW_START;
-                    lb_col_ctr      <= COL_START;
-                    feat_row_ctr    <= ROW_START;
-                    feat_col_ctr    <= COL_START;
+                    lb_row_ctr          <= ROW_START;
+                    lb_col_ctr          <= COL_START;
+                    feat_row_ctr        <= ROW_START;
+                    feat_col_ctr        <= COL_START;
                     // Do we actually need to reset the line buffer to 0?
-                    line_buffer     <= '{default: 0};
+                    line_buffer         <= '{default: 0};
+                    adder_tree_valid_sr <= '{default: 0};
                     for (int i = 0; i < NUM_FILTERS; i++)
                         macc_accum[i] <= biases[i];
                     macc_en         <= 1;
@@ -256,7 +332,6 @@ module conv1 #(
     // assign o_feature
     // assign o_feature_valid
     
-    // implement
     assign o_buffer_full = lb_full;
 
 endmodule
