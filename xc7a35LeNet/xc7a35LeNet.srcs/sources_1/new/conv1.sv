@@ -91,106 +91,6 @@ module conv1 #(
     logic               row_cnt_direction;
     // Adder tree valid signals implemented as SRL16
     logic         [6:0] adder_tree_valid_sr[2:0];
-    // Is 16-wide ok?
-    logic signed [15:0] macc_accum[NUM_FILTERS-1:0];
-    // Register outputs of DSPs
-    logic signed [23:0] mult_out[NUM_FILTERS-1:0][FILTER_SIZE-1:0][2:0];
-    // 5 state MACC sequence throughout conv1 layer execution
-    typedef enum logic [2:0] {
-        ONE, TWO, THREE, FOUR, FIVE
-    } state_t;
-    state_t state, next_state;
-    
-    always_ff @(posedge i_clk) begin
-        if (i_rst)
-            state <= ONE;
-        else
-            state <= next_state;
-    end
-    
-    always_comb begin
-        if (macc_en || i_feature_valid) begin
-            case(state)
-                ONE:
-                    next_state = TWO;
-                TWO:
-                    next_state = THREE;
-                THREE:
-                    next_state = FOUR;
-                FOUR:
-                    next_state = (feat_col_ctr == COL_END) ? ONE : FIVE;
-                FIVE:
-                    next_state = ONE;
-            endcase
-        end
-    end
-    
-    always_comb begin
-        case(state)
-            ONE: begin
-                feature_operands[0] = line_buffer[feat_col_ctr-2];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][0] = weights[i][0];
-                feature_operands[1] = line_buffer[feat_col_ctr-1];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][1] = weights[i][1];
-                feature_operands[2] = line_buffer[feat_col_ctr  ];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][2] = weights[i][2];
-            end
-            TWO: begin
-                feature_operands[0] = line_buffer[feat_col_ctr+1];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][0] = weights[i][3];
-                feature_operands[1] = line_buffer[feat_col_ctr+2];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][1] = weights[i][4];
-                feature_operands[2] = line_buffer[feat_col_ctr-1];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][2] = weights[i][0];
-            end
-            THREE: begin
-                feature_operands[0] = line_buffer[feat_col_ctr-1];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][0] = weights[i][1];
-                feature_operands[1] = line_buffer[feat_col_ctr  ];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][1] = weights[i][2];
-                feature_operands[2] = line_buffer[feat_col_ctr+1];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][2] = weights[i][3];
-            end
-            FOUR: begin
-                feature_operands[0] = line_buffer[feat_col_ctr+2];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][0] = weights[i][4];
-                feature_operands[1] = line_buffer[feat_col_ctr-1];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][1] = weights[i][0];
-                feature_operands[2] = line_buffer[feat_col_ctr  ];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][2] = weights[i][1];
-            end
-            FIVE: begin
-                feature_operands[0] = line_buffer[feat_col_ctr  ];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][0] = weights[i][2];
-                feature_operands[1] = line_buffer[feat_col_ctr+1];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][1] = weights[i][3];
-                feature_operands[2] = line_buffer[feat_col_ctr+2];
-                for (int i = 0; i < NUM_FILTERS; i++)
-                    weight_operands[i][2] = weights[i][4];
-            end
-        endcase
-    end
-    
-    // Register DSP outputs
-    always_ff @(posedge i_clk)
-        for (int i = 0; i < NUM_FILTERS; i++)
-            for (int j = 0; j < 5; j++)
-                for (int k = 0; k < 3; k++)
-                    mult_out[i][j][k] <= weight_operands[i][j][k] * feature_operands[j][k];
     
     /*
     Adder tree designs (3 structures in our case)
@@ -259,6 +159,163 @@ module conv1 #(
     -------------------------
     */
     
+    logic signed [23:0] adder1_stage1[14:0]; // 15 dsp outs
+    logic signed [23:0] adder1_stage2[17:0]; // 8 adder outs from stage 1 + 10 dsp outs
+    logic signed [23:0] adder1_stage3[8:0];  // 9 adder outs from stage 2
+    logic signed [23:0] adder1_stage4[4:0];  // 5 adder outs from stage 3
+    logic signed [23:0] adder1_stage5[2:0];  // 3 adder outs from stage 4
+    logic signed [23:0] adder1_stage6[1:0];  // 2 adder outs from stage 5
+    logic signed [23:0] adder2_stage1[4:0];  // 5 dsp outs
+    logic signed [23:0] adder2_stage2[17:0]; // 3 adder outs from stage 1 + 15 dsp outs
+    logic signed [23:0] adder2_stage3[13:0]; // 9 adder outs from stage 2 + 5 dsp outs
+    logic signed [23:0] adder2_stage4[6:0];  // 7 adder outs from stage 3
+    logic signed [23:0] adder2_stage5[3:0];  // 4 adder outs from stage 4
+    logic signed [23:0] adder2_stage6[1:0];  // 2 adder outs from stage 5
+    logic signed [23:0] adder3_stage1[9:0];  // 10 dsp outs
+    logic signed [23:0] adder3_stage2[19:0]; // 5 adder outs from stage 1 + 15 dsp outs
+    logic signed [23:0] adder3_stage3[9:0];  // 10 adder outs from stage 2
+    logic signed [23:0] adder3_stage4[4:0];  // 5 adder outs from stage 3
+    logic signed [23:0] adder3_stage5[2:0];  // 3 adder outs from stage 4
+    logic signed [23:0] adder3_stage6[1:0];  // 2 adder outs from stage 5
+    
+    // Is 16-wide ok?
+    logic signed [15:0] macc_accum[NUM_FILTERS-1:0];
+    // Register outputs of DSPs
+    logic signed [23:0] mult_out[NUM_FILTERS-1:0][FILTER_SIZE-1:0][2:0];
+    // 5 state MACC sequence throughout conv1 layer execution
+    typedef enum logic [2:0] {
+        ONE, TWO, THREE, FOUR, FIVE
+    } state_t;
+    state_t state, next_state;
+    
+    always_ff @(posedge i_clk) begin
+        if (i_rst)
+            state <= ONE;
+        else
+            state <= next_state;
+    end
+    
+    always_comb begin
+        if (macc_en || i_feature_valid) begin
+            case(state)
+                ONE:
+                    next_state = TWO;
+                    // 15 -> adder tree 1
+                TWO:
+                    next_state = THREE;
+                    // 10 -> adder tree 1,
+                    // 5  -> adder tree 2
+                THREE:
+                    next_state = FOUR;
+                    // 15 -> adder tree 2
+                FOUR:
+                    next_state = (feat_col_ctr == COL_END) ? ONE : FIVE;
+                    // 5  -> adder tree 2
+                    // 10 -> adder tree 3
+                FIVE:
+                    next_state = ONE;
+                    // 15 -> adder tree 3
+            endcase
+        end
+    end
+    
+    always_ff @(posedge i_clk) begin
+        if (macc_en || i_feature_valid) begin
+            case(state)
+                ONE:
+                    // 15 -> adder tree 1
+                TWO:
+                    // 10 -> adder tree 1,
+                    // 5  -> adder tree 2
+                THREE:
+                    // 15 -> adder tree 2
+                FOUR:
+                    // 5  -> adder tree 2
+                    // 10 -> adder tree 3
+                FIVE:
+                    // 15 -> adder tree 3
+            endcase
+        end
+        adder_tree_valid_sr <= { adder_tree_valid_sr[0][5:0], state == ONE  };
+        adder_tree_valid_sr <= { adder_tree_valid_sr[1][5:0], state == TWO  };
+        adder_tree_valid_sr <= { adder_tree_valid_sr[2][5:0], state == FOUR };
+    end
+    
+    // Register DSP outputs
+    always_ff @(posedge i_clk)
+        for (int i = 0; i < NUM_FILTERS; i++)
+            for (int j = 0; j < 5; j++)
+                for (int k = 0; k < 3; k++)
+                    mult_out[i][j][k] <= weight_operands[i][j][k] * feature_operands[j][k];
+    /*               
+    always_ff @(posedge i_clk) begin
+        if (macc_en || i_feature_valid) begin
+            adder1_stage1
+        
+        end
+    end
+    */
+    
+    always_comb begin
+        case(state)
+            ONE: begin
+                feature_operands[0] = line_buffer[feat_col_ctr-2];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][0] = weights[i][0];
+                feature_operands[1] = line_buffer[feat_col_ctr-1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][1] = weights[i][1];
+                feature_operands[2] = line_buffer[feat_col_ctr  ];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][2] = weights[i][2];
+            end
+            TWO: begin
+                feature_operands[0] = line_buffer[feat_col_ctr+1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][0] = weights[i][3];
+                feature_operands[1] = line_buffer[feat_col_ctr+2];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][1] = weights[i][4];
+                feature_operands[2] = line_buffer[feat_col_ctr-1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][2] = weights[i][0];
+            end
+            THREE: begin
+                feature_operands[0] = line_buffer[feat_col_ctr-1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][0] = weights[i][1];
+                feature_operands[1] = line_buffer[feat_col_ctr  ];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][1] = weights[i][2];
+                feature_operands[2] = line_buffer[feat_col_ctr+1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][2] = weights[i][3];
+            end
+            FOUR: begin
+                feature_operands[0] = line_buffer[feat_col_ctr+2];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][0] = weights[i][4];
+                feature_operands[1] = line_buffer[feat_col_ctr-1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][1] = weights[i][0];
+                feature_operands[2] = line_buffer[feat_col_ctr  ];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][2] = weights[i][1];
+            end
+            FIVE: begin
+                feature_operands[0] = line_buffer[feat_col_ctr  ];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][0] = weights[i][2];
+                feature_operands[1] = line_buffer[feat_col_ctr+1];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][1] = weights[i][3];
+                feature_operands[2] = line_buffer[feat_col_ctr+2];
+                for (int i = 0; i < NUM_FILTERS; i++)
+                    weight_operands[i][2] = weights[i][4];
+            end
+        endcase
+    end
+    
     always_ff @(posedge i_clk) begin
         if (macc_en) begin
             case(state)
@@ -319,9 +376,11 @@ module conv1 #(
                     // Do we actually need to reset the line buffer to 0?
                     line_buffer         <= '{default: 0};
                     adder_tree_valid_sr <= '{default: 0};
+                    macc_en             <= 1;
                     for (int i = 0; i < NUM_FILTERS; i++)
                         macc_accum[i] <= biases[i];
-                    macc_en         <= 1;
+                        
+                    // Use logic, instead of setting output directly
                     o_feature_valid <= 0;
                 end
             end
