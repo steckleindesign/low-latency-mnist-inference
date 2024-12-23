@@ -91,96 +91,31 @@ module conv1 #(
     logic               row_cnt_direction;
     // Adder tree valid signals implemented as SRL16
     logic         [6:0] adder_tree_valid_sr[2:0];
-    
-    /*
-    Adder tree designs (3 structures in our case)
-    
-    Structure 1:
-    -------------------------
-    Cycle 1:
-        15 (input) -> 8
-        
-    Cycle 2:
-        8 + 10 (input) -> 9
-        
-    Cycle 3:
-        9 -> 5
-        
-    Cycle 4:
-        5 -> 3
-        
-    Cycle 5:
-        3 -> 2
-    
-    Cycle 6:
-        2 -> 1 (output)
-    -------------------------
-    
-    Structure 2:
-    -------------------------
-    Cycle 1:
-        5 (input) -> 3
-    
-    Cycle 2:
-        3 + 15 (input) -> 9
-        
-    Cycle 3:
-        9 + 5 (input) -> 7
-        
-    Cycle 4:
-        7 -> 4
-        
-    Cycle 5:
-        4 -> 2
-        
-    Cycle 6:
-        2 -> 1 (output)
-    -------------------------
-
-    Structure 3:
-    -------------------------
-    Cycle 1:
-        10 (input) -> 5
-        
-    Cycle 2:
-        5 + 15 (input) -> 10
-        
-    Cycle 3:
-        10 -> 5
-        
-    Cycle 4:
-        5 -> 3
-        
-    Cycle 5:
-        3 -> 2
-        
-    Cycle 6:
-        2 -> 1
-    -------------------------
-    */
-    
-    logic signed [23:0] adder1_stage1[14:0]; // 15 dsp outs
-    logic signed [23:0] adder1_stage2[17:0]; // 8 adder outs from stage 1 + 10 dsp outs
-    logic signed [23:0] adder1_stage3[8:0];  // 9 adder outs from stage 2
-    logic signed [23:0] adder1_stage4[4:0];  // 5 adder outs from stage 3
-    logic signed [23:0] adder1_stage5[2:0];  // 3 adder outs from stage 4
-    logic signed [23:0] adder1_stage6[1:0];  // 2 adder outs from stage 5
-    logic signed [23:0] adder2_stage1[4:0];  // 5 dsp outs
-    logic signed [23:0] adder2_stage2[17:0]; // 3 adder outs from stage 1 + 15 dsp outs
-    logic signed [23:0] adder2_stage3[13:0]; // 9 adder outs from stage 2 + 5 dsp outs
-    logic signed [23:0] adder2_stage4[6:0];  // 7 adder outs from stage 3
-    logic signed [23:0] adder2_stage5[3:0];  // 4 adder outs from stage 4
-    logic signed [23:0] adder2_stage6[1:0];  // 2 adder outs from stage 5
-    logic signed [23:0] adder3_stage1[9:0];  // 10 dsp outs
-    logic signed [23:0] adder3_stage2[19:0]; // 5 adder outs from stage 1 + 15 dsp outs
-    logic signed [23:0] adder3_stage3[9:0];  // 10 adder outs from stage 2
-    logic signed [23:0] adder3_stage4[4:0];  // 5 adder outs from stage 3
-    logic signed [23:0] adder3_stage5[2:0];  // 3 adder outs from stage 4
-    logic signed [23:0] adder3_stage6[1:0];  // 2 adder outs from stage 5
+    // Adder tree stage depths
+    // TODO: Determine proper bitwidths for adder stages 
+    logic signed [23:0] adder1_stage1[NUM_FILTERS-1:0][14:0]; // 15 dsp outs
+    logic signed [23:0] adder1_stage2[NUM_FILTERS-1:0][17:0]; // 8 adder outs from stage 1 + 10 dsp outs
+    logic signed [23:0] adder1_stage3[NUM_FILTERS-1:0][8:0];  // 9 adder outs from stage 2
+    logic signed [23:0] adder1_stage4[NUM_FILTERS-1:0][4:0];  // 5 adder outs from stage 3
+    logic signed [23:0] adder1_stage5[NUM_FILTERS-1:0][2:0];  // 3 adder outs from stage 4
+    logic signed [23:0] adder1_stage6[NUM_FILTERS-1:0][1:0];  // 2 adder outs from stage 5
+    logic signed [23:0] adder2_stage1[NUM_FILTERS-1:0][4:0];  // 5 dsp outs
+    logic signed [23:0] adder2_stage2[NUM_FILTERS-1:0][17:0]; // 3 adder outs from stage 1 + 15 dsp outs
+    logic signed [23:0] adder2_stage3[NUM_FILTERS-1:0][13:0]; // 9 adder outs from stage 2 + 5 dsp outs
+    logic signed [23:0] adder2_stage4[NUM_FILTERS-1:0][6:0];  // 7 adder outs from stage 3
+    logic signed [23:0] adder2_stage5[NUM_FILTERS-1:0][3:0];  // 4 adder outs from stage 4
+    logic signed [23:0] adder2_stage6[NUM_FILTERS-1:0][1:0];  // 2 adder outs from stage 5
+    logic signed [23:0] adder3_stage1[NUM_FILTERS-1:0][9:0];  // 10 dsp outs
+    logic signed [23:0] adder3_stage2[NUM_FILTERS-1:0][19:0]; // 5 adder outs from stage 1 + 15 dsp outs
+    logic signed [23:0] adder3_stage3[NUM_FILTERS-1:0][9:0];  // 10 adder outs from stage 2
+    logic signed [23:0] adder3_stage4[NUM_FILTERS-1:0][4:0];  // 5 adder outs from stage 3
+    logic signed [23:0] adder3_stage5[NUM_FILTERS-1:0][2:0];  // 3 adder outs from stage 4
+    logic signed [23:0] adder3_stage6[NUM_FILTERS-1:0][1:0];  // 2 adder outs from stage 5
     
     // Is 16-wide ok?
     logic signed [15:0] macc_accum[NUM_FILTERS-1:0];
     // Register outputs of DSPs
+    // TODO: Flatten
     logic signed [23:0] mult_out[NUM_FILTERS-1:0][FILTER_SIZE-1:0][2:0];
     // 5 state MACC sequence throughout conv1 layer execution
     typedef enum logic [2:0] {
@@ -196,7 +131,7 @@ module conv1 #(
     end
     
     always_comb begin
-        if (macc_en || i_feature_valid) begin
+        if (macc_en) begin
             case(state)
                 ONE:
                     next_state = TWO;
@@ -216,45 +151,123 @@ module conv1 #(
                     next_state = ONE;
                     // 15 -> adder tree 3
             endcase
-        end
+                next_state = ONE;
     end
     
-    always_ff @(posedge i_clk) begin
-        if (macc_en || i_feature_valid) begin
-            case(state)
-                ONE:
-                    // 15 -> adder tree 1
-                TWO:
-                    // 10 -> adder tree 1,
-                    // 5  -> adder tree 2
-                THREE:
-                    // 15 -> adder tree 2
-                FOUR:
-                    // 5  -> adder tree 2
-                    // 10 -> adder tree 3
-                FIVE:
-                    // 15 -> adder tree 3
-            endcase
-        end
-        adder_tree_valid_sr <= { adder_tree_valid_sr[0][5:0], state == ONE  };
-        adder_tree_valid_sr <= { adder_tree_valid_sr[1][5:0], state == TWO  };
-        adder_tree_valid_sr <= { adder_tree_valid_sr[2][5:0], state == FOUR };
-    end
+//    always_ff @(posedge i_clk) begin
+//        if (macc_en) begin
+//            case(state)
+//                ONE:
+//                    // 15 -> adder tree 1
+//                TWO:
+//                    // 10 -> adder tree 1,
+//                    // 5  -> adder tree 2
+//                THREE:
+//                    // 15 -> adder tree 2
+//                FOUR:
+//                    // 5  -> adder tree 2
+//                    // 10 -> adder tree 3
+//                FIVE:
+//                    // 15 -> adder tree 3
+//            endcase
+//        end
+//        adder_tree_valid_sr <= { adder_tree_valid_sr[0][5:0], state == ONE  };
+//        adder_tree_valid_sr <= { adder_tree_valid_sr[1][5:0], state == TWO  };
+//        adder_tree_valid_sr <= { adder_tree_valid_sr[2][5:0], state == FOUR };
+//    end
     
     // Register DSP outputs
+    // Flatten mult out outputs, or fix indexing at least so its easier to use with adder tree
     always_ff @(posedge i_clk)
         for (int i = 0; i < NUM_FILTERS; i++)
             for (int j = 0; j < 5; j++)
                 for (int k = 0; k < 3; k++)
                     mult_out[i][j][k] <= weight_operands[i][j][k] * feature_operands[j][k];
-    /*               
+    
+    // Only on MACC enable, not on first feature valid signal
+    // This is because the very first clock cycle after valid data should only enable the DSP operation,
+    // not the adder tree logic
+    // (TODO: try to really understand clock enables vs. gating vs. if the macc_en is just treated as a logic variable)
+    // TODO: adder tree valid signals
     always_ff @(posedge i_clk) begin
-        if (macc_en || i_feature_valid) begin
-            adder1_stage1
-        
+        if (macc_en) begin
+            for (int i = 0; i < NUM_FILTERS; i++)
+                // Adder tree structure 1
+                adder1_stage1[i][14:10] <= mult_out[14:10];
+                adder1_stage1[i][9:5]   <= mult_out[9:5];
+                adder1_stage1[i][4:0]   <= mult_out[4:0];
+                
+                adder1_stage2[i][17]    <= adder1_stage1[15];
+                for (int j = 0; j < 7; j++)
+                    adder1_stage2[i][10+j] <= adder1_stage1[j*2] + adder1_stage1[j*2+1];
+                adder1_stage2[9:5]      <= mult_out[9:5];
+                adder1_stage2[4:0]      <= mult_out[4:0];
+                
+                for (int j = 0; j < 9; j++)
+                    adder1_stage3[j] <= adder1_stage2[j*2] + adder1_stage2[j*2+1];
+                
+                // Can stage 4 5th reg just directly be connected to stage 6 1st reg?
+                adder1_stage4[4]        <= adder1_stage3[8];
+                for (int j = 0; j < 4; j++)
+                    adder1_stage4[j] <= adder1_stage3[j*2] + adder1_stage3[j*2+1];
+                    
+                adder1_stage5[2]        <= adder1_stage4[4];
+                for (int j = 0; j < 2; j++)
+                    adder1_stage5[j] <= adder1_stage4[j*2] + adder1_stage4[j*2+1];
+                    
+                adder1_stage6[1] <= adder1_stage5[2];
+                adder1_stage6[0] <= adder1_stage5[0] + adder1_stage5[1];
+                
+                // Adder tree structure 2
+                adder2_stage1           <= mult_out[14:10];
+                
+                adder2_stage2[17]       <= adder2_stage1[4];
+                for (int j = 0; j < 2; j++)
+                    adder2_stage2[j] <= adder2_stage1[j*2] + adder2_stage1[j*2+1];
+                adder2_stage2[i][14:10] <= mult_out[14:10];
+                adder2_stage2[i][9:5]   <= mult_out[9:5];
+                adder2_stage2[i][4:0]   <= mult_out[4:0];
+                
+                for (int j = 0; j < 9; j++)
+                    adder2_stage3[j+5] <= adder2_stage2[j*2] + adder2_stage2[j*2+1];
+                adder2_stage3[4:0]      <= mult_out[4:0];
+                
+                for (int j = 0; j < 7; j++)
+                    adder2_stage4[j+5] <= adder2_stage3[j*2] + adder2_stage3[j*2+1];
+                    
+                adder2_stage5[3]        <= adder2_stage4[6];
+                for (int j = 0; j < 3; j++)
+                    adder2_stage5[j] <= adder2_stage4[j*2] + adder2_stage4[j*2+1];
+                    
+                for (int j = 0; j < 2; j++)
+                    adder2_stage6[j+5] <= adder2_stage5[j*2] + adder2_stage5[j*2+1];
+                    
+                // Adder tree structure 3
+                adder3_stage1[9:5]      <= mult_out[14:10];
+                adder3_stage1[4:0]      <= mult_out[9:5];
+                
+                for (int j = 0; j < 5; j++)
+                    adder3_stage2[j+15] <= adder3_stage1[j*2] + adder3_stage1[j*2+1];
+                adder3_stage2[14:10]    <= mult_out[14:10];
+                adder3_stage2[9:5]      <= mult_out[9:5];
+                adder3_stage2[4:0]      <= mult_out[4:0];
+                
+                for (int j = 0; j < 10; j++)
+                    adder3_stage3[j] <= adder3_stage2[j*2] + adder3_stage2[j*2+1];
+                
+                for (int j = 0; j < 5; j++)
+                    adder3_stage4[j] <= adder3_stage3[j*2] + adder3_stage3[j*2+1];
+                
+                // Same principle as with adder tree structure 1, can we bring this signal down to stage 6 directly?
+                adder3_stage5[2] <= adder3_stage4[4];
+                for (int j = 0; j < 2; j++)
+                    adder3_stage5[j] <= adder3_stage4[j*2] + adder3_stage4[j*2+1];
+                    
+                adder3_stage6[1] <= adder3_stage5[2];
+                adder3_stage6[0] <= adder3_stage5[0] + adder3_stage5[1];
+            end
         end
     end
-    */
     
     always_comb begin
         case(state)
