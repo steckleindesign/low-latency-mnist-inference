@@ -116,7 +116,7 @@ module conv1 #(
     logic signed [15:0] macc_accum[NUM_FILTERS-1:0];
     // Register outputs of DSPs
     // TODO: Flatten
-    logic signed [23:0] mult_out[NUM_FILTERS-1:0][FILTER_SIZE-1:0][2:0];
+    logic signed [23:0] mult_out[NUM_FILTERS-1:0][FILTER_SIZE*3-1:0];
     // 5 state MACC sequence throughout conv1 layer execution
     typedef enum logic [2:0] {
         ONE, TWO, THREE, FOUR, FIVE
@@ -164,7 +164,7 @@ module conv1 #(
         for (int i = 0; i < NUM_FILTERS; i++)
             for (int j = 0; j < 5; j++)
                 for (int k = 0; k < 3; k++)
-                    mult_out[i][j][k] <= weight_operands[i][j][k] * feature_operands[j][k];
+                    mult_out[i][k*5+j] <= weight_operands[i][j][k] * feature_operands[j][k];
     
     //    always_ff @(posedge i_clk) begin
     //        if (macc_en) begin
@@ -195,80 +195,80 @@ module conv1 #(
     // TODO: adder tree valid signals
     always_ff @(posedge i_clk) begin
         if (macc_en) begin
-            for (int i = 0; i < NUM_FILTERS; i++)
+            for (int i = 0; i < NUM_FILTERS; i++) begin
                 // Adder tree structure 1
-                adder1_stage1[i][14:10] <= mult_out[14:10];
-                adder1_stage1[i][9:5]   <= mult_out[9:5];
-                adder1_stage1[i][4:0]   <= mult_out[4:0];
+                adder1_stage1[i][14:10] <= mult_out[i][14:10];
+                adder1_stage1[i][9:5]   <= mult_out[i][9:5];
+                adder1_stage1[i][4:0]   <= mult_out[i][4:0];
                 
-                adder1_stage2[i][17]    <= adder1_stage1[15];
+                adder1_stage2[i][17]    <= adder1_stage1[i][15];
                 for (int j = 0; j < 7; j++)
-                    adder1_stage2[i][10+j] <= adder1_stage1[j*2] + adder1_stage1[j*2+1];
-                adder1_stage2[9:5]      <= mult_out[9:5];
-                adder1_stage2[4:0]      <= mult_out[4:0];
+                    adder1_stage2[i][10+j] <= adder1_stage1[i][j*2] + adder1_stage1[i][j*2+1];
+                adder1_stage2[i][9:5]   <= mult_out[i][9:5];
+                adder1_stage2[i][4:0]   <= mult_out[i][4:0];
                 
                 for (int j = 0; j < 9; j++)
-                    adder1_stage3[j] <= adder1_stage2[j*2] + adder1_stage2[j*2+1];
+                    adder1_stage3[i][j] <= adder1_stage2[i][j*2] + adder1_stage2[i][j*2+1];
                 
                 // Can stage 4 5th reg just directly be connected to stage 6 1st reg?
-                adder1_stage4[4]        <= adder1_stage3[8];
+                adder1_stage4[i][4]     <= adder1_stage3[i][8];
                 for (int j = 0; j < 4; j++)
-                    adder1_stage4[j] <= adder1_stage3[j*2] + adder1_stage3[j*2+1];
+                    adder1_stage4[i][j] <= adder1_stage3[i][j*2] + adder1_stage3[i][j*2+1];
                     
-                adder1_stage5[2]        <= adder1_stage4[4];
+                adder1_stage5[i][2]     <= adder1_stage4[i][4];
                 for (int j = 0; j < 2; j++)
-                    adder1_stage5[j] <= adder1_stage4[j*2] + adder1_stage4[j*2+1];
+                    adder1_stage5[i][j] <= adder1_stage4[i][j*2] + adder1_stage4[i][j*2+1];
                     
-                adder1_stage6[1] <= adder1_stage5[2];
-                adder1_stage6[0] <= adder1_stage5[0] + adder1_stage5[1];
+                adder1_stage6[i][1]     <= adder1_stage5[i][2];
+                adder1_stage6[i][0]     <= adder1_stage5[i][0] + adder1_stage5[i][1];
                 
                 // Adder tree structure 2
-                adder2_stage1           <= mult_out[14:10];
+                adder2_stage1[i]        <= mult_out[i][14:10];
                 
-                adder2_stage2[17]       <= adder2_stage1[4];
+                adder2_stage2[i][17]    <= adder2_stage1[i][4];
                 for (int j = 0; j < 2; j++)
-                    adder2_stage2[j] <= adder2_stage1[j*2] + adder2_stage1[j*2+1];
-                adder2_stage2[i][14:10] <= mult_out[14:10];
-                adder2_stage2[i][9:5]   <= mult_out[9:5];
-                adder2_stage2[i][4:0]   <= mult_out[4:0];
+                    adder2_stage2[i][j] <= adder2_stage1[i][j*2] + adder2_stage1[i][j*2+1];
+                adder2_stage2[i][14:10] <= mult_out[i][14:10];
+                adder2_stage2[i][9:5]   <= mult_out[i][9:5];
+                adder2_stage2[i][4:0]   <= mult_out[i][4:0];
                 
                 for (int j = 0; j < 9; j++)
-                    adder2_stage3[j+5] <= adder2_stage2[j*2] + adder2_stage2[j*2+1];
-                adder2_stage3[4:0]      <= mult_out[4:0];
+                    adder2_stage3[i][j+5] <= adder2_stage2[i][j*2] + adder2_stage2[i][j*2+1];
+                adder2_stage3[i][4:0]      <= mult_out[i][4:0];
                 
                 for (int j = 0; j < 7; j++)
-                    adder2_stage4[j+5] <= adder2_stage3[j*2] + adder2_stage3[j*2+1];
+                    adder2_stage4[i][j+5] <= adder2_stage3[i][j*2] + adder2_stage3[i][j*2+1];
                     
-                adder2_stage5[3]        <= adder2_stage4[6];
+                adder2_stage5[i][3]        <= adder2_stage4[i][6];
                 for (int j = 0; j < 3; j++)
-                    adder2_stage5[j] <= adder2_stage4[j*2] + adder2_stage4[j*2+1];
+                    adder2_stage5[i][j] <= adder2_stage4[i][j*2] + adder2_stage4[i][j*2+1];
                     
                 for (int j = 0; j < 2; j++)
-                    adder2_stage6[j+5] <= adder2_stage5[j*2] + adder2_stage5[j*2+1];
+                    adder2_stage6[i][j+5] <= adder2_stage5[i][j*2] + adder2_stage5[i][j*2+1];
                     
                 // Adder tree structure 3
-                adder3_stage1[9:5]      <= mult_out[14:10];
-                adder3_stage1[4:0]      <= mult_out[9:5];
+                adder3_stage1[i][9:5]      <= mult_out[i][14:10];
+                adder3_stage1[i][4:0]      <= mult_out[i][9:5];
                 
                 for (int j = 0; j < 5; j++)
-                    adder3_stage2[j+15] <= adder3_stage1[j*2] + adder3_stage1[j*2+1];
-                adder3_stage2[14:10]    <= mult_out[14:10];
-                adder3_stage2[9:5]      <= mult_out[9:5];
-                adder3_stage2[4:0]      <= mult_out[4:0];
+                    adder3_stage2[i][j+15] <= adder3_stage1[i][j*2] + adder3_stage1[i][j*2+1];
+                adder3_stage2[i][14:10]    <= mult_out[i][14:10];
+                adder3_stage2[i][9:5]      <= mult_out[i][9:5];
+                adder3_stage2[i][4:0]      <= mult_out[i][4:0];
                 
                 for (int j = 0; j < 10; j++)
-                    adder3_stage3[j] <= adder3_stage2[j*2] + adder3_stage2[j*2+1];
+                    adder3_stage3[i][j] <= adder3_stage2[i][j*2] + adder3_stage2[i][j*2+1];
                 
                 for (int j = 0; j < 5; j++)
-                    adder3_stage4[j] <= adder3_stage3[j*2] + adder3_stage3[j*2+1];
+                    adder3_stage4[i][j] <= adder3_stage3[i][j*2] + adder3_stage3[i][j*2+1];
                 
                 // Same principle as with adder tree structure 1, can we bring this signal down to stage 6 directly?
-                adder3_stage5[2] <= adder3_stage4[4];
+                adder3_stage5[i][2] <= adder3_stage4[i][4];
                 for (int j = 0; j < 2; j++)
-                    adder3_stage5[j] <= adder3_stage4[j*2] + adder3_stage4[j*2+1];
+                    adder3_stage5[i][j] <= adder3_stage4[i][j*2] + adder3_stage4[i][j*2+1];
                     
-                adder3_stage6[1] <= adder3_stage5[2];
-                adder3_stage6[0] <= adder3_stage5[0] + adder3_stage5[1];
+                adder3_stage6[i][1] <= adder3_stage5[i][2];
+                adder3_stage6[i][0] <= adder3_stage5[i][0] + adder3_stage5[i][1];
             end
         end
     end
