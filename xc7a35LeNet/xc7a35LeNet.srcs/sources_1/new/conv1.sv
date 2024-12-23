@@ -131,6 +131,8 @@ module conv1 #(
     end
     
     always_comb begin
+        // Default, override when MACC enabled
+        next_state = ONE;
         if (macc_en) begin
             case(state)
                 ONE:
@@ -150,31 +152,11 @@ module conv1 #(
                 FIVE:
                     next_state = ONE;
                     // 15 -> adder tree 3
+               // should not be reached
+               default: next_state = next_state;
             endcase
-                next_state = ONE;
+        end
     end
-    
-//    always_ff @(posedge i_clk) begin
-//        if (macc_en) begin
-//            case(state)
-//                ONE:
-//                    // 15 -> adder tree 1
-//                TWO:
-//                    // 10 -> adder tree 1,
-//                    // 5  -> adder tree 2
-//                THREE:
-//                    // 15 -> adder tree 2
-//                FOUR:
-//                    // 5  -> adder tree 2
-//                    // 10 -> adder tree 3
-//                FIVE:
-//                    // 15 -> adder tree 3
-//            endcase
-//        end
-//        adder_tree_valid_sr <= { adder_tree_valid_sr[0][5:0], state == ONE  };
-//        adder_tree_valid_sr <= { adder_tree_valid_sr[1][5:0], state == TWO  };
-//        adder_tree_valid_sr <= { adder_tree_valid_sr[2][5:0], state == FOUR };
-//    end
     
     // Register DSP outputs
     // Flatten mult out outputs, or fix indexing at least so its easier to use with adder tree
@@ -184,6 +166,28 @@ module conv1 #(
                 for (int k = 0; k < 3; k++)
                     mult_out[i][j][k] <= weight_operands[i][j][k] * feature_operands[j][k];
     
+    //    always_ff @(posedge i_clk) begin
+    //        if (macc_en) begin
+    //            case(state)
+    //                ONE:
+    //                    // 15 -> adder tree 1
+    //                TWO:
+    //                    // 10 -> adder tree 1,
+    //                    // 5  -> adder tree 2
+    //                THREE:
+    //                    // 15 -> adder tree 2
+    //                FOUR:
+    //                    // 5  -> adder tree 2
+    //                    // 10 -> adder tree 3
+    //                FIVE:
+    //                    // 15 -> adder tree 3
+    //            endcase
+    //        end
+    //        adder_tree_valid_sr <= { adder_tree_valid_sr[0][5:0], state == ONE  };
+    //        adder_tree_valid_sr <= { adder_tree_valid_sr[1][5:0], state == TWO  };
+    //        adder_tree_valid_sr <= { adder_tree_valid_sr[2][5:0], state == FOUR };
+    //    end
+
     // Only on MACC enable, not on first feature valid signal
     // This is because the very first clock cycle after valid data should only enable the DSP operation,
     // not the adder tree logic
