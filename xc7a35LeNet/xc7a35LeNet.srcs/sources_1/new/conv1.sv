@@ -27,10 +27,10 @@
           Going to skip the last 2 columns (which are all 0's) so we can efficiently complete
           each row's * operations without a remainder of DSPs
           Will take us 46 clock cycles per row this way => (6*28*5*5 - 6*5*2) / 90 = 46
-          Note that there are still improvements to be made, still many static 0's on
-          the edges that we waste MACC (DSP) operations on
-          Need to decide how to handle max pooling since input features will be 90,
-          which is not a multiple of 4
+          
+          We don't want to MACC operations on multiplying with 0s (whether 0 pixel/feature or outer rings)
+          is it worth it to compare and skip features in single clock cycle to avoid *0 ?
+          The muxing implemented in fabric will probably take too much space, so will need to use DSP48 mux
           
           Accumulation architecture is currently adder tree - research additional adder structures
           - Wallace Tree
@@ -61,10 +61,6 @@ module conv1 #(
     // Letting pixel RAM know we can't take in any data
     output logic               o_buffer_full
 );
-
-    // we don't want to waste cycles on multiplying with 0s (whether 0 pixel/feature or outer rings)
-    // ^ is it worth it to compare and skip features in single clock cycle to avoid *0 ?
-    // The muxing implemented in fabric will probably take too much space, so will need to use DSP48 mux
 
     // Computed local params from module parameters
     localparam WINDOW_AREA   = FILTER_SIZE * FILTER_SIZE;
@@ -362,7 +358,6 @@ module conv1 #(
                     // 10 -> adder tree 1,
                     // 5  -> adder tree 2
                     feat_col_ctr <= feat_col_ctr + 1;
-                    
                 end
                 THREE: begin
                     // 15 -> adder tree 2
@@ -375,7 +370,6 @@ module conv1 #(
                 FIVE: begin
                     // 15 -> adder tree 3
                     feat_col_ctr <= feat_col_ctr + 1;
-                    
                 end
             endcase
             adder_tree_valid_sr[0] <= { adder_tree_valid_sr[0][5:0], state == ONE  };

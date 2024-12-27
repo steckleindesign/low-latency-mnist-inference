@@ -13,7 +13,7 @@ module pool #(
     input  logic               i_clk,
     input  logic               i_rst,
     input  logic               i_feature_valid,
-    input  logic signed [15:0] i_feature,
+    input  logic signed [15:0] i_features[NUM_CHANNELS-1:0],
     output logic               o_feature_valid,
     output logic signed [15:0] o_feature
 );

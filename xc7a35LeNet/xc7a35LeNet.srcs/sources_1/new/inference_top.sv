@@ -74,11 +74,12 @@ module inference_top(
     output logic       led_r, led_g, led_b
 );
 
-    /* TODO  list:
-        Async reset re-sync logic
+    /* TODO list:
         Send output out on MISO line
-        conv pattern
     */
+    
+    localparam CONV1_CHANNELS = 6;
+    localparam CONV2_CHANNELS = 16;
     
     // MMCM
     logic       clk100m;
@@ -94,9 +95,11 @@ module inference_top(
     logic               pixel_valid;
     logic         [7:0] w_pixel;
     logic               conv1_feature_valid, conv2_feature_valid;
-    logic signed [15:0] conv1_feature,       conv2_feature;
+    logic signed [15:0] conv1_features[CONV1_CHANNELS-1:0], conv2_features[CONV2_CHANNELS-1:0];
     logic               pool1_feature_valid, pool2_feature_valid;
     logic signed [15:0] pool1_feature,       pool2_feature;
+    
+    logic               conv1_lb_full;
     
     logic               fc1_neuron_valid, fc2_neuron_valid, fc3_neuron_valid;
     // FEATURE_WIDTH+WEIGHT_WIDTH+$clog2(NUM_FEATURES)-1
@@ -126,6 +129,13 @@ module inference_top(
                              .i_spi_data (spi_wr_data),
                              .o_pixel    (spi_pixel),
                              .o_pix_valid(spi_pixel_valid));
+                             
+//    input_image_buf   img_in (.i_clk        (clk100m),
+//                              .i_rst        (rst),
+//                              .i_pixel      ().
+//                              .i_pixel_valid(),
+//                              .i_hold       (conv1_lb_full)
+//                              .o_pixel      ());
     
     // Separate files for weights and biases?
     
@@ -143,7 +153,8 @@ module inference_top(
                              .i_feature_valid(spi_pixel_valid),
                              .i_feature      (spi_pixel),
                              .o_feature_valid(conv1_feature_valid),
-                             .o_feature      (conv1_feature));
+                             .o_features     (conv1_features),
+                             .o_buffer_full  (conv1_lb_full));
                             
     // Max Pooling Layer 1
     pool                   #(
@@ -156,7 +167,7 @@ module inference_top(
                              .i_clk          (clk100m),
                              .i_rst          (rst),
                              .i_feature_valid(conv1_feature_valid),
-                             .i_feature      (conv1_feature),
+                             .i_features     (conv1_features),
                              .o_feature_valid(pool1_feature_valid),
                              .o_feature      (pool1_feature));
                             
@@ -174,7 +185,7 @@ module inference_top(
                              .i_feature_valid(pool1_feature_valid),
                              .i_feature      (pool1_feature),
                              .o_feature_valid(conv2_feature_valid),
-                             .o_feature      (conv2_feature));
+                             .o_features     (conv2_features));
                             
     // Max Pooling Layer 2
     pool                   #(
@@ -187,7 +198,7 @@ module inference_top(
                              .i_clk          (clk100m),
                              .i_rst          (rst),
                              .i_feature_valid(conv2_feature_valid),
-                             .i_feature      (conv2_feature),
+                             .i_features     (conv2_features),
                              .o_feature_valid(pool2_feature_valid),
                              .o_feature      (pool2_feature));
     
