@@ -1,6 +1,24 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 /*
+
+    Architecture:
+        Overview:
+            Utilize 90 DSPs for convolution
+            Complete 3 convolutions in 5 clock cycles
+            We will skip the last convolution (output feature) for each row
+            There will be 27 convolutions (output features) in each row
+            This will take (27/3)*5 = 45 clock cycles per row
+            We will sequentially execute convolution operation on all 28 rows
+            For each row, convolve left to right, from output feature 0-26
+            It will take 45*28 = 1260 clock cycles for the conv1 operation
+        Start
+            Wait until line buffer is full to enable convolution operation
+        End of row (After each row convolution operation if finished):
+            Increment feature row count
+            Shift line buffer down
+            reset the line buffer full flag
+            
           
           90 DSPs, 50 BRAMS (36Kb each)
           6 filters for conv1, 5x5 filter (25 * ops), 28x28 conv ops (784)
@@ -15,6 +33,9 @@
           which is not a multiple of 4
           
           Accumulation architecture is currently adder tree - research additional adder structures
+          - Wallace Tree
+          - Look into barrel shifters and booth multipliers
+          
           Study how to get outputs of DSP48s to carry chain resources efficiently
           
 */
@@ -68,7 +89,9 @@ module conv1 #(
     // For now we will starting MACC operations once line buffer is full
     // Also we will use a line buffer with FILTER_SIZE rows, 5 rows in our case
     // Again, we are not using the last 2 columns in this iteration (all 0's so its viable)
-    logic         [7:0] line_buffer[FILTER_SIZE-1:0][COL_END:0];
+    // For first synthesis effort, using FILTER_SIZE+1 rows, no need for input feature
+    // to be used in the logic, and for now we are not worried about memory
+    logic         [7:0] line_buffer[FILTER_SIZE:0][COL_END-1:0];
     // Indexed features to be used for * operation
     logic         [7:0] feature_operands[FILTER_SIZE-1:0][2:0];
     logic signed  [7:0] weight_operands[NUM_FILTERS-1:0][FILTER_SIZE-1:0][2:0];
@@ -80,6 +103,8 @@ module conv1 #(
     logic [$clog2(COL_END)-1:0] feat_col_ctr;
     // Line buffer full flag
     logic               lb_full;
+    // Move to next row of output features
+    logic               next_row;
     // Is it ok to go FSM-less and just use this MACC enable?
     logic               macc_en;
     // Keep track of row count direction, we zig zag rows (Do we actually gain any efficiency this way?)
@@ -143,7 +168,7 @@ module conv1 #(
                     next_state = FOUR;
                     // 15 -> adder tree 2
                 FOUR:
-                    next_state = (feat_col_ctr == COL_END) ? ONE : FIVE;
+                    next_state = FIVE; // (feat_col_ctr == COL_END) ? ONE : FIVE;
                     // 5  -> adder tree 2
                     // 10 -> adder tree 3
                 FIVE:
@@ -345,11 +370,7 @@ module conv1 #(
                 FOUR: begin
                     // 5  -> adder tree 2
                     // 10 -> adder tree 3
-                    if (feat_col_ctr == COL_END) begin
-                        feat_row_ctr <= feat_row_ctr + 1;
-                        feat_col_ctr <= 0;
-                    end else
-                        feat_col_ctr <= feat_col_ctr + 1;
+                    feat_col_ctr <= feat_col_ctr + 1;
                 end
                 FIVE: begin
                     // 15 -> adder tree 3
@@ -363,44 +384,46 @@ module conv1 #(
         end
     end
     
+    always_comb begin
+        next_row = feat_col_ctr == COL_END-1 && state == FIVE;
+        lb_full  = lb_row_ctr == FILTER_SIZE && lb_col_ctr == COL_END;
+    end
+    
     always_ff @(posedge i_clk) begin
-        if (i_rst)
-            macc_en <= 0;
-        else begin
-            if (macc_en) begin
-                lb_full <= lb_row_ctr == 3'd4 && lb_col_ctr == COL_END;
-                if (feat_col_ctr == COL_END) begin
-                    if (lb_row_ctr == ROW_END) begin
-                        lb_col_ctr <= COL_START;
-                        for (int i = 0; i < FILTER_SIZE-2; i++)
+        if (i_rst) begin
+            macc_en      <= 0;
+            feat_row_ctr <= ROW_START;
+            feat_col_ctr <= COL_START;
+            // Do we actually need to reset the line buffer to 0?
+            line_buffer         <= '{default: 0};
+            adder_tree_valid_sr <= '{default: 0};
+        end else begin
+            if (lb_full)
+                macc_en <= 1;
+            if (next_row) begin
+                feat_row_ctr <= feat_row_ctr + 1;
+                feat_col_ctr <= COL_START;
+            end
+        end
+    end
+    
+    always_ff @(posedge i_clk) begin
+        if (i_rst) begin
+            lb_row_ctr <= ROW_START;
+            lb_col_ctr <= COL_START;
+        end else begin
+            if (i_feature_valid)
+                if (lb_full)
+                    if (next_row)
+                        for (int i = 0; i < FILTER_SIZE-1; i++)
                             line_buffer[i] <= line_buffer[i+1];
-                    end
-                end else if (~lb_full) begin
+                else if (i_feature_valid) begin
                     line_buffer[lb_row_ctr][lb_col_ctr] <= i_feature;
                     if (lb_col_ctr == COL_END) begin
-                        if (lb_row_ctr == 3'd4)
-                            lb_full <= 1;
-                        else begin
-                            lb_col_ctr <= COL_START;
-                            lb_row_ctr <= lb_row_ctr + 1;
-                        end
+                        lb_col_ctr <= COL_START;
+                        lb_row_ctr <= lb_row_ctr + 1;
                     end
                 end
-            end else begin
-                if (i_feature_valid) begin
-                    lb_row_ctr          <= ROW_START;
-                    lb_col_ctr          <= COL_START;
-                    feat_row_ctr        <= ROW_START;
-                    feat_col_ctr        <= COL_START;
-                    // Do we actually need to reset the line buffer to 0?
-                    line_buffer         <= '{default: 0};
-                    adder_tree_valid_sr <= '{default: 0};
-                    macc_en             <= 1;
-                        
-                    // Use logic, instead of setting output directly
-                    o_feature_valid <= 0;
-                end
-            end
         end
     end
     
