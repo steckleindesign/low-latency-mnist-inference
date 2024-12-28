@@ -169,7 +169,7 @@ module inference_top(
                              .i_feature_valid(conv1_feature_valid),
                              .i_features     (conv1_features),
                              .o_feature_valid(pool1_feature_valid),
-                             .o_feature      (pool1_feature));
+                             .o_features     (pool1_features));
                             
     // Convolutional Layer 2
     conv                   #(
@@ -200,7 +200,7 @@ module inference_top(
                              .i_feature_valid(conv2_feature_valid),
                              .i_features     (conv2_features),
                              .o_feature_valid(pool2_feature_valid),
-                             .o_feature      (pool2_feature));
+                             .o_features     (pool2_features));
     
     // Fully Connected Layer 1
     fc                     #(
@@ -213,7 +213,7 @@ module inference_top(
                              .i_clk(clk100m),
                              .i_rst(rst),
                              .i_feature_valid(pool2_feature_valid),
-                             .i_feature      (pool2_feature),
+                             .i_features     (pool2_features),
                              .o_neuron_valid (fc1_neuron_valid),
                              .o_neuron       (fc1_neuron));
                              
@@ -228,7 +228,7 @@ module inference_top(
                              .i_clk(clk100m),
                              .i_rst(rst),
                              .i_feature_valid(fc1_neuron_valid),
-                             .i_feature      (fc1_neuron),
+                             .i_features     (fc1_neuron),
                              .o_neuron_valid (fc2_neuron_valid),
                              .o_neuron       (fc2_neuron));
                              
