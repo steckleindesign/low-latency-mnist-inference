@@ -41,14 +41,7 @@
 */
 //////////////////////////////////////////////////////////////////////////////////
 
-module conv1 #(
-    parameter string WEIGHTS_FILE = "weights.mem",
-    parameter string BIASES_FILE  = "biases.mem",
-    parameter        INPUT_WIDTH  = 32,
-    parameter        INPUT_HEIGHT = 32,
-    parameter        FILTER_SIZE  = 5,
-    parameter        NUM_FILTERS  = 6
-) (
+module conv1 #( parameter NUM_FILTERS = 6 ) (
     input  logic               i_clk,
     input  logic               i_rst,
     input  logic               i_feature_valid,
@@ -62,8 +55,13 @@ module conv1 #(
     output logic               o_buffer_full
 );
 
+    localparam string WEIGHTS_FILE = "weights.mem";
+    localparam string BIASES_FILE  = "biases.mem";
+    localparam        INPUT_WIDTH  = 32;
+    localparam        INPUT_HEIGHT = 32;
+    localparam        FILTER_SIZE  = 5;
+
     // Computed local params from module parameters
-    localparam WINDOW_AREA   = FILTER_SIZE * FILTER_SIZE;
     localparam OUTPUT_HEIGHT = INPUT_HEIGHT - FILTER_SIZE + 1;
     localparam OUTPUT_WIDTH  = INPUT_WIDTH - FILTER_SIZE + 1;
     localparam ROW_START     = FILTER_SIZE/2;

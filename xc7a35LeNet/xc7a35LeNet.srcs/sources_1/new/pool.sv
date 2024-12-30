@@ -16,11 +16,10 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module pool #(
+    // Defaults are for pool1 (S2)
     parameter INPUT_WIDTH  = 28,
     parameter INPUT_HEIGHT = 28,
-    parameter NUM_CHANNELS = 6,
-    parameter POOL_SIZE    = 2,
-    parameter STRIDE       = 2
+    parameter NUM_CHANNELS = 6
 ) (
     input  logic               i_clk,
     input  logic               i_rst,
@@ -29,6 +28,10 @@ module pool #(
     output logic               o_feature_valid,
     output logic signed [15:0] o_features[NUM_CHANNELS-1:0]
 );
+
+    // 2x2 pools, non-overlapping for LeNet-5
+    localparam POOL_SIZE = 2;
+    localparam STRIDE    = 2;
 
     localparam POOL_AREA   = POOL_SIZE*POOL_SIZE;
     localparam POOL_WIDTH  = INPUT_WIDTH/POOL_SIZE;
