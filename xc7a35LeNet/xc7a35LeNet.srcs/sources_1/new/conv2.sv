@@ -243,36 +243,149 @@ module conv2(
     // Register outputs of DSPs
     // TODO: Flatten
     logic signed [23:0] mult_out[NUM_FILTERS-1:0][FILTER_SIZE*3-1:0];
-    // 5 state MACC sequence throughout conv1 layer execution
-    typedef enum logic [2:0] {
-        ONE, TWO, THREE, FOUR, FIVE
-    } state_t;
-    state_t state, next_state;
     
-    always_ff @(posedge i_clk) begin
-        if (i_rst)
-            state <= ONE;
-        else
-            state <= next_state;
+    typedef enum logic [1:0] {
+        THREE_MAP, FOUR_MAP, SIX_MAP
+    } state_xmap_t;
+    state_xmap_t state_xmap, next_state_xmap;
+    
+    // 5 state MACC sequence for 3-Map connections
+    typedef enum logic [2:0] {
+        ONE_3m, TWO_3m, THREE_3m, FOUR_3m, FIVE_3m
+    } state3m_t;
+    state3m_t state3m, next_state3m;
+    
+    // 10 state MACC sequence for 4-Map connections
+    typedef enum logic [3:0] {
+        ONE_4m, TWO_4m, THREE_4m, FOUR_4m, FIVE_4m, SIX_4m, SEVEN_4m, EIGHT_4m, NINE_4m, TEN_4m
+    } state4m_t;
+    state4m_t state4m, next_state4m;
+    
+    // 5 state MACC sequence for 6-Map connections
+    typedef enum logic [2:0] {
+        ONE_6m, TWO_6m, THREE_6m, FOUR_6m, FIVE_6m
+    } state6m_t;
+    state6m_t state6m, next_state6m;
+    
+    always_ff @(posedge i_clk)
+    begin
+        if (i_rst) begin
+            state_xmap <= THREE_MAP;
+            state3m    <= ONE_3m;
+            state4m    <= ONE_4m;
+            state6m    <= ONE_6m;
+        end else begin
+            state_xmap <= next_state_xmap;
+            state3m    <= next_state3m;
+            state4m    <= next_state4m;
+            state6m    <= next_state6m;
+        end
     end
     
     always_comb begin
         // Default, override when MACC enabled
-        next_state = ONE;
+        next_state_xmap = THREE_MAP;
+        next_state3m    = ONE_3m;
+        next_state4m    = ONE_4m;
+        next_state6m    = ONE_6m;
         if (macc_en) begin
-            case(state)
-                ONE:
-                    next_state = TWO;
-                TWO:
-                    next_state = THREE;
-                THREE:
-                    next_state = FOUR;
-                FOUR:
-                    next_state = FIVE;
-                FIVE:
-                    next_state = ONE;
-               default: next_state = next_state;
+            next_state_xmap = next_state_xmap;
+            case(state_xmap)
+                THREE_MAP: begin
+                    case(state3m)
+                        ONE_3m: begin
+                            next_state3m = TWO_3m;
+                        end
+                        TWO_3m: begin
+                            next_state3m = THREE_3m;
+                        end
+                        THREE_3m: begin
+                            next_state3m = FOUR_3m;
+                        end
+                        FOUR_3m: begin
+                            next_state3m = FIVE_3m;
+                        end
+                        FIVE_3m: begin
+                            next_state3m = ONE_3m;
+                            if (feat_row_ctr == ROW_END && feat_col_ctr == COL_END)
+                                next_state_xmap = FOUR_MAP;
+                        end
+                    endcase
+                end
+                FOUR_MAP: begin
+                    case(state4m)
+                        ONE_3m: begin
+                            next_state4m = TWO_4m;
+                        end
+                        TWO_3m: begin
+                            next_state4m = THREE_4m;
+                        end
+                        THREE_3m: begin
+                            next_state4m = FOUR_4m;
+                        end
+                        FOUR_3m: begin
+                            next_state4m = FIVE_4m;
+                        end
+                        FIVE_3m: begin
+                            next_state4m = SIX_4m;
+                        end
+                        SIX_4m: begin
+                            next_state4m = SEVEN_4m;
+                        end
+                        SEVEN_4m: begin
+                            next_state4m = EIGHT_4m;
+                        end
+                        EIGHT_4m: begin
+                            next_state4m = NINE_4m;
+                        end
+                        NINE_4m: begin
+                            next_state4m = TEN_4m;
+                        end
+                        TEN_4m: begin
+                            next_state4m = ONE_4m;
+                            if (feat_row_ctr == ROW_END && feat_col_ctr == COL_END)
+                                next_state_xmap = SIX_MAP;
+                        end
+                    endcase
+                end
+                SIX_MAP: begin
+                    case(state6m)
+                        ONE_6m: begin
+                            next_state6m = TWO_6m;
+                        end
+                        TWO_6m: begin
+                            next_state6m = THREE_6m;
+                        end
+                        THREE_6m: begin
+                            next_state6m = FOUR_6m;
+                        end
+                        FOUR_6m: begin
+                            next_state6m = FIVE_6m;
+                        end
+                        FIVE_6m: begin
+                            next_state6m = ONE_6m;
+                            // Do we need to go back to 3-maps? or just disable macc enable?
+                            if (feat_row_ctr == ROW_END && feat_col_ctr == COL_END)
+                                next_state_xmap = THREE_MAP;
+                        end
+                    endcase
+                end
+               default: next_state_xmap = next_state_xmap;
             endcase
+        end
+    end
+    
+    always_ff @(posedge i_clk)
+    begin
+        if (i_rst) begin
+            feat_row_ctr <= ROW_START;
+            feat_col_ctr <= COL_START;
+        end else begin
+            feat_col_ctr <= feat_col_ctr + 1;
+            if (feat_col_ctr == COL_END) begin
+                feat_col_ctr <= 0;
+                feat_row_ctr <= feat_row_ctr == COL_END ? 0: feat_row_ctr + 1;
+            end
         end
     end
 
