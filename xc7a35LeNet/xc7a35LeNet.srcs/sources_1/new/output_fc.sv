@@ -1,22 +1,20 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 12/30/2024 11:52:18 AM
-// Design Name: 
-// Module Name: output_fc
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
+
+/*
+    Connections (# of * ops): 84 * 10 = 840
+    
+    Trainable parameters = (84 + 1) * 10 = 850
+    
+    @ 90 DSPs, 840 / 90 = 10 clock cycles
+    
+    We will have a remainder of 60 DSPs, the last cycle.
+    What can we do to be more efficient with the DSPs?
+    Perhaps some operations for the next conv1 layer? - minimal pipelining could help throughout slightly
+    
+    Adder trees: 85 operands, $clog2(85) = 7 clock cycles, latency of layer should be 17 clock cycles
+*/
+
 //////////////////////////////////////////////////////////////////////////////////
 
 

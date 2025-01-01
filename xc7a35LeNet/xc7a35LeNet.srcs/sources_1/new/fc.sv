@@ -1,4 +1,19 @@
 `timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+
+/*
+    Connections (# of * ops): 120 * 84 = 10080
+    
+    Trainable parameters = (120 + 1) * 84 = 10164
+    
+    @ 90 DSPs, 10164 / 90 = 112 clock cycles
+    
+    Adder trees won't be so bad, 120 operands, $clog2(120) = 7 clock cycles,
+    overall latency of layer should be within 120 clock cycles
+
+*/
+
+//////////////////////////////////////////////////////////////////////////////////
 
 module fc #(
     parameter string WEIGHTS_FILE = "weights.mem",

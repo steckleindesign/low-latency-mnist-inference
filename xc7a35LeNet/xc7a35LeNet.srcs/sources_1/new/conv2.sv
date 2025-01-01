@@ -37,18 +37,6 @@
     third process the 6*5*5 map (1 map, 90 DSPs used for this map)
     
     Adder tree structures:
-    3*5*5 maps
-        15
-        8 + 15
-        12 + 15
-        14 + 15
-        15 + 15
-        15
-        8
-        4
-        2
-        1
-    
     4*5*5 maps
         10
         5 + 10
@@ -372,6 +360,31 @@ module conv2(
                 end
                default: next_state_xmap = next_state_xmap;
             endcase
+        end
+    end
+    
+     always_ff @(posedge i_clk)
+     begin
+        if (macc_en) begin
+            for (int i = 0; i < 6; i++) begin
+                adder3map_stage1[i][14:0] <= mult_out[i][14:0];
+                
+                adder3map_stage2[i][22:0] <= 
+                
+                adder3map_stage3[i][26:0];             8 + 15  
+                adder3map_stage4[i][28:0];             12 + 15 
+                adder3map_stage5[i][29:0];             14 + 15 
+                adder3map_stage6[i][14:0];             15 + 15 
+                adder3map_stage7[i][7:0];              15      
+                adder3map_stage8[i][3:0];              8       
+                adder3map_stage9[i][1:0];              4       
+                adder3map_result[i] = ;                2       
+            end                                        1       
+            
+            // Adder tree structure 1
+            adder1_stage1[i][14:10] <= mult_out[i][14:10];
+            adder1_stage1[i][9:5]   <= mult_out[i][9:5];
+            adder1_stage1[i][4:0]   <= mult_out[i][4:0];
         end
     end
     

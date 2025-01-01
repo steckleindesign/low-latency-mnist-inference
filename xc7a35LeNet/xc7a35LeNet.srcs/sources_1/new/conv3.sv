@@ -8,6 +8,23 @@
     # of * ops = 120*16*5*5 = 48000
     
     90 DSP48s, 48000/90 = 533.3 = 534 clock cycles
+    
+    400 * ops required for each of the 120 features
+    
+    least common multiple of 400 and 9 is 9*400=3600
+    
+    9 sets of 400, will require 3600/90 = 40 clock cycles
+    
+    40 Cycles:
+    Feature n*9 + 0: 90, 90, 90, 90, 40
+    Feature n*9 + 1:                 50, 90, 90, 90, 80
+    Feature n*9 + 2:                                 10, 90, 90, 90, 90, 30
+    Feature n*9 + 3:                                                     60, 90, 90, 90, 70
+    Feature n*9 + 4:                                                                     20, 90, 90, 90, 90, 20
+    Feature n*9 + 5:                                                                                         70, 90, 90, 90, 60
+    Feature n*9 + 6:                                                                                                         30, 90, 90, 90, 10
+    Feature n*9 + 7:                                                                                                                         80, 90, 90, 90, 50
+    Feature n*9 + 8:                                                                                                                                         40, 90, 90, 90, 90
 
 */
 
