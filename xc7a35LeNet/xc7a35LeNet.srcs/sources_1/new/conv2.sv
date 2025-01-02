@@ -35,60 +35,7 @@
     First process the 3*5*5 maps (6 maps, 90/6 = 15 DSP48s per map)
     second process the 4*5*5 maps (9 maps, 90/9 = 10 DSP48s per map),
     third process the 6*5*5 map (1 map, 90 DSPs used for this map)
-    
-    Adder tree structures:
-    4*5*5 maps
-        10
-        5 + 10
-        8 + 10
-        9 + 10
-        10 + 10
-        10 + 10
-        10 + 10
-        10 + 10
-        10 + 10
-        10 + 10
-        10
-        5
-        3
-        2
-        1
-        
-    6*5*5 map (3 adder tree structures here, because 90 (DSPs) is not a factor of the # of * ops per feature (150)
-    Tree structure 1
-        90
-        45 + 60
-        53
-        27
-        14
-        7
-        4
-        2
-        1
-        
-    Tree structure 2
-        30
-        15 + 90
-        53 + 30
-        42
-        21
-        11
-        6
-        3
-        2
-        1
-        
-    Tree structure 3
-        60
-        30 + 90
-        60
-        30
-        15
-        8
-        4
-        2
-        1
-        
+
     We might need to be smarter, lots of unique adder tree structures across the 2 conv layers alone
     
     FSMs:
@@ -184,7 +131,7 @@ module conv2(
     logic signed [23:0] adder4map_stage2[8:0][14:0];
     logic signed [23:0] adder4map_stage3[8:0][17:0];
     logic signed [23:0] adder4map_stage4[8:0][18:0];
-    logic signed [23:0] adder4map_stage5[8:0][29:0];
+    logic signed [23:0] adder4map_stage5[8:0][19:0];
     logic signed [23:0] adder4map_stage6[8:0][19:0];
     logic signed [23:0] adder4map_stage7[8:0][19:0];
     logic signed [23:0] adder4map_stage8[8:0][19:0];
@@ -363,28 +310,200 @@ module conv2(
         end
     end
     
-     always_ff @(posedge i_clk)
-     begin
+    // Use some wires for the multouts array structure based on different adder tree structures
+    always_ff @(posedge i_clk)
+    begin
         if (macc_en) begin
             for (int i = 0; i < 6; i++) begin
                 adder3map_stage1[i][14:0] <= mult_out[i][14:0];
                 
-                adder3map_stage2[i][22:0] <= 
+                adder3map_stage2[i][22] <= adder3map_stage1[i][15] + biases[i];
+                for (int j = 0; j < 7; j++)
+                    adder3map_stage2[i][j+15] <= adder3map_stage1[i][j*2] + adder3map_stage1[i][j*2+1];
+                adder3map_stage2[i][14:0] <= mult_out[i][14:0];
                 
-                adder3map_stage3[i][26:0];             8 + 15  
-                adder3map_stage4[i][28:0];             12 + 15 
-                adder3map_stage5[i][29:0];             14 + 15 
-                adder3map_stage6[i][14:0];             15 + 15 
-                adder3map_stage7[i][7:0];              15      
-                adder3map_stage8[i][3:0];              8       
-                adder3map_stage9[i][1:0];              4       
-                adder3map_result[i] = ;                2       
-            end                                        1       
+                adder3map_stage3[i][26] <= adder3map_stage2[i][22];
+                for (int j = 0; j < 11; j++)
+                    adder3map_stage3[i][j+15] <= adder3map_stage2[i][j*2] + adder3map_stage2[i][j*2+1];
+                adder3map_stage3[i][14:0] <= mult_out[i][14:0];
+                
+                adder3map_stage4[i][28] <= adder3map_stage3[i][26];
+                for (int j = 0; j < 13; j++)
+                    adder3map_stage4[i][j+15] <= adder3map_stage3[i][j*2] + adder3map_stage3[i][j*2+1];
+                adder3map_stage4[i][14:0] <= mult_out[i][14:0];
+                
+                adder3map_stage5[i][29] <= adder3map_stage4[i][28];
+                for (int j = 0; j < 14; j++)
+                    adder3map_stage5[i][j+15] <= adder3map_stage4[i][j*2] + adder3map_stage4[i][j*2+1];
+                adder3map_stage5[i][14:0] <= mult_out[i][14:0];
+                
+                for (int j = 0; j < 15; j++)
+                    adder3map_stage6[i][j] <= adder3map_stage5[i][j*2] + adder3map_stage5[i][j*2+1];
+                
+                adder3map_stage7[i][7] <= adder3map_stage6[i][14];
+                for (int j = 0; j < 7; j++)
+                    adder3map_stage7[i][j] <= adder3map_stage6[i][j*2] + adder3map_stage6[i][j*2+1];
+                
+                for (int j = 0; j < 4; j++)
+                    adder3map_stage8[i][j] <= adder3map_stage7[i][j*2] + adder3map_stage7[i][j*2+1];
+                
+                for (int j = 0; j < 2; j++)
+                    adder3map_stage9[i][j] <= adder3map_stage8[i][j*2] + adder3map_stage8[i][j*2+1];
+                
+                adder3map_result[i] = adder3map_stage9[i][1] + adder3map_stage9[i][0];
+            end
             
-            // Adder tree structure 1
-            adder1_stage1[i][14:10] <= mult_out[i][14:10];
-            adder1_stage1[i][9:5]   <= mult_out[i][9:5];
-            adder1_stage1[i][4:0]   <= mult_out[i][4:0];
+            for (int i = 0; i < 9; i++) begin
+                adder4map_stage1[i][9:0] <= mult_out[i][9:0];
+                
+                for (int j = 0; j < 5; j++)
+                    adder4map_stage2[i][j+10] <= adder4map_stage1[i][j*2] + adder4map_stage1[i][j*2+1];
+                adder4map_stage2[i][9:0] <= mult_out[i][9:0];
+                
+                adder4map_stage3[i][17] <= adder4map_stage2[i][14] + biases[i+6];
+                for (int j = 0; j < 7; j++)
+                    adder4map_stage3[i][j+10] <= adder4map_stage2[i][j*2] + adder4map_stage2[i][j*2+1];
+                adder4map_stage3[i][9:0] <= mult_out[i][9:0];
+                
+                for (int j = 0; j < 9; j++)
+                    adder4map_stage4[i][j+10] <= adder4map_stage3[i][j*2] + adder4map_stage3[i][j*2+1];
+                adder4map_stage4[i][9:0] <= mult_out[i][9:0];
+                
+                adder4map_stage5[i][19] <= adder4map_stage4[i][18];
+                for (int j = 0; j < 9; j++)
+                    adder4map_stage5[i][j+10] <= adder4map_stage4[i][j*2] + adder4map_stage4[i][j*2+1];
+                adder4map_stage5[i][9:0] <= mult_out[i][9:0];
+                
+                for (int j = 0; j < 10; j++)
+                    adder4map_stage6[i][j+10] <= adder4map_stage5[i][j*2] + adder4map_stage5[i][j*2+1];
+                adder4map_stage6[i][9:0] <= mult_out[i][9:0];
+                
+                for (int j = 0; j < 10; j++)
+                    adder4map_stage7[i][j+10] <= adder4map_stage6[i][j*2] + adder4map_stage6[i][j*2+1];
+                adder4map_stage7[i][9:0] <= mult_out[i][9:0];
+                
+                for (int j = 0; j < 10; j++)
+                    adder4map_stage8[i][j+10] <= adder4map_stage7[i][j*2] + adder4map_stage7[i][j*2+1];
+                adder4map_stage8[i][9:0] <= mult_out[i][9:0];
+                
+                for (int j = 0; j < 10; j++)
+                    adder4map_stage9[i][j+10] <= adder4map_stage8[i][j*2] + adder4map_stage8[i][j*2+1];
+                adder4map_stage9[i][9:0] <= mult_out[i][9:0];
+                
+                for (int j = 0; j < 10; j++)
+                    adder4map_stage10[i][j+10] <= adder4map_stage9[i][j*2] + adder4map_stage9[i][j*2+1];
+                adder4map_stage10[i][9:0] <= mult_out[i][9:0];
+                
+                for (int j = 0; j < 10; j++)
+                    adder4map_stage11[i][j+10] <= adder4map_stage10[i][j*2] + adder4map_stage10[i][j*2+1];
+                adder4map_stage11[i][9:0] <= mult_out[i][9:0];
+                
+                for (int j = 0; j < 10; j++)
+                    adder4map_stage12[i][j] <= adder4map_stage11[i][j*2] + adder4map_stage11[i][j*2+1];
+                
+                for (int j = 0; j < 5; j++)
+                    adder4map_stage13[i][j] <= adder4map_stage12[i][j*2] + adder4map_stage12[i][j*2+1];
+                
+                adder4map_stage14[i][2] <= adder4map_stage13[i][4];
+                for (int j = 0; j < 2; j++)
+                    adder4map_stage14[i][j] <= adder4map_stage13[i][j*2] + adder4map_stage13[i][j*2+1];
+                
+                adder4map_stage15[i][2] <= adder4map_stage14[i][2];
+                adder4map_stage15[i][1] <= adder4map_stage14[i][1] + adder4map_stage14[i][0];
+                    
+                adder4map_result[i] <= adder4map_stage15[i][1] + adder4map_stage15[i][0];
+            end
+            
+            adder6map_struct1_stage1[89:0] <= mult_out;
+            
+            for (int i = 0; i < 45; i++)
+                adder6map_struct1_stage2[i+60] <= adder6map_struct1_stage1[i*2] + adder6map_struct1_stage1[i*2+1];
+            adder6map_struct1_stage2[59:0] <= mult_out[59:0];
+            
+            adder6map_struct1_stage3[52] <= adder6map_struct1_stage2[104] + biases[15];
+            for (int i = 0; i < 52; i++)
+                adder6map_struct1_stage3[i] <= adder6map_struct1_stage2[i*2] + adder6map_struct1_stage2[i*2+1];
+            
+            adder6map_struct1_stage4[26] <= adder6map_struct1_stage3[52];
+            for (int i = 0; i < 26; i++)
+                adder6map_struct1_stage4[i] <= adder6map_struct1_stage3[i*2] + adder6map_struct1_stage3[i*2+1];
+            
+            adder6map_struct1_stage5[13] <= adder6map_struct1_stage4[26];
+            for (int i = 0; i < 13; i++)
+                adder6map_struct1_stage5[i] <= adder6map_struct1_stage4[i*2] + adder6map_struct1_stage4[i*2+1];
+            
+            for (int i = 0; i < 7; i++)
+                adder6map_struct1_stage6[i] <= adder6map_struct1_stage5[i*2] + adder6map_struct1_stage5[i*2+1];
+            
+            adder6map_struct1_stage7[3] <= adder6map_struct1_stage6[6];
+            for (int i = 0; i < 3; i++)
+                adder6map_struct1_stage7[i] <= adder6map_struct1_stage6[i*2] + adder6map_struct1_stage6[i*2+1];
+            
+            for (int i = 0; i < 2; i++)
+                adder6map_struct1_stage8[i] <= adder6map_struct1_stage7[i*2] + adder6map_struct1_stage7[i*2+1];
+                
+            adder6map_struct1_result <= adder6map_struct1_stage8[1] + adder6map_struct1_stage8[0];
+            
+            adder6map_struct2_stage1[29:0] <= mult_out[89:60];
+            
+            for (int i = 0; i < 15; i++)
+                adder6map_struct2_stage2[i+90] <= adder6map_struct2_stage1[i*2] + adder6map_struct2_stage1[i*2+1];
+            adder6map_struct2_stage2 <= mult_out;
+            
+            adder6map_struct2_stage3[82] <= adder6map_struct2_stage2[104] + biases[15];
+            for (int i = 0; i < 52; i++)
+                adder6map_struct2_stage3[i+30] <= adder6map_struct2_stage2[i*2] + adder6map_struct2_stage2[i*2+1];
+            adder6map_struct2_stage3 <= mult_out[29:0];
+            
+            adder6map_struct2_stage4[41] <= adder6map_struct2_stage3[82];
+            for (int i = 0; i < 41; i++)
+                adder6map_struct2_stage4[i] <= adder6map_struct2_stage3[i*2] + adder6map_struct2_stage3[i*2+1];
+            
+            for (int i = 0; i < 21; i++)
+                adder6map_struct2_stage5[i] <= adder6map_struct2_stage4[i*2] + adder6map_struct2_stage4[i*2+1];
+            
+            adder6map_struct2_stage6[10] <= adder6map_struct2_stage5[20];
+            for (int i = 0; i < 10; i++)
+                adder6map_struct2_stage6[i] <= adder6map_struct2_stage5[i*2] + adder6map_struct2_stage5[i*2+1];
+            
+            adder6map_struct2_stage7[5] <= adder6map_struct2_stage6[10];
+            for (int i = 0; i < 5; i++)
+                adder6map_struct2_stage7[i] <= adder6map_struct2_stage6[i*2] + adder6map_struct2_stage6[i*2+1];
+            
+            for (int i = 0; i < 3; i++)
+                adder6map_struct2_stage8[i] <= adder6map_struct2_stage7[i*2] + adder6map_struct2_stage7[i*2+1];
+            
+            adder6map_struct2_stage9[1] <= adder6map_struct2_stage8[2];
+            adder6map_struct2_stage9[0] <= adder6map_struct2_stage8[1] + adder6map_struct2_stage8[0];
+            
+            adder6map_struct2_result <= adder6map_struct2_stage9[1] + adder6map_struct2_stage9[0];
+            
+            adder6map_struct3_stage1[59:0] <= mult_out[89:30];
+            
+            for (int i = 0; i < 30; i++)
+                adder6map_struct3_stage2[i+90] <= adder6map_struct3_stage1[i*2] + adder6map_struct3_stage1[i*2+1];
+            adder6map_struct3_stage2[89:0] <= mult_out;
+            
+            for (int i = 0; i < 60; i++)
+                adder6map_struct3_stage3[i] <= adder6map_struct3_stage2[i*2] + adder6map_struct3_stage2[i*2+1];
+            
+            for (int i = 0; i < 30; i++)
+                adder6map_struct3_stage4[i] <= adder6map_struct3_stage3[i*2] + adder6map_struct3_stage3[i*2+1];
+            
+            for (int i = 0; i < 15; i++)
+                adder6map_struct3_stage5[i] <= adder6map_struct3_stage4[i*2] + adder6map_struct3_stage4[i*2+1];
+            
+            adder6map_struct3_stage6[7] <= adder6map_struct3_stage5[14] + biases[15];
+            for (int i = 0; i < 7; i++)
+                adder6map_struct3_stage6[i] <= adder6map_struct3_stage5[i*2] + adder6map_struct3_stage5[i*2+1];
+            
+            for (int i = 0; i < 4; i++)
+                adder6map_struct3_stage7[i] <= adder6map_struct3_stage6[i*2] + adder6map_struct3_stage6[i*2+1];
+            
+            for (int i = 0; i < 2; i++)
+                adder6map_struct3_stage8[i] <= adder6map_struct3_stage7[i*2] + adder6map_struct3_stage7[i*2+1];
+            
+            adder6map_struct3_result <= adder6map_struct3_stage8[1] + adder6map_struct3_stage8[0];
         end
     end
     
