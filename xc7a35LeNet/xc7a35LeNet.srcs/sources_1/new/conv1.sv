@@ -409,6 +409,7 @@ module conv1 #( parameter NUM_FILTERS = 6 ) (
                     if (next_row)
                         for (int i = 0; i < FILTER_SIZE-1; i++)
                             line_buffer[i] <= line_buffer[i+1];
+                // Bug here, if we reach this the input feature was guarenteed to be valid
                 else if (i_feature_valid) begin
                     line_buffer[lb_row_ctr][lb_col_ctr] <= i_feature;
                     if (lb_col_ctr == COL_END) begin

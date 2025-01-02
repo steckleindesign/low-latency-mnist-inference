@@ -38,6 +38,8 @@ This source code is for the ultra low-latency system.
 If you have questions or comments, I can be reached at steckleindesign@gmail.com
 Thank you!
 
+(Latency is limited first by input data rate, second by DSP48s)
+
 Structure - pytorch
 self.conv1 = nn.Conv2d    (1,      6,  5 )
 self.pool1 = nn.MaxPool2d (2,      2     )

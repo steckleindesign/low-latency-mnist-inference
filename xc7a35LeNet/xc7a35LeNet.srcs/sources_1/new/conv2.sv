@@ -57,17 +57,14 @@ module conv2(
     localparam WEIGHTS_FILE4MAP = "conv2_weights4map.mem";
     localparam WEIGHTS_FILE6MAP = "conv2_weights6map.mem";
     localparam BIASES_FILE      = "conv2_biases.mem";
+    localparam INPUT_CHANNELS   = 6;
     localparam INPUT_WIDTH      = 14;
     localparam INPUT_HEIGHT     = 14;
     localparam FILTER_SIZE      = 5;
-
+    
     localparam WINDOW_AREA   = FILTER_SIZE * FILTER_SIZE;
     localparam OUTPUT_HEIGHT = INPUT_HEIGHT - FILTER_SIZE + 1;
     localparam OUTPUT_WIDTH  = INPUT_WIDTH - FILTER_SIZE + 1;
-    localparam ROW_START     = FILTER_SIZE/2;
-    localparam ROW_END       = INPUT_HEIGHT - FILTER_SIZE/2 - 1;
-    localparam COL_START     = FILTER_SIZE/2;
-    localparam COL_END       = INPUT_WIDTH - FILTER_SIZE/2 - 1;
     
     // Initialize trainable parameters
     // 3 S2 map connections weights
@@ -87,32 +84,30 @@ module conv2(
     biases [NUM_FILTERS-1:0];
     initial $readmemb(BIASES_FILE, biases);
     
-    
-    logic               macc_en;
-    
-    logic         [7:0] line_buffer[FILTER_SIZE:0][COL_END-1:0];
-    
     // Indexed features to be used for * operation
-    logic         [7:0] feature_operands[FILTER_SIZE-1:0][2:0];
-    logic signed  [7:0] weight_operands[NUM_FILTERS-1:0][FILTER_SIZE-1:0][2:0];
+    logic        [7:0] feature_operands[FILTER_SIZE-1:0][2:0];
+    logic signed [7:0] weight_operands[NUM_FILTERS-1:0][FILTER_SIZE-1:0][2:0];
     
-    // Line buffer location
-    logic [$clog2(ROW_END)-1:0] lb_row_ctr;
-    logic [$clog2(COL_END)-1:0] lb_col_ctr;
+    // We're just going to use BRAM here to store features
+    // Can and probably should do the same thing for conv1, and throughout design in general
+    logic [INPUT_HEIGHT-1:0] ram_row_ctr;
+    logic [INPUT_WIDTH-1:0]  ram_col_ctr;
+    // Can use 6xRAM196 => 6*3=18 LUTs, or an 18-Kb Block RAM
+    logic signed [15:0] feature_ram[INPUT_CHANNELS-1:0][INPUT_HEIGHT-1:0][INPUT_WIDTH-1:0];
+    // Feature RAM full flag
+    logic ram_full;
     
     // Feature conv location
-    logic [$clog2(ROW_END)-1:0] feat_row_ctr;
-    logic [$clog2(COL_END)-1:0] feat_col_ctr;
-    
-    // Line buffer full flag
-    logic               lb_full;
+    logic [INPUT_HEIGHT-1:0] feat_row_ctr;
+    logic [INPUT_WIDTH-1:0] feat_col_ctr;
     
     // Move to next row of output features
-    logic               next_row;
-    
+    logic next_row;
+    // Enable MACC after 5 rows have been filled
+    logic macc_en;
     
     // Adder tree valid signals implemented as SRL16
-    logic         [6:0] adder_tree_valid_sr[2:0];
+    logic [6:0] adder_tree_valid_sr[2:0];
     // Adder tree stage depths
     // TODO: Add in bias at some stage for each of the adder stree structures
     // 3-Map adder structure
@@ -176,8 +171,9 @@ module conv2(
     // MACC accumulate, 4 deep to hold at least 9 accumates during the 4-map convolutions
     logic signed [23:0] macc_acc[3:0];
     // Register outputs of DSPs
-    // TODO: Flatten
-    logic signed [23:0] mult_out[NUM_FILTERS-1:0][FILTER_SIZE*3-1:0];
+    logic signed [23:0] mult_out[89:0];
+    logic signed [23:0] mult_out_6part[5:0][14:0];
+    logic signed [23:0] mult_out_9part[8:0][9:0];
     
     typedef enum logic [1:0] {
         THREE_MAP, FOUR_MAP, SIX_MAP
@@ -308,6 +304,91 @@ module conv2(
                default: next_state_xmap = next_state_xmap;
             endcase
         end
+    end
+    
+    always_comb
+    begin
+        // A few different DSP out wires so its easier to work with when performing operations in the adder tree
+        for (int i = 0; i < 6; i++)
+            mult_out_6part[i] = mult_out[i*15+14:i*15];
+        for (int i = 0; i < 9; i++)
+            mult_out_9part[i] = mult_out[i*10+9:i*10];
+        
+        // Time multiplexing DSP48 operations, mapping operands based on states
+        case(state_xmap)
+            THREE_MAP: begin
+                case(state3m)
+                    ONE_3m: begin
+                        
+                    end
+                    TWO_3m: begin
+                        
+                    end
+                    THREE_3m: begin
+                        
+                    end
+                    FOUR_3m: begin
+                        
+                    end
+                    FIVE_3m: begin
+                        
+                    end
+                endcase
+            end
+            FOUR_MAP: begin
+                case(state4m)
+                    ONE_3m: begin
+                        
+                    end
+                    TWO_3m: begin
+                        
+                    end
+                    THREE_3m: begin
+                        
+                    end
+                    FOUR_3m: begin
+                        
+                    end
+                    FIVE_3m: begin
+                        
+                    end
+                    SIX_4m: begin
+                        
+                    end
+                    SEVEN_4m: begin
+                        
+                    end
+                    EIGHT_4m: begin
+                        
+                    end
+                    NINE_4m: begin
+                        
+                    end
+                    TEN_4m: begin
+                        
+                    end
+                endcase
+            end
+            SIX_MAP: begin
+                case(state6m)
+                    ONE_6m: begin
+                        
+                    end
+                    TWO_6m: begin
+                        
+                    end
+                    THREE_6m: begin
+                        
+                    end
+                    FOUR_6m: begin
+                        
+                    end
+                    FIVE_6m: begin
+                        
+                    end
+                endcase
+            end
+        endcase
     end
     
     // Use some wires for the multouts array structure based on different adder tree structures
@@ -504,6 +585,29 @@ module conv2(
                 adder6map_struct3_stage8[i] <= adder6map_struct3_stage7[i*2] + adder6map_struct3_stage7[i*2+1];
             
             adder6map_struct3_result <= adder6map_struct3_stage8[1] + adder6map_struct3_stage8[0];
+        end
+    end
+    
+    always_ff @(posedge i_clk)
+    begin
+        if (i_rst) begin
+            ram_row_ctr <= 'b0;
+            ram_col_ctr <= 'b0;
+            ram_full    <= 0;
+            macc_en     <= 0;
+        end else begin
+            if (i_feature_valid) begin
+                for (int i = 0; i < INPUT_CHANNELS; i++) begin
+                    feature_ram[i][ram_row_ctr][ram_col_ctr] <= i_features[i];
+                ram_col_ctr <= ram_col_ctr + 1;
+                if (ram_col_ctr == INPUT_WIDTH-1)
+                    ram_row_ctr <= ram_row_ctr + 1;
+                if (ram_row_ctr[2] & ram_row_ctr[0])
+                    macc_en <= 1;
+                // What logic is going to use the RAM full flag?
+                if (ram_row_ctr == INPUT_HEIGHT-1 && ram_col_ctr == INPUT_WIDTH-1)
+                    ram_full <= 1;
+            end
         end
     end
     
