@@ -323,4 +323,131 @@ module conv3(
     biases [NUM_FILTERS-1:0];
     initial $readmemb(BIASES_FILE, biases);
     
+    // Adder tree register structure
+    logic signed [23:0] adder1_stage1[89:0];
+    logic signed [23:0] adder1_stage2[134:0];
+    logic signed [23:0] adder1_stage3[157:0];
+    logic signed [23:0] adder1_stage4[168:0];
+    logic signed [23:0] adder1_stage5[124:0];
+    logic signed [23:0] adder1_stage6[62:0];
+    logic signed [23:0] adder1_stage7[31:0];
+    logic signed [23:0] adder1_stage8[15:0];
+    logic signed [23:0] adder1_stage9[7:0];
+    logic signed [23:0] adder1_stage10[3:0];
+    logic signed [23:0] adder1_stage11[1:0];
+    logic signed [23:0] adder1_result;
+    
+    logic signed [23:0] adder2_stage1[49:0];
+    logic signed [23:0] adder2_stage2[114:0];
+    logic signed [23:0] adder2_stage3[147:0];
+    logic signed [23:0] adder2_stage4[163:0];
+    logic signed [23:0] adder2_stage5[161:0];
+    logic signed [23:0] adder2_stage6[80:0];
+    logic signed [23:0] adder2_stage7[41:0];
+    logic signed [23:0] adder2_stage8[20:0];
+    logic signed [23:0] adder2_stage9[10:0];
+    logic signed [23:0] adder2_stage10[5:0];
+    logic signed [23:0] adder2_stage11[2:0];
+    logic signed [23:0] adder2_stage12[1:0];
+    logic signed [23:0] adder2_result;
+    
+    logic signed [23:0] adder3_stage1[9:0];
+    logic signed [23:0] adder3_stage2[94:0];
+    logic signed [23:0] adder3_stage3[137:0];
+    logic signed [23:0] adder3_stage4[158:0];
+    logic signed [23:0] adder3_stage5[169:0];
+    logic signed [23:0] adder3_stage6[114:0];
+    logic signed [23:0] adder3_stage7[57:0];
+    logic signed [23:0] adder3_stage8[28:0];
+    logic signed [23:0] adder3_stage9[14:0];
+    logic signed [23:0] adder3_stage10[7:0];
+    logic signed [23:0] adder3_stage11[3:0];
+    logic signed [23:0] adder3_stage12[1:0];
+    logic signed [23:0] adder3_result;
+    
+    logic signed [23:0] adder4_stage1[59:0];
+    logic signed [23:0] adder4_stage2[119:0];
+    logic signed [23:0] adder4_stage3[149:0];
+    logic signed [23:0] adder4_stage4[164:0];
+    logic signed [23:0] adder4_stage5[152:0];
+    logic signed [23:0] adder4_stage6[76:0];
+    logic signed [23:0] adder4_stage7[38:0];
+    logic signed [23:0] adder4_stage8[19:0];
+    logic signed [23:0] adder4_stage9[9:0];
+    logic signed [23:0] adder4_stage10[4:0];
+    logic signed [23:0] adder4_stage11[2:0];
+    logic signed [23:0] adder4_stage12[1:0];
+    logic signed [23:0] adder4_result;
+    
+    logic signed [23:0] adder5_stage1[19:0];
+    logic signed [23:0] adder5_stage2[99:0];
+    logic signed [23:0] adder5_stage3[139:0];
+    logic signed [23:0] adder5_stage4[159:0];
+    logic signed [23:0] adder5_stage5[169:0];
+    logic signed [23:0] adder5_stage6[104:0];
+    logic signed [23:0] adder5_stage7[52:0];
+    logic signed [23:0] adder5_stage8[26:0];
+    logic signed [23:0] adder5_stage9[13:0];
+    logic signed [23:0] adder5_stage10[6:0];
+    logic signed [23:0] adder5_stage11[3:0];
+    logic signed [23:0] adder5_stage12[1:0];
+    logic signed [23:0] adder5_result;
+    
+    logic signed [23:0] adder6_stage1[69:0];
+    logic signed [23:0] adder6_stage2[124:0];
+    logic signed [23:0] adder6_stage3[152:0];
+    logic signed [23:0] adder6_stage4[166:0];
+    logic signed [23:0] adder6_stage5[143:0];
+    logic signed [23:0] adder6_stage6[76:0];
+    logic signed [23:0] adder6_stage7[38:0];
+    logic signed [23:0] adder6_stage8[19:0];
+    logic signed [23:0] adder6_stage9[9:0];
+    logic signed [23:0] adder6_stage10[4:0];
+    logic signed [23:0] adder6_stage11[2:0];
+    logic signed [23:0] adder6_stage12[1:0];
+    logic signed [23:0] adder6_result;
+    
+    logic signed [23:0] adder7_stage1[29:0];
+    logic signed [23:0] adder7_stage2[104:0];
+    logic signed [23:0] adder7_stage3[142:0];
+    logic signed [23:0] adder7_stage4[166:0];
+    logic signed [23:0] adder7_stage5[173:0];
+    logic signed [23:0] adder7_stage6[96:0];
+    logic signed [23:0] adder7_stage7[48:0];
+    logic signed [23:0] adder7_stage8[24:0];
+    logic signed [23:0] adder7_stage9[12:0];
+    logic signed [23:0] adder7_stage10[6:0];
+    logic signed [23:0] adder7_stage11[3:0];
+    logic signed [23:0] adder7_stage12[1:0];
+    logic signed [23:0] adder7_result;
+    
+    logic signed [23:0] adder8_stage1[79:0];
+    logic signed [23:0] adder8_stage2[129:0];
+    logic signed [23:0] adder8_stage3[154:0];
+    logic signed [23:0] adder8_stage4[167:0];
+    logic signed [23:0] adder8_stage5[133:0];
+    logic signed [23:0] adder8_stage6[66:0];
+    logic signed [23:0] adder8_stage7[33:0];
+    logic signed [23:0] adder8_stage8[16:0];
+    logic signed [23:0] adder8_stage9[8:0];
+    logic signed [23:0] adder8_stage10[4:0];
+    logic signed [23:0] adder8_stage11[2:0];
+    logic signed [23:0] adder8_stage12[1:0];
+    logic signed [23:0] adder8_result;
+    
+    logic signed [23:0] adder9_stage1[39:0];
+    logic signed [23:0] adder9_stage2[109:0];
+    logic signed [23:0] adder9_stage3[144:0];
+    logic signed [23:0] adder9_stage4[162:0];
+    logic signed [23:0] adder9_stage5[171:0];
+    logic signed [23:0] adder9_stage6[85:0];
+    logic signed [23:0] adder9_stage7[42:0];
+    logic signed [23:0] adder9_stage8[21:0];
+    logic signed [23:0] adder9_stage9[10:0];
+    logic signed [23:0] adder9_stage10[5:0];
+    logic signed [23:0] adder9_stage11[2:0];
+    logic signed [23:0] adder9_stage12[1:0];
+    logic signed [23:0] adder9_result;
+    
+    
 endmodule
