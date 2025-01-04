@@ -28,47 +28,6 @@
     
     40 states (adder tree structure - sequential)
     TODO: How to time multiplex resources? We use more registers than the device has with conv3 adder tree alone
-        F(9n+0) - 90
-                  45 + 90
-                  68 + 90
-                  79 + 90
-                  85 + 40
-                  63
-                  32
-                  16
-                  8
-                  4
-                  2
-                  1
-        
-        F(9n+1) - 50
-                  25 + 90
-                  58 + 90
-                  74 + 90
-                  82 + 80
-                  81
-                  42
-                  21
-                  11
-                  6
-                  3
-                  2
-                  1
-        
-        F(9n+2) - 10
-                  5 + 90
-                  48 + 90
-                  69 + 90
-                  80 + 90
-                  85 + 30
-                  58
-                  29
-                  15
-                  8
-                  4
-                  2
-                  1
-        
         F(9n+3) - 60
                   30 + 90
                   60 + 90
@@ -323,6 +282,8 @@ module conv3(
     biases [NUM_FILTERS-1:0];
     initial $readmemb(BIASES_FILE, biases);
     
+    logic signed [23:0] mult_out[89:0];
+    
     // Adder tree register structure
     logic signed [23:0] adder1_stage1[89:0];
     logic signed [23:0] adder1_stage2[134:0];
@@ -343,7 +304,7 @@ module conv3(
     logic signed [23:0] adder2_stage4[163:0];
     logic signed [23:0] adder2_stage5[161:0];
     logic signed [23:0] adder2_stage6[80:0];
-    logic signed [23:0] adder2_stage7[41:0];
+    logic signed [23:0] adder2_stage7[40:0];
     logic signed [23:0] adder2_stage8[20:0];
     logic signed [23:0] adder2_stage9[10:0];
     logic signed [23:0] adder2_stage10[5:0];
@@ -449,5 +410,147 @@ module conv3(
     logic signed [23:0] adder9_stage12[1:0];
     logic signed [23:0] adder9_result;
     
+    
+    always_ff @(posedge i_clk)
+    begin
+        adder1_stage1 <= mult_out;
+        
+        for (int i = 0; i < 45; i++)
+            adder1_stage2[i+90] <= adder1_stage1[i*2] + adder1_stage1[i*2+1];
+        adder1_stage2[89:0] <= mult_out;
+        
+        adder1_stage3[157] <= adder1_stage2[134];
+        for (int i = 0; i < 67; i++)
+            adder1_stage3[i+90] <= adder1_stage2[i*2] + adder1_stage2[i*2+1];
+        adder1_stage3[89:0] <= mult_out;
+        
+        for (int i = 0; i < 79; i++)
+            adder1_stage4[i+90] <= adder1_stage3[i*2] + adder1_stage3[i*2+1];
+        adder1_stage4[89:0] <= mult_out;
+        
+        adder1_stage5[124] <= adder1_stage4[168];
+        for (int i = 0; i < 84; i++)
+            adder1_stage5[i+40] <= adder1_stage4[i*2] + adder1_stage4[i*2+1];
+        adder1_stage5[39:0] <= mult_out[39:0];
+        
+        adder1_stage6[62] <= adder1_stage5[124];
+        for (int i = 0; i < 62; i++)
+            adder1_stage6[i] <= adder1_stage5[i*2] + adder1_stage5[i*2+1];
+        
+        adder1_stage7[31] <= adder1_stage6[62] + biases[bias_cnt];
+        for (int i = 0; i < 31; i++)
+            adder1_stage7[i] <= adder1_stage6[i*2] + adder1_stage6[i*2+1];
+        
+        for (int i = 0; i < 16; i++)
+            adder1_stage8[i] <= adder1_stage7[i*2] + adder1_stage7[i*2+1];
+        
+        for (int i = 0; i < 8; i++)
+            adder1_stage9[i] <= adder1_stage8[i*2] + adder1_stage8[i*2+1];
+        
+        for (int i = 0; i < 4; i++)
+            adder1_stage10[i] <= adder1_stage9[i*2] + adder1_stage9[i*2+1];
+        
+        for (int i = 0; i < 2; i++)
+            adder1_stage11[i] <= adder1_stage10[i*2] + adder1_stage10[i*2+1];
+        
+        adder1_result <= adder1_stage11[1] + adder1_stage11[0];
+        
+        adder2_stage1 <= mult_out[89:40];
+        
+        for (int i = 0; i < 25; i++)
+            adder2_stage2[i+90] <= adder2_stage1[i*2] + adder2_stage1[1*2+1];
+        adder2_stage2[89:0] <= mult_out;
+        
+        adder2_stage3[147] <= adder2_stage2[114];
+        for (int i = 0; i < 57; i++)
+            adder2_stage3[i+90] <= adder2_stage2[i*2] + adder2_stage2[i*2+1];
+        adder2_stage3[89:0] <= mult_out;
+        
+        for (int i = 0; i < 74; i++)
+            adder2_stage4[i+90] <= adder2_stage3[i*2] + adder2_stage3[i*2+1];
+        adder2_stage4[89:0] <= mult_out;
+        
+        for (int i = 0; i < 82; i++)
+            adder2_stage5[i+80] <= adder2_stage4[i*2] + adder2_stage4[i*2+1];
+        adder2_stage5[79:0] <= mult_out[79:0];
+        
+        for (int i = 0; i < 81; i++)
+            adder2_stage6[i] <= adder2_stage5[i*2] + adder2_stage5[i*2+1];
+        
+        adder2_stage7[41] <= adder2_stage6[80];
+        for (int i = 0; i < 41; i++)
+            adder2_stage7[i] <= adder2_stage6[i*2] + adder2_stage6[i*2+1];
+        
+        adder2_stage8[20] <= adder2_stage7[41];
+        for (int i = 0; i < 20; i++)
+            adder2_stage8[i] <= adder2_stage7[i*2] + adder2_stage7[i*2+1];
+        
+        adder2_stage9[10] <= adder2_stage8[20];
+        for (int i = 0; i < 10; i++)
+            adder2_stage9[i] <= adder2_stage8[i*2] + adder2_stage8[i*2+1];
+        
+        adder2_stage10[5] <= adder2_stage9[10] + biases[bias_cnt];
+        for (int i = 0; i < 10; i++)
+            adder2_stage10[i] <= adder2_stage9[i*2] + adder2_stage9[i*2+1];
+        
+        for (int i = 0; i < 3; i++)
+            adder2_stage11[i] <= adder2_stage10[i*2] + adder2_stage10[i*2+1];
+        
+        for (int i = 0; i < 2; i++)
+            adder2_stage12[i] <= adder2_stage11[i*2] + adder2_stage11[i*2+1];
+        
+        adder2_result <= adder2_stage12[1] + adder2_stage12[0];
+        
+        adder3_stage1 <= mult_out[89:80];
+        
+        for (int i = 0; i < 5; i++)
+            adder3_stage2[i+90] <= adder3_stage1[i*2] + adder3_stage1[i*2+1];
+        adder3_stage2[89:0] <= mult_out;
+        
+        adder3_stage3[137] <= adder3_stage2[94];
+        for (int i = 0; i < 47; i++)
+            adder3_stage3[i+90] <= adder3_stage2[i*2] + adder3_stage2[i*2+1];
+        adder3_stage3[89:0] <= mult_out;
+        
+        for (int i = 0; i < 69; i++)
+            adder3_stage4[i+90] <= adder3_stage3[i*2] + adder3_stage3[i*2+1];
+        adder3_stage4[89:0] <= mult_out;
+        
+        adder3_stage5[169] <= adder3_stage4[158];
+        for (int i = 0; i < 79; i++)
+            adder3_stage5[i+90] <= adder3_stage4[i*2] + adder3_stage4[i*2+1];
+        adder3_stage5[89:0] <= mult_out;
+    
+        for (int i = 0; i < 85; i++)
+            adder3_stage6[i+30] <= adder3_stage5[i*2] + adder3_stage5[i*2+1];
+        adder3_stage6[29:0] <= mult_out[29:0];
+        
+        adder3_stage7[57] <= adder3_stage6[114];
+        for (int i = 0; i < 57; i++)
+            adder3_stage7[i] <= adder3_stage6[i*2] + adder3_stage6[i*2+1];
+        
+        for (int i = 0; i < 29; i++)
+            adder3_stage8[i] <= adder3_stage7[i*2] + adder3_stage7[i*2+1];
+        
+        adder3_stage9[14] <= adder3_stage8[28];
+        for (int i = 0; i < 14; i++)
+            adder3_stage9[i] <= adder3_stage8[i*2] + adder3_stage8[i*2+1];
+        
+        adder3_stage10[7] <= adder3_stage9[14] + biases[bias_cnt];
+        for (int i = 0; i < 7; i++)
+            adder3_stage10[i] <= adder3_stage9[i*2] + adder3_stage9[i*2+1];
+        
+        for (int i = 0; i < 4; i++)
+            adder3_stage11[i] <= adder3_stage10[i*2] + adder3_stage10[i*2+1];
+        
+        for (int i = 0; i < 2; i++)
+            adder3_stage12[i] <= adder3_stage11[i*2] + adder3_stage11[i*2+1];
+        
+        adder3_result <= adder3_stage12[1] + adder3_stage12[0];
+        
+        
+        
+        
+    end
     
 endmodule

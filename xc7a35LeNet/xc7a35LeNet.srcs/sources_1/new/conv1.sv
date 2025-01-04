@@ -185,6 +185,7 @@ module conv1 #( parameter NUM_FILTERS = 6 ) (
     // Only on MACC enable, not on first feature valid signal
     // This is because the very first clock cycle after valid data should only enable the DSP operation,
     // not the adder tree logic
+    // re-visit the above claim, do we really need to gate the DSP48 logic, or just ensure a proper valid out signal
     // (TODO: try to really understand clock enables vs. gating vs. if the macc_en is just treated as a logic variable)
     // TODO: add bias to front of tree
     always_ff @(posedge i_clk) begin
