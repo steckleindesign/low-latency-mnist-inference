@@ -10,38 +10,41 @@
     
     Adder trees won't be so bad, 120 operands, $clog2(120) = 7 clock cycles,
     overall latency of layer should be within 120 clock cycles
-
+    
+    FSM has 4 states:
+    DSP48E1 usage by state:
+    State:      1,  2,  3,  4
+    Neuron n+1: 90, 30
+    Neuron n+2:     60, 60
+    Neuron n+3:         30, 90
+    
 */
 
 //////////////////////////////////////////////////////////////////////////////////
 
-module fc #(
-    parameter string WEIGHTS_FILE = "weights.mem",
-    parameter string BIASES_FILE  = "biases.mem",
-    // defaults coorespond to first FC layer of LeNet-5
-    parameter        FEATURE_WIDTH = 16,
-    parameter        NUM_FEATURES  = 16*5*5, // 400
-    parameter        NUM_NEURONS   = 120,
-    // Dependent local parameters
-    localparam WEIGHT_WIDTH = 16,
-    localparam ACC_WIDTH = FEATURE_WIDTH+WEIGHT_WIDTH+$clog2(NUM_FEATURES)
-)(
-    input                        i_clk,
-    input                        i_rst,
-    input                        i_feature_valid,
-    input                 [15:0] i_feature,
-    output logic                 o_neuron_valid,
-    output logic [ACC_WIDTH-1:0] o_neuron
+module fc (
+    input               i_clk,
+    input               i_rst,
+    input               i_feature_valid,
+    input        [15:0] i_feature,
+    output              o_neuron_valid,
+    output       [15:0] o_neuron
 );
+
+    localparam string WEIGHTS_FILE = "weights.mem";
+    localparam string BIASES_FILE  = "biases.mem";
+
+    localparam NUM_INPUT_FEATURES = 120;
+    localparam NUM_NEURONS        = 84;
     
     // Initialize trainable parameters
     // Weights
     (* rom_style = "block" *) logic signed [15:0]
-    weights [NUM_NEURONS-1:0][NUM_FEATURES-1:0];
+    weights [NUM_INPUT_FEATURES-1:0][NUM_NEURONS-1:0];
     initial $readmemb(WEIGHTS_FILE, weights);
     // Biases
     (* rom_style = "block" *) logic signed [15:0]
-    biases [NUM_NEURONS-1:0][NUM_FEATURES-1:0];
+    biases [NUM_INPUT_FEATURES-1:0];
     initial $readmemb(BIASES_FILE, biases);
     
     // Time multiplexing of DSP48s?

@@ -38,6 +38,15 @@
           
           Study how to get outputs of DSP48s to carry chain resources efficiently
           
+          State:        0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14
+          
+          adder 1-1:    15, 18,  9,  5,  3,  2,  1
+          adder 2-1:        5,  18, 14,  7,  4,  2,  1
+          adder 3-1:                10, 20, 10,  5,  3,  2,  1
+          
+          adder 1-2:                        15, 18,  9,  5,  3,  2,  1
+          adder 2-2:                            5,  18, 14,  7,  4,  2,  1
+          adder 3-2:                                    10, 20, 10,  5,  3,  2,  1
 */
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -188,6 +197,8 @@ module conv1 #( parameter NUM_FILTERS = 6 ) (
     // re-visit the above claim, do we really need to gate the DSP48 logic, or just ensure a proper valid out signal
     // (TODO: try to really understand clock enables vs. gating vs. if the macc_en is just treated as a logic variable)
     // TODO: add bias to front of tree
+    // Discover: Do we need to gate adder arithmetic? Or will having the valid out signal gate the adder logic
+    //           and synthesize time multiplexing of carry chain logic?
     always_ff @(posedge i_clk) begin
         if (macc_en) begin
             for (int i = 0; i < NUM_FILTERS; i++) begin

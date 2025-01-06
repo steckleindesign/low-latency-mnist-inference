@@ -109,7 +109,7 @@ module conv2(
     // Adder tree valid signals implemented as SRL16
     logic [6:0] adder_tree_valid_sr[2:0];
     // Adder tree stage depths
-    // TODO: Add in bias at some stage for each of the adder stree structures
+    // TODO: Add in bias at some stage for each of the adder tree structures
     // 3-Map adder structure
     logic signed [23:0] adder3map_stage1[5:0][14:0];
     logic signed [23:0] adder3map_stage2[5:0][22:0];

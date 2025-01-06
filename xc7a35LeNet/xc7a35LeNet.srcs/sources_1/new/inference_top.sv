@@ -60,8 +60,11 @@ logits =        self.fc3  (x)
 TODO:
     Send output out on MISO line
     
-    conv 2
-    conv 3
+    adder tree gating, research to see if carry chain logic becomes gated automatically
+    due to having a valid signal of the adder tree outputs
+    
+    conv 2 FSM, input feature buffering, DSP48E1 operands
+    conv 3 FSM, input feature buffering, DSP48E1 operands
     fc
     output fc
 
