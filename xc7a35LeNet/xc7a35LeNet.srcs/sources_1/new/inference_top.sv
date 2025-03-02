@@ -108,7 +108,7 @@ module inference_top(
     logic               pool1_feature_valid, pool2_feature_valid;
     logic signed [15:0] pool1_feature,       pool2_feature;
     
-    logic               conv1_lb_full;
+    logic               conv1_take_feature, conv2_take_feature, conv3_take_feature;
     
     logic               fc1_neuron_valid, fc2_neuron_valid, fc3_neuron_valid;
     // FEATURE_WIDTH+WEIGHT_WIDTH+$clog2(NUM_FEATURES)-1
@@ -154,8 +154,9 @@ module inference_top(
                   .i_feature(spi_pixel),
                   .o_feature_valid(conv1_feature_valid),
                   .o_features(conv1_features),
-                  .o_buffer_full(conv1_lb_full));
-                            
+                  .o_ready_feature(conv1_take_feature),
+                  .o_last_feature());
+          
     // Max Pooling Layer 1
     pool #(.INPUT_WIDTH (28),
            .INPUT_HEIGHT(28),
