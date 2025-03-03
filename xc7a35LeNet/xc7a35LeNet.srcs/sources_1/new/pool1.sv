@@ -9,7 +9,7 @@ module pool1(
     input  logic               valid_in,
     input  logic signed [15:0] features_in[0:5],
     output logic               valid_out,
-    output logic               features_out[0:5]
+    output logic signed [15:0] features_out[0:5]
 );
 
     localparam NUM_FILTERS       = 6;

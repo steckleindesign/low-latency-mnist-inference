@@ -48,7 +48,7 @@ module conv2(
     input  logic               i_clk,
     input  logic               i_rst,
     input  logic               i_feature_valid,
-    input  logic         [7:0] i_feature,
+    input  logic         [7:0] i_features,
     output logic               o_feature_valid,
     output logic signed [15:0] o_features
 );
@@ -597,7 +597,7 @@ module conv2(
             macc_en     <= 0;
         end else begin
             if (i_feature_valid) begin
-                for (int i = 0; i < INPUT_CHANNELS; i++) begin
+                for (int i = 0; i < INPUT_CHANNELS; i++)
                     feature_ram[i][ram_row_ctr][ram_col_ctr] <= i_features[i];
                 ram_col_ctr <= ram_col_ctr + 1;
                 if (ram_col_ctr == INPUT_WIDTH-1)
