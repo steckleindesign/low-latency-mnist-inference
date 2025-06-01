@@ -23,6 +23,20 @@
     Map 14: 0, 2, 3, 5
     Map 15: 0, 1, 2, 3, 4, 5
     
+    Volume of S2 Maps
+    0: 10
+    1: 10
+    2: 10
+    3: 10
+    4: 10
+    5: 10
+    
+    If we dedicate 15 DSPs to each of the 6 S2 maps,
+    and each S2 map is 14x14, then there is 5x5x10x10=2500
+    multiply operations, this will be 10*2500=25000 operations
+    per group of 15 DSPs, so 1000/15 = 1666.67 = 1667 clock cycles
+    to do this processing.
+    
     There are 6*(3*5*5 + 1) + 9*(4*5*5 + 1) + 6*5*5 + 1 = 1516 trainable parameters
     
     Total * operations = 6*10*10*5*5*3 + 9*10*10*5*5*4 + 10*10*5*5*6 = 10*10*(1516-16) = 150000
