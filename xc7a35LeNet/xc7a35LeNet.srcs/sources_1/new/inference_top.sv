@@ -57,11 +57,23 @@ x      = F.relu(self.fc1  (x)  )
 x      = F.relu(self.fc2  (x)  )
 logits =        self.fc3  (x)
 
+
+
+
+DSP Mapping:
+conv1:
+    6 groups of 15 -> grouped by parameterized kernel: 5:1 mux
+conv2:
+    6 groups of 15 -> grouped by S2 maps - 5:1 mux
+conv3:
+    HOW ARE WE GROUPING THESE
+
+
+
+
+
 TODO:
     Send output out on MISO line
-    
-    adder tree gating, research to see if carry chain logic becomes gated automatically
-    due to having a valid signal of the adder tree outputs
     
     conv 2 FSM, input feature buffering, DSP48E1 operands
     conv 3 FSM, input feature buffering, DSP48E1 operands
