@@ -19,6 +19,8 @@
     so the last 3 features will be inefficient by 1 clock cycle, but we could
     optimize by seeing how we can use the open DSP48E1s in the next layer
     
+    
+    
     40 Cycles:
     Feature n*9 + 0: 90, 90, 90, 90, 40, x,  x,  x,  x,  x,  x,  x,  x
     Feature n*9 + 1:                 50, 90, 90, 90, 80, x,  x,  x,  x,  x,  x,  x,  x,  x

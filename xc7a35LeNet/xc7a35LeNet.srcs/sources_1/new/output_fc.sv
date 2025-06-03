@@ -19,9 +19,33 @@
 
 //////////////////////////////////////////////////////////////////////////////////
 
-module output_fc(
-    
+module output_fc #(
+    parameter WIDTH = 16
 )(
-    
+    input    logic            i_clk,
+    input    logic            i_rst,
+    input    logic            i_feature_valid,
+    input    logic     [15:0] i_feature,
+    output   logic            o_neuron_valid,
+    output   logic     [15:0] o_neuron
 );
+
+    logic [15:0] neurons[0:9];
+    logic  [3:0] neuron_cnt;
+    
+    logic is_processing;
+    logic done;
+    
+    // Create single adder tree structure (depth = 8)
+    
+    always_ff @(posedge i_clk) begin
+        if (i_feature)
+            is_processing <= 1;
+        else if (done) begin
+            is_processing <= 0;
+            neuron_cnt    <= 0;
+        end
+        neuron_cnt <= neuron_cnt + 1;
+    end
+
 endmodule

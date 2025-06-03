@@ -66,19 +66,36 @@ conv1:
 conv2:
     6 groups of 15 -> grouped by S2 maps - 5:1 mux
 conv3:
-    HOW ARE WE GROUPING THESE
+    No efficient way to group as of now except 40:1 muxes
+    feeding in to each DSP - 40:1 mux
+fc1:
+    90 DSPs cover the 120 neurons for 3 full connection
+    iterations over 4 clock cycles - 4:1 mux
+output layer:
+    No need for mux
+    84 neurons maps to their own DSP, 6 DSPs unused
+    
+We should consider SW techniques to improve the HW design
+process for conv3 and fc1 especially, but for the other
+layers as well.
 
+We need also to study the output data paths from the DSPs
+in each layer and the adder tree architecture.
 
-
+Once we understand
+1) DSP input data paths
+2) DSP output data paths
+3) adder tree architecture
+We will be able to better determine feasability of placement
 
 
 TODO:
     Send output out on MISO line
     
-    conv 2 FSM, input feature buffering, DSP48E1 operands
-    conv 3 FSM, input feature buffering, DSP48E1 operands
-    fc
-    output fc
+    conv 2 FSM, DSP feature muxing, coefficient flow
+    conv 3 FSM, DSP feature muxing, coefficient flow
+    fc full implementation
+    output fc full implementation (trivial)
 
 */
 //////////////////////////////////////////////////////////////////////////////////
