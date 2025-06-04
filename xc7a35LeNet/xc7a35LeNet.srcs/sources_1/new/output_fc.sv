@@ -26,20 +26,22 @@ module output_fc #(
     input    logic            i_rst,
     input    logic            i_feature_valid,
     input    logic     [15:0] i_feature,
-    output   logic            o_neuron_valid,
-    output   logic     [15:0] o_neuron
+    output   logic            o_result_valid,
+    output   logic      [3:0] o_result
 );
 
     localparam INPUT_FEATURE_DEPTH = 84;
 
-    logic            [15:0] upstream_feature_data[0:119];
-    logic [$clog2(120)-1:0] upstream_feature_cnt;
+    logic                            [15:0] upstream_feature_data[0:119];
+    logic [$clog2(INPUT_FEATURE_DEPTH)-1:0] upstream_feature_cnt;
 
+    logic is_processing;
+    logic [15:0] done_sr;
+    
     logic [15:0] neurons[0:9];
     logic  [3:0] neuron_cnt;
     
-    logic is_processing;
-    logic done;
+    logic [19:0] internal_result_bus; // {4-bit class, 16-bit magnitude}
     
     // Create single adder tree structure (depth = 8)
     logic [15:0] adder_stage1[0:83];
@@ -53,20 +55,22 @@ module output_fc #(
     logic        adder_result_valid;
     
     always_ff @(posedge i_clk) begin
-        if (i_feature_valid) begin
+        o_result_valid <= 0;
+        if (i_feature_valid && ~is_processing) begin
             upstream_feature_data[upstream_feature_cnt] <= i_feature;
             upstream_feature_cnt <= upstream_feature_cnt + 1;
-        end
-    end
+            if (upstream_feature_cnt == 7'd83) is_processing <= 1;
+        end else if (done_sr[15]) begin
+            is_processing  <= 0;
+            neuron_cnt     <= 0;
+            o_result_valid <= 1;
+        end else
+            neuron_cnt <= neuron_cnt + 1;
     
-    always_ff @(posedge i_clk) begin
-        if (i_feature)
-            is_processing <= 1;
-        else if (done) begin
-            is_processing <= 0;
-            neuron_cnt    <= 0;
-        end
-        neuron_cnt <= neuron_cnt + 1;
+        // Use shift register for done signal
+        // SRL16 only takes single LUT
+        if (is_processing)
+            done_sr <= {done_sr[14:0], 1'b1};
     end
     
     always_ff @(posedge i_clk) begin
@@ -98,7 +102,12 @@ module output_fc #(
         adder_result <= adder_stage7[0] + adder_stage7[1];
     end
     
-    always_comb
-        done <= neuron_cnt == 4'd9;
+    // Can DSP48E1 do the compare function?
+    always_ff @(posedge i_clk) begin
+        // As a class magnitude is finalized every clock cycle,
+        // compare with the current highest magnitude to determine
+        // largest class and store new class and magnitude in bus register
+        
+    end
 
 endmodule
