@@ -22,20 +22,36 @@
 module output_fc #(
     parameter WIDTH = 16
 )(
-    input    logic            i_clk,
-    input    logic            i_rst,
-    input    logic            i_feature_valid,
-    input    logic     [15:0] i_feature,
-    output   logic            o_result_valid,
-    output   logic      [3:0] o_result
+    input  logic        i_clk,
+    input  logic        i_rst,
+    input  logic        i_feature_valid,
+    input  logic [15:0] i_feature,
+    output logic        o_result_valid,
+    output logic  [3:0] o_result
 );
 
+    localparam string WEIGHTS_FILE = "weights.mem";
+    localparam string BIASES_FILE  = "biases.mem";
+
     localparam INPUT_FEATURE_DEPTH = 84;
+    localparam NUM_CLASSES         = 10;
+    
+    // Initialize trainable parameters
+    // Weights
+    // (* rom_style = "block" *)
+    logic signed [15:0]
+    weights [0:INPUT_FEATURE_DEPTH-1][0:NUM_CLASSES-1];
+    initial $readmemb(WEIGHTS_FILE, weights);
+    // Biases
+    // (* rom_style = "block" *)
+    logic signed [15:0]
+    biases [0:NUM_CLASSES-1];
+    initial $readmemb(BIASES_FILE, biases);
 
     logic                            [15:0] upstream_feature_data[0:119];
     logic [$clog2(INPUT_FEATURE_DEPTH)-1:0] upstream_feature_cnt;
 
-    logic is_processing;
+    logic        is_processing;
     logic [15:0] done_sr;
     
     logic [15:0] neurons[0:9];
@@ -103,11 +119,24 @@ module output_fc #(
     end
     
     // Can DSP48E1 do the compare function?
-    always_ff @(posedge i_clk) begin
+    always_ff @(posedge i_clk)
         // As a class magnitude is finalized every clock cycle,
         // compare with the current highest magnitude to determine
         // largest class and store new class and magnitude in bus register
-        
-    end
+        // "If an adder result is ready"
+        // "We use neuron cnt to check because we
+        // can't access the value of the done SR"
+        // TODO: Fix logic, this is prone so many bugs
+        // Neuron cnt is only 4 bits, so it might not be able
+        // to count as high as we need
+        // Also there is going to need to be extra logic somewhere
+        // To subract the offset of the neuron count so that the
+        // correct value is set in internal_result_bus[19:16]
+        if (neuron_cnt > 8)
+            if (adder_result > internal_result_bus[15:0])
+                internal_result_bus <= { neuron_cnt, adder_result};
+    
+    always_comb
+        o_result <= internal_result_bus[19:16];
 
 endmodule

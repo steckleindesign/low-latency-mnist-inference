@@ -31,12 +31,6 @@
     4: 10
     5: 10
     
-    If we dedicate 15 DSPs to each of the 6 S2 maps,
-    and each S2 map is 14x14, then there is 5x5x10x10=2500
-    multiply operations, this will be 10*2500=25000 operations
-    per group of 15 DSPs, so 1000/15 = 1666.67 = 1667 clock cycles
-    to do this processing.
-    
     There are 6*(3*5*5 + 1) + 9*(4*5*5 + 1) + 6*5*5 + 1 = 1516 trainable parameters
     
     Total * operations = 6*10*10*5*5*3 + 9*10*10*5*5*4 + 10*10*5*5*6 = 10*10*(1516-16) = 150000
@@ -52,7 +46,49 @@
 
     We might need to be smarter, lots of unique adder tree structures across the 2 conv layers alone
     
-    FSMs:
+    If we dedicate 15 DSPs to each of the 6 S2 maps,
+    and each S2 map is 14x14, then there is 5x5x10x10=2500
+    multiply operations, this will be 10*2500=25000 operations
+    per group of 15 DSPs, so 1000/15 = 1666.67 = 1667 clock cycles
+    to do this processing.
+    
+    We need to store all 6 S2 maps simultaneously.
+    However, one S2 map will be used to fill the
+    feature window at any given point in time.
+    
+    A similar convolution pattern will be implemented
+    for conv2 as was implemented in conv1. However,
+    all 90 DSPs will be working on the same input feature map
+    
+    
+    DSP mapping over 5x5 kernels (5 cycles to compute 18 kernels)
+    25 25 25 15
+             10 25 25 25  5
+                         20 25 25 20
+                                   5 25 25 25 10
+                                              15 25 25 25
+    Total of 10x10 = 100 kernels in each S2 map
+    If we only process 9x9, then there is 81 kernels.
+    Then there would be 2x81 = 162 kernels in 2 S2 maps.
+    So it would take 162/18 * 5 = 45 cycles to compute the *
+    for 2 full feature maps, and 5x45=225 cycles to
+    process all * for the 10 iterations over a single
+    S2 map. So 6x225=1350 cycles for all * operations
+    in the covolution computation for conv2.
+    
+    ______________________________________
+    Maps:         \ 1 \ 2 \ 3 \ 4 \ 5 \ 6 \
+    _______________________________________
+    6 DSP groups: \ 6 \   \   \   \   \   \
+    6 DSP groups: \ 4 \ 2 \   \   \   \   \
+    6 DSP groups: \   \ 6 \   \   \   \   \
+    6 DSP groups: \   \ 2 \ 4 \   \   \   \
+    6 DSP groups: \   \   \ 6 \   \   \   \
+    6 DSP groups: \   \   \   \ 6 \   \   \
+    6 DSP groups: \   \   \   \ 4 \ 2 \   \
+    6 DSP groups: \   \   \   \   \ 6 \   \
+    6 DSP groups: \   \   \   \   \ 2 \ 4 \
+    6 DSP groups: \   \   \   \   \   \ 6 \
     
 */
 

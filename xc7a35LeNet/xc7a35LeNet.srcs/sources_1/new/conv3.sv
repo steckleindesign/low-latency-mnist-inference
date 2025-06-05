@@ -19,8 +19,6 @@
     so the last 3 features will be inefficient by 1 clock cycle, but we could
     optimize by seeing how we can use the open DSP48E1s in the next layer
     
-    
-    
     40 Cycles:
     Feature n*9 + 0: 90, 90, 90, 90, 40, x,  x,  x,  x,  x,  x,  x,  x
     Feature n*9 + 1:                 50, 90, 90, 90, 80, x,  x,  x,  x,  x,  x,  x,  x,  x
@@ -163,6 +161,29 @@
         
         39:
             F(9n+8) - S12[24:10], S13, S14, S15
+            
+            
+        How to store input feature data?
+        We have 5x5x16 8-bit values -> 3200 bits
+        With the current compute architecture we essentially
+        need all data before we start convolutions
+        
+        Another approach would be to compute each convolutions
+        on each input feature map, and they come sequentially
+        so this would lower latency and wasted cycles as we
+        could start convolutions as soon as the first feature
+        map has valid data
+        
+        We perform 120 5x5 convolutions on each S4 map.
+        So each s4 map has 120x25 = 3000 * operations.
+        3000/90 = 34 cycles.
+        The advantage here is we would use minimal resources.
+        The DSPs could be efficiently mapped to both operands,
+        input features and coefficients.
+        We have to wait for the previous layer anyway, because
+        the DSPs are busy. The benefit of this approach is we
+        shorten the critcal path as we don't need wide muxes
+        on the feature input of the DSP48s.
 */
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -183,7 +204,8 @@ module conv3(
     localparam        FILTER_SIZE  = 5;
     
     // Each convolution is 16*5*5, each of the 120 neurons in this layer connects to all 16 S4 feature maps
-    localparam S4_MAPS     = 16;
+    localparam S4_NUM_MAPS = 16;
+    localparam S4_MAP_SIZE = 5;
     localparam KERNEL_SIZE = 5;
     localparam NEURONS     = 120;
 

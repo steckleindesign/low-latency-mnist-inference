@@ -18,6 +18,27 @@
     Neuron n+2:     60, 60
     Neuron n+3:         30, 90
     
+    4 neuron groups
+    s0 [ 0 -  29]
+    s1 [30 -  59]
+    s2 [60 -  89]
+    s3 [90 - 119]
+    
+    3 DSP groups, each DSP group is mapped to 2 neuron groups
+    d0 -> [s0, s1]
+    d1 -> [s1, s2]
+    d2 -> [s2, s3]
+    
+    state 1: [0-29], [30-59], [60-89]
+    state 2: [0-29], [30-59], [90-119]
+    state 3: [60-89], [90-119], [0-29]
+    state 4: [30-59], [60-89], [90-119]
+    
+    State 1: d0->s0, d1->s1, d2->s2
+    State 2: d0->s0, d1->s1, d2->s3
+    State 3: d0->s0, d1->s2, d2->s3
+    State 4: d0->s1, d1->s2, d2->s3
+    
 */
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -34,24 +55,24 @@ module fc (
     localparam string WEIGHTS_FILE = "weights.mem";
     localparam string BIASES_FILE  = "biases.mem";
 
-    localparam NUM_INPUT_FEATURES = 120;
-    localparam NUM_NEURONS        = 84;
+    localparam NUM_FEATURES = 120;
+    localparam NUM_NEURONS  = 84;
     
     // Initialize trainable parameters
     // Weights
     (* rom_style = "block" *) logic signed [15:0]
-    weights [NUM_INPUT_FEATURES-1:0][NUM_NEURONS-1:0];
+    weights [NUM_FEATURES-1:0][NUM_NEURONS-1:0];
     initial $readmemb(WEIGHTS_FILE, weights);
     // Biases
     (* rom_style = "block" *) logic signed [15:0]
-    biases [NUM_INPUT_FEATURES-1:0];
+    biases [NUM_FEATURES-1:0];
     initial $readmemb(BIASES_FILE, biases);
     
     // Time multiplexing of DSP48s?
     
     // Accumulate value for each neuron
     // Should we pass to next layer incrementally/serially to save memory?
-    logic signed [ACC_WIDTH-1:0] acc[NUM_NEURONS-1:0];
+    logic signed [15:0] acc[NUM_NEURONS-1:0];
     
     // Control counters
     logic [$clog2(NUM_FEATURES)-1:0] feature_ctr;
