@@ -95,7 +95,7 @@ TODO:
     conv 2 FSM, DSP feature muxing, coefficient flow
     conv 3 FSM, DSP feature muxing, coefficient flow
     fc full implementation
-    output fc full implementation (trivial)
+    output fc control logic
 
 */
 //////////////////////////////////////////////////////////////////////////////////

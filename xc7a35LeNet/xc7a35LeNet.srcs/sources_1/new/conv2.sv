@@ -60,7 +60,6 @@
     for conv2 as was implemented in conv1. However,
     all 90 DSPs will be working on the same input feature map
     
-    
     DSP mapping over 5x5 kernels (5 cycles to compute 18 kernels)
     25 25 25 15
              10 25 25 25  5
@@ -90,6 +89,11 @@
     6 DSP groups: \   \   \   \   \ 2 \ 4 \
     6 DSP groups: \   \   \   \   \   \ 6 \
     
+    
+    Theory of operation:
+    S2 maps will come in parallel -> store them into RAM (let Vivado infer RAM style)
+    
+    
 */
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -103,40 +107,48 @@ module conv2(
     output logic signed [15:0] o_features
 );
 
-    localparam WEIGHTS_FILE3MAP = "conv2_weights3map.mem";
-    localparam WEIGHTS_FILE4MAP = "conv2_weights4map.mem";
-    localparam WEIGHTS_FILE6MAP = "conv2_weights6map.mem";
+//    localparam WEIGHTS_FILE3MAP = "conv2_weights3map.mem";
+//    localparam WEIGHTS_FILE4MAP = "conv2_weights4map.mem";
+//    localparam WEIGHTS_FILE6MAP = "conv2_weights6map.mem";
+    localparam WEIGHTS_FILE     = "conv2_weights.mem";
     localparam BIASES_FILE      = "conv2_biases.mem";
     localparam INPUT_CHANNELS   = 6;
     localparam INPUT_WIDTH      = 14;
     localparam INPUT_HEIGHT     = 14;
     localparam FILTER_SIZE      = 5;
+    localparam NUM_DSP          = 90;
     
     localparam WINDOW_AREA   = FILTER_SIZE * FILTER_SIZE;
     localparam OUTPUT_HEIGHT = INPUT_HEIGHT - FILTER_SIZE + 1;
     localparam OUTPUT_WIDTH  = INPUT_WIDTH - FILTER_SIZE + 1;
     
-    // Initialize trainable parameters
-    // 3 S2 map connections weights
-    (* rom_style = "block" *) logic signed [15:0]
-    weights3map [5:0][2:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
-    initial $readmemb(WEIGHTS_FILE3MAP, weights3map);
-    // 4 S2 map connections weights
-    (* rom_style = "block" *) logic signed [15:0]
-    weights4map [8:0][3:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
-    initial $readmemb(WEIGHTS_FILE4MAP, weights4map);
-    // 6 S2 map connections weights
-    (* rom_style = "block" *) logic signed [15:0]
-    weights6map [5:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
-    initial $readmemb(WEIGHTS_FILE6MAP, weights6map);
-    // Biases (1 bias per C3 feature map)
-    (* rom_style = "block" *) logic signed [15:0]
-    biases [NUM_FILTERS-1:0];
+//    // Initialize trainable parameters
+//    // 3 S2 map connections weights
+//    (* rom_style = "block" *) logic signed [15:0]
+//    weights3map [5:0][2:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
+//    initial $readmemb(WEIGHTS_FILE3MAP, weights3map);
+//    // 4 S2 map connections weights
+//    (* rom_style = "block" *) logic signed [15:0]
+//    weights4map [8:0][3:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
+//    initial $readmemb(WEIGHTS_FILE4MAP, weights4map);
+//    // 6 S2 map connections weights
+//    (* rom_style = "block" *) logic signed [15:0]
+//    weights6map [5:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
+//    initial $readmemb(WEIGHTS_FILE6MAP, weights6map);
+//    // Biases (1 bias per C3 feature map)
+//    (* rom_style = "block" *) logic signed [15:0]
+//    biases [NUM_FILTERS-1:0];
+//    initial $readmemb(BIASES_FILE, biases);
+
+    logic signed [7:0] weights [0:5][0:9][0:FILTER_SIZE-1][0:FILTER_SIZE-1];
+    initial $readmemb(WEIGHTS_FILE, weights);
+    
+    logic signed [7:0] biases [0:5][0:9];
     initial $readmemb(BIASES_FILE, biases);
     
     // Indexed features to be used for * operation
-    logic        [7:0] feature_operands[FILTER_SIZE-1:0][2:0];
-    logic signed [7:0] weight_operands[NUM_FILTERS-1:0][FILTER_SIZE-1:0][2:0];
+    logic        [7:0] feature_operands[0:NUM_DSP-1];
+    logic signed [7:0] weight_operands[0:NUM_DSP-1];
     
     // We're just going to use BRAM here to store features
     // Can and probably should do the same thing for conv1, and throughout design in general

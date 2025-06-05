@@ -44,12 +44,12 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module fc (
-    input               i_clk,
-    input               i_rst,
-    input               i_feature_valid,
-    input        [15:0] i_feature,
-    output              o_neuron_valid,
-    output       [15:0] o_neuron
+    input  logic        i_clk,
+    input  logic        i_rst,
+    input  logic        i_feature_valid,
+    input  logic [15:0] i_feature,
+    output logic        o_neuron_valid,
+    output logic [15:0] o_neuron
 );
 
     localparam string WEIGHTS_FILE = "weights.mem";
@@ -60,51 +60,80 @@ module fc (
     
     // Initialize trainable parameters
     // Weights
-    (* rom_style = "block" *) logic signed [15:0]
-    weights [NUM_FEATURES-1:0][NUM_NEURONS-1:0];
+    // (* rom_style = "block" *)
+    logic signed [7:0] weights[0:NUM_FEATURES-1][0:NUM_NEURONS-1];
     initial $readmemb(WEIGHTS_FILE, weights);
     // Biases
-    (* rom_style = "block" *) logic signed [15:0]
-    biases [NUM_FEATURES-1:0];
+    // (* rom_style = "block" *)
+    logic signed [7:0] biases[0:NUM_FEATURES-1];
     initial $readmemb(BIASES_FILE, biases);
     
-    // Time multiplexing of DSP48s?
+    logic [7:0] adder1_stage1[0:89];
+    logic [7:0] adder1_stage2[0:74];
+    logic [7:0] adder1_stage3[0:37];
+    logic [7:0] adder1_stage4[0:18];
+    logic [7:0] adder1_stage5[0:9];
+    logic [7:0] adder1_stage6[0:4];
+    logic [7:0] adder1_stage7[0:2];
+    logic [7:0] adder1_stage8[0:1];
+    logic [7:0] adder1_result;
     
-    // Accumulate value for each neuron
-    // Should we pass to next layer incrementally/serially to save memory?
-    logic signed [15:0] acc[NUM_NEURONS-1:0];
+    logic [7:0] adder2_stage1[0:59];
+    logic [7:0] adder2_stage2[0:89];
+    logic [7:0] adder2_stage3[0:44];
+    logic [7:0] adder2_stage4[0:22];
+    logic [7:0] adder2_stage5[0:11];
+    logic [7:0] adder2_stage6[0:5];
+    logic [7:0] adder2_stage7[0:2];
+    logic [7:0] adder2_stage8[0:1];
+    logic [7:0] adder2_result;
+    
+    logic [7:0] adder3_stage1[0:29];
+    logic [7:0] adder3_stage2[0:104];
+    logic [7:0] adder3_stage3[0:52];
+    logic [7:0] adder3_stage4[0:26];
+    logic [7:0] adder3_stage5[0:13];
+    logic [7:0] adder3_stage6[0:6];
+    logic [7:0] adder3_stage7[0:3];
+    logic [7:0] adder3_stage8[0:1];
+    logic [7:0] adder3_result;
     
     // Control counters
     logic [$clog2(NUM_FEATURES)-1:0] feature_ctr;
     logic [$clog2(NUM_NEURONS)-1:0]  neuron_ctr;
     
-    logic macc_done;
+    logic is_processing;
+    logic done;
     
     typedef enum logic [1:0] {
-        IDLE,
-        MACC,
-        SEND
+        FC_ONE,
+        FC_TWO,
+        FC_THREE,
+        FC_FOUR
     } state_t;
     state_t state, next_state;
     
-    // Should check if its actually bad practice to use ternary operator for state transition
     always_ff @(posedge i_clk or negedge i_rst) begin
         if (~i_rst)
-            state <= IDLE;
+            state <= FC_ONE;
         else
             state <= next_state;
     end
     
     always_comb begin
         case(state)
-            IDLE: begin
-                if (i_feature_valid) next_state = MACC;
+            FC_ONE: begin
+                if (i_feature_valid | is_processing)
+                    next_state = FC_TWO;
             end
-            MACC: begin
-                if (macc_done) next_state = SEND;
+            FC_TWO: begin
+                next_state = FC_THREE;
             end
-            SEND: begin
-                next_state = IDLE;
+            FC_THREE: begin
+                next_state = FC_FOUR;
+            end
+            FC_FOUR: begin
+                next_state = FC_ONE;
             end
             default: next_state = state;
         endcase
@@ -136,9 +165,9 @@ module fc (
             
     always_ff @(posedge i_clk or negedge i_rst) begin
         if (~i_rst)
-            macc_done <= 1'b0;
+            done <= 1'b0;
         else
-            macc_done <= (feature_ctr == NUM_FEATURES-1) && (neuron_ctr == NUM_NEURONS-1);
+            done <= (feature_ctr == NUM_FEATURES-1) && (neuron_ctr == NUM_NEURONS-1);
     end
     
     always_ff @(posedge i_clk or negedge i_rst) begin
