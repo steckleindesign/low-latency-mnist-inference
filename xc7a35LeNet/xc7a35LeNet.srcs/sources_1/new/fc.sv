@@ -39,6 +39,8 @@
     State 3: d0->s0, d1->s2, d2->s3
     State 4: d0->s1, d1->s2, d2->s3
     
+    4 cycles to compute * operations for 3 neurons.
+    4 * 84/3 = 4 * 28 = 112 clock cycles.
 */
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +70,18 @@ module fc (
     logic signed [7:0] biases[0:NUM_FEATURES-1];
     initial $readmemb(BIASES_FILE, biases);
     
+    logic [8:0] upstream_neurons[0:NUM_FEATURES-1];
+    
+    // # ROMs = # DSPs = 90 | Width = 8 | ROM depth = cycles = 112
+    logic [7:0] coefficients_rom[0:89][0:111];
+    
     logic [8:0] mult[0:89];
+    
+    logic [7:0] feature_operands[0:89];
+    logic [7:0] weight_operands[0:89];
+    
+    // One-hot encoding adder tree valid SR
+    logic [8:0] adder_result_valid[0:2];
     
     logic [7:0] adder1_stage1[0:89];
     logic [7:0] adder1_stage2[0:74];
@@ -101,6 +114,7 @@ module fc (
     logic [7:0] adder3_result;
     
     // Control counters
+    logic          [$clog2(112)-1:0] cycle_cnt;
     logic [$clog2(NUM_FEATURES)-1:0] feature_ctr;
     logic [$clog2(NUM_NEURONS)-1:0]  neuron_ctr;
     
@@ -123,22 +137,52 @@ module fc (
     end
     
     always_comb begin
-        case(state)
-            FC_ONE: begin
-                if (i_feature_valid | is_processing)
+        if (~is_processing) begin
+            next_state = FC_ONE;
+            feature_operands <= '{default: 0};
+        end else
+            case(state)
+                FC_ONE: begin
                     next_state = FC_TWO;
+                    feature_operands <= ;
+                end
+                FC_TWO: begin
+                    next_state = FC_THREE;
+                    feature_operands <= ;
+                end
+                FC_THREE: begin
+                    next_state = FC_FOUR;
+                    feature_operands <= ;
+                end
+                FC_FOUR: begin
+                    next_state = FC_ONE;
+                    feature_operands <= ;
+                end
+                default: next_state = FC_ONE;
+            endcase
+    end
+    
+    always_ff @(posedge i_clk) begin
+        if (i_rst)
+            cycle_cnt;
+        else
+            if (is_processing) begin
+                for (int i = 0; i < 90; i++)
+                    weight_operands[i] <= coefficients_rom[i][cycle_cnt];
+                cycle_cnt <= cycle_cnt + 1;
             end
-            FC_TWO: begin
-                next_state = FC_THREE;
-            end
-            FC_THREE: begin
-                next_state = FC_FOUR;
-            end
-            FC_FOUR: begin
-                next_state = FC_ONE;
-            end
-            default: next_state = state;
-        endcase
+    end
+    
+    always_ff @(posedge i_clk)
+        mult_out <= $signed(feature_operands) * $signed(weight_operands);
+    
+    always_ff @(posedge i_clk) begin
+        if (i_feature_valid & |is_processing) begin
+            upstream_neurons[feature_ctr] <= i_feature;
+            feature_ctr <= feature_ctr + 1;
+            if (feature_ctr == NUM_FEATURES-2)
+                is_processing <= 1;
+        end
     end
     
     always_ff @(posedge i_clk or negedge i_rst) begin
