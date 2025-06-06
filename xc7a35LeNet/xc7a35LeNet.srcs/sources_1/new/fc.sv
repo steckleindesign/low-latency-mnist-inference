@@ -68,6 +68,8 @@ module fc (
     logic signed [7:0] biases[0:NUM_FEATURES-1];
     initial $readmemb(BIASES_FILE, biases);
     
+    logic [8:0] mult[0:89];
+    
     logic [7:0] adder1_stage1[0:89];
     logic [7:0] adder1_stage2[0:74];
     logic [7:0] adder1_stage3[0:37];
@@ -181,6 +183,105 @@ module fc (
                 o_neuron       <= acc[neuron_ctr];
             end
         end
+    end
+    
+    always_ff @(posedge i_clk) begin
+    
+        adder1_stage1[0:29] <= mult[0:29];
+        adder1_stage1[30:59] <= mult[30:59];
+        adder1_stage1[60:89] <= mult[60:89];
+        
+        adder1_stage2[0:29] <= mult[60:89];
+        for (int i = 0; i < 45; i++)
+            adder1_stage2[i+30] <= adder1_stage1[i*2] + adder1_stage1[i*2+1];
+        
+        adder1_stage3[37] <= adder1_stage2[74];
+        for (int i = 0; i < 37; i++)
+            adder1_stage3[i] <= adder1_stage1[i*2] + adder1_stage1[i*2+1];
+        
+        for (int i = 0; i < 19; i++)
+            adder1_stage4[i] <= adder1_stage3[i*2] + adder1_stage3[i*2+1];
+        
+        adder1_stage5[9] <= adder1_stage4[18];
+        for (int i = 0; i < 9; i++)
+            adder1_stage5[i] <= adder1_stage4[i*2] + adder1_stage4[i*2+1];
+        
+        for (int i = 0; i < 5; i++)
+            adder1_stage6[i] <= adder1_stage5[i*2] + adder1_stage5[i*2+1];
+        
+        adder1_stage7[2] <= adder1_stage6[4];
+        for (int i = 0; i < 2; i++)
+            adder1_stage7[i] <= adder1_stage6[i*2] + adder1_stage6[i*2+1];
+        
+        adder1_stage8[1] <= adder1_stage7[2];
+        adder1_stage8[0] <= adder1_stage7[0] + adder1_stage7[1];
+        
+        adder1_result <= adder1_stage8[0] + adder1_stage8[1];
+        
+        
+        adder2_stage1[0:29] <= mult[0:29];
+        adder2_stage1[30:59] <= mult[30:59];
+        
+        adder2_stage2[0:29] <= mult[30:59];
+        adder2_stage2[30:59] <= mult[60:89];
+        for (int i = 0; i < 30; i++)
+            adder2_stage2[i+60] <= adder2_stage1[i*2] + adder2_stage1[i*2+1];
+        
+        for (int i = 0; i < 45; i++)
+            adder2_stage3[i] <= adder2_stage2[i*2] + adder2_stage2[i*2+1];
+        
+        adder2_stage4[22] <= adder2_stage3[44];
+        for (int i = 0; i < 22; i++)
+            adder2_stage4[i] <= adder2_stage3[i*2] + adder2_stage3[i*2+1];
+        
+        adder2_stage5[11] <= adder2_stage4[22];
+        for (int i = 0; i < 11; i++)
+            adder2_stage5[i] <= adder2_stage4[i*2] + adder2_stage4[i*2+1];
+            
+        for (int i = 0; i < 6; i++)
+            adder2_stage6[i] <= adder2_stage5[i*2] + adder2_stage5[i*2+1];
+        
+        for (int i = 0; i < 3; i++)
+            adder2_stage7[i] <= adder2_stage6[i*2] + adder2_stage6[i*2+1];
+        
+        adder2_stage8[1] <= adder2_stage7[2];
+        adder2_stage8[0] <= adder2_stage7[0] + adder2_stage7[1];
+        
+        adder2_result <= adder2_stage8[0] + adder2_stage8[1];
+        
+        
+        adder3_stage1 <= mult[0:29];
+        
+        adder3_stage2[0:29] <= mult[0:29];
+        adder3_stage2[30:59] <= mult[30:59];
+        adder3_stage2[60:89] <= mult[60:89];
+        for (int i = 0; i < 15; i++)
+            adder3_stage2[i+90] <= adder3_stage1[i*2] + adder3_stage1[i*2+1];
+        
+        adder3_stage3[52] <= adder3_stage2[104];
+        for (int i = 0; i < 52; i++)
+            adder3_stage3[i] <= adder3_stage2[i*2] + adder3_stage2[i*2+1];
+        
+        adder3_stage4[26] <= adder3_stage3[52];
+        for (int i = 0; i < 26; i++)
+            adder3_stage4[i] <= adder3_stage3[i*2] + adder3_stage3[i*2+1];
+        
+        adder3_stage5[13] <= adder3_stage4[26];
+        for (int i = 0; i < 13; i++)
+            adder3_stage5[i] <= adder3_stage4[i*2] + adder3_stage4[i*2+1];
+        
+        for (int i = 0; i < 7; i++)
+            adder3_stage6[i] <= adder3_stage5[i*2] + adder3_stage5[i*2+1];
+        
+        adder3_stage7[3] <= adder3_stage6[7];
+        for (int i = 0; i < 3; i++)
+            adder3_stage7[i] <= adder3_stage6[i*2] + adder3_stage6[i*2+1];
+        
+        adder3_stage8[1] <= adder3_stage7[2];
+        adder3_stage8[0] <= adder3_stage7[0] + adder3_stage7[1];
+        
+        adder3_result <= adder3_stage8[0] + adder3_stage8[1];     
+    
     end
     
 endmodule
