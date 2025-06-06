@@ -202,6 +202,7 @@ module conv3(
     localparam        INPUT_WIDTH  = 32;
     localparam        INPUT_HEIGHT = 32;
     localparam        FILTER_SIZE  = 5;
+    localparam        NUM_DSP      = 90;
     
     // Each convolution is 16*5*5, each of the 120 neurons in this layer connects to all 16 S4 feature maps
     localparam S4_NUM_MAPS = 16;
@@ -219,140 +220,140 @@ module conv3(
     
     // Initialize trainable parameters
     // Weights
-    (* rom_style = "block" *) logic signed [15:0]
-    weights [NUM_FILTERS-1:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
+    (* rom_style = "block" *) logic signed [7:0]
+    weights [0:NUM_FILTERS-1][0:FILTER_SIZE-1][0:FILTER_SIZE-1];
     initial $readmemb(WEIGHTS_FILE, weights);
     // Biases
-    (* rom_style = "block" *) logic signed [15:0]
-    biases [NUM_FILTERS-1:0];
+    (* rom_style = "block" *) logic signed [7:0]
+    biases [0:NUM_FILTERS-1];
     initial $readmemb(BIASES_FILE, biases);
     
-    logic signed [23:0] mult_out[89:0];
+    logic signed [23:0] mult_out[0:NUM_DSP-1];
     
     // Adder tree register structure
-    logic signed [23:0] adder1_stage1[89:0];
-    logic signed [23:0] adder1_stage2[134:0];
-    logic signed [23:0] adder1_stage3[157:0];
-    logic signed [23:0] adder1_stage4[168:0];
-    logic signed [23:0] adder1_stage5[124:0];
-    logic signed [23:0] adder1_stage6[62:0];
-    logic signed [23:0] adder1_stage7[31:0];
-    logic signed [23:0] adder1_stage8[15:0];
-    logic signed [23:0] adder1_stage9[7:0];
-    logic signed [23:0] adder1_stage10[3:0];
-    logic signed [23:0] adder1_stage11[1:0];
+    logic signed [23:0] adder1_stage1[0:89];
+    logic signed [23:0] adder1_stage2[0:134];
+    logic signed [23:0] adder1_stage3[0:157];
+    logic signed [23:0] adder1_stage4[0:168];
+    logic signed [23:0] adder1_stage5[0:124];
+    logic signed [23:0] adder1_stage6[0:62];
+    logic signed [23:0] adder1_stage7[0:31];
+    logic signed [23:0] adder1_stage8[0:15];
+    logic signed [23:0] adder1_stage9[0:7];
+    logic signed [23:0] adder1_stage10[0:3];
+    logic signed [23:0] adder1_stage11[0:1];
     logic signed [23:0] adder1_result;
     
-    logic signed [23:0] adder2_stage1[49:0];
-    logic signed [23:0] adder2_stage2[114:0];
-    logic signed [23:0] adder2_stage3[147:0];
-    logic signed [23:0] adder2_stage4[163:0];
-    logic signed [23:0] adder2_stage5[161:0];
-    logic signed [23:0] adder2_stage6[80:0];
-    logic signed [23:0] adder2_stage7[40:0];
-    logic signed [23:0] adder2_stage8[20:0];
-    logic signed [23:0] adder2_stage9[10:0];
-    logic signed [23:0] adder2_stage10[5:0];
-    logic signed [23:0] adder2_stage11[2:0];
-    logic signed [23:0] adder2_stage12[1:0];
+    logic signed [23:0] adder2_stage1[0:49];
+    logic signed [23:0] adder2_stage2[0:114];
+    logic signed [23:0] adder2_stage3[0:147];
+    logic signed [23:0] adder2_stage4[0:163];
+    logic signed [23:0] adder2_stage5[0:161];
+    logic signed [23:0] adder2_stage6[0:80];
+    logic signed [23:0] adder2_stage7[0:40];
+    logic signed [23:0] adder2_stage8[0:20];
+    logic signed [23:0] adder2_stage9[0:10];
+    logic signed [23:0] adder2_stage10[0:5];
+    logic signed [23:0] adder2_stage11[0:2];
+    logic signed [23:0] adder2_stage12[0:1];
     logic signed [23:0] adder2_result;
     
-    logic signed [23:0] adder3_stage1[9:0];
-    logic signed [23:0] adder3_stage2[94:0];
-    logic signed [23:0] adder3_stage3[137:0];
-    logic signed [23:0] adder3_stage4[158:0];
-    logic signed [23:0] adder3_stage5[169:0];
-    logic signed [23:0] adder3_stage6[114:0];
-    logic signed [23:0] adder3_stage7[57:0];
-    logic signed [23:0] adder3_stage8[28:0];
-    logic signed [23:0] adder3_stage9[14:0];
-    logic signed [23:0] adder3_stage10[7:0];
-    logic signed [23:0] adder3_stage11[3:0];
-    logic signed [23:0] adder3_stage12[1:0];
+    logic signed [23:0] adder3_stage1[0:9];
+    logic signed [23:0] adder3_stage2[0:94];
+    logic signed [23:0] adder3_stage3[0:137];
+    logic signed [23:0] adder3_stage4[0:158];
+    logic signed [23:0] adder3_stage5[0:169];
+    logic signed [23:0] adder3_stage6[0:114];
+    logic signed [23:0] adder3_stage7[0:57];
+    logic signed [23:0] adder3_stage8[0:28];
+    logic signed [23:0] adder3_stage9[0:14];
+    logic signed [23:0] adder3_stage10[0:7];
+    logic signed [23:0] adder3_stage11[0:3];
+    logic signed [23:0] adder3_stage12[0:1];
     logic signed [23:0] adder3_result;
     
-    logic signed [23:0] adder4_stage1[59:0];
-    logic signed [23:0] adder4_stage2[119:0];
-    logic signed [23:0] adder4_stage3[149:0];
-    logic signed [23:0] adder4_stage4[164:0];
-    logic signed [23:0] adder4_stage5[152:0];
-    logic signed [23:0] adder4_stage6[76:0];
-    logic signed [23:0] adder4_stage7[38:0];
-    logic signed [23:0] adder4_stage8[19:0];
-    logic signed [23:0] adder4_stage9[9:0];
-    logic signed [23:0] adder4_stage10[4:0];
-    logic signed [23:0] adder4_stage11[2:0];
-    logic signed [23:0] adder4_stage12[1:0];
+    logic signed [23:0] adder4_stage1[0:59];
+    logic signed [23:0] adder4_stage2[0:119];
+    logic signed [23:0] adder4_stage3[0:149];
+    logic signed [23:0] adder4_stage4[0:164];
+    logic signed [23:0] adder4_stage5[0:152];
+    logic signed [23:0] adder4_stage6[0:76];
+    logic signed [23:0] adder4_stage7[0:38];
+    logic signed [23:0] adder4_stage8[0:19];
+    logic signed [23:0] adder4_stage9[0:9];
+    logic signed [23:0] adder4_stage10[0:4];
+    logic signed [23:0] adder4_stage11[0:2];
+    logic signed [23:0] adder4_stage12[0:1];
     logic signed [23:0] adder4_result;
     
-    logic signed [23:0] adder5_stage1[19:0];
-    logic signed [23:0] adder5_stage2[99:0];
-    logic signed [23:0] adder5_stage3[139:0];
-    logic signed [23:0] adder5_stage4[159:0];
-    logic signed [23:0] adder5_stage5[169:0];
-    logic signed [23:0] adder5_stage6[104:0];
-    logic signed [23:0] adder5_stage7[52:0];
-    logic signed [23:0] adder5_stage8[26:0];
-    logic signed [23:0] adder5_stage9[13:0];
-    logic signed [23:0] adder5_stage10[6:0];
-    logic signed [23:0] adder5_stage11[3:0];
-    logic signed [23:0] adder5_stage12[1:0];
+    logic signed [23:0] adder5_stage1[0:19];
+    logic signed [23:0] adder5_stage2[0:99];
+    logic signed [23:0] adder5_stage3[0:139];
+    logic signed [23:0] adder5_stage4[0:159];
+    logic signed [23:0] adder5_stage5[0:169];
+    logic signed [23:0] adder5_stage6[0:104];
+    logic signed [23:0] adder5_stage7[0:52];
+    logic signed [23:0] adder5_stage8[0:26];
+    logic signed [23:0] adder5_stage9[0:13];
+    logic signed [23:0] adder5_stage10[0:6];
+    logic signed [23:0] adder5_stage11[0:3];
+    logic signed [23:0] adder5_stage12[0:1];
     logic signed [23:0] adder5_result;
     
-    logic signed [23:0] adder6_stage1[69:0];
-    logic signed [23:0] adder6_stage2[124:0];
-    logic signed [23:0] adder6_stage3[152:0];
-    logic signed [23:0] adder6_stage4[166:0];
-    logic signed [23:0] adder6_stage5[143:0];
-    logic signed [23:0] adder6_stage6[71:0];
-    logic signed [23:0] adder6_stage7[35:0];
-    logic signed [23:0] adder6_stage8[17:0];
-    logic signed [23:0] adder6_stage9[8:0];
-    logic signed [23:0] adder6_stage10[4:0];
-    logic signed [23:0] adder6_stage11[2:0];
-    logic signed [23:0] adder6_stage12[1:0];
+    logic signed [23:0] adder6_stage1[0:69];
+    logic signed [23:0] adder6_stage2[0:124];
+    logic signed [23:0] adder6_stage3[0:152];
+    logic signed [23:0] adder6_stage4[0:166];
+    logic signed [23:0] adder6_stage5[0:143];
+    logic signed [23:0] adder6_stage6[0:71];
+    logic signed [23:0] adder6_stage7[0:35];
+    logic signed [23:0] adder6_stage8[0:17];
+    logic signed [23:0] adder6_stage9[0:8];
+    logic signed [23:0] adder6_stage10[0:4];
+    logic signed [23:0] adder6_stage11[0:2];
+    logic signed [23:0] adder6_stage12[0:1];
     logic signed [23:0] adder6_result;
     
-    logic signed [23:0] adder7_stage1[29:0];
-    logic signed [23:0] adder7_stage2[104:0];
-    logic signed [23:0] adder7_stage3[142:0];
-    logic signed [23:0] adder7_stage4[161:0];
-    logic signed [23:0] adder7_stage5[171:0];
-    logic signed [23:0] adder7_stage6[95:0];
-    logic signed [23:0] adder7_stage7[47:0];
-    logic signed [23:0] adder7_stage8[23:0];
-    logic signed [23:0] adder7_stage9[11:0];
-    logic signed [23:0] adder7_stage10[5:0];
-    logic signed [23:0] adder7_stage11[2:0];
-    logic signed [23:0] adder7_stage12[1:0];
+    logic signed [23:0] adder7_stage1[0:29];
+    logic signed [23:0] adder7_stage2[0:104];
+    logic signed [23:0] adder7_stage3[0:142];
+    logic signed [23:0] adder7_stage4[0:161];
+    logic signed [23:0] adder7_stage5[0:171];
+    logic signed [23:0] adder7_stage6[0:95];
+    logic signed [23:0] adder7_stage7[0:47];
+    logic signed [23:0] adder7_stage8[0:23];
+    logic signed [23:0] adder7_stage9[0:11];
+    logic signed [23:0] adder7_stage10[0:5];
+    logic signed [23:0] adder7_stage11[0:2];
+    logic signed [23:0] adder7_stage12[0:1];
     logic signed [23:0] adder7_result;
     
-    logic signed [23:0] adder8_stage1[79:0];
-    logic signed [23:0] adder8_stage2[129:0];
-    logic signed [23:0] adder8_stage3[154:0];
-    logic signed [23:0] adder8_stage4[167:0];
-    logic signed [23:0] adder8_stage5[133:0];
-    logic signed [23:0] adder8_stage6[66:0];
-    logic signed [23:0] adder8_stage7[33:0];
-    logic signed [23:0] adder8_stage8[16:0];
-    logic signed [23:0] adder8_stage9[8:0];
-    logic signed [23:0] adder8_stage10[4:0];
-    logic signed [23:0] adder8_stage11[2:0];
-    logic signed [23:0] adder8_stage12[1:0];
+    logic signed [23:0] adder8_stage1[0:79];
+    logic signed [23:0] adder8_stage2[0:129];
+    logic signed [23:0] adder8_stage3[0:154];
+    logic signed [23:0] adder8_stage4[0:167];
+    logic signed [23:0] adder8_stage5[0:133];
+    logic signed [23:0] adder8_stage6[0:66];
+    logic signed [23:0] adder8_stage7[0:33];
+    logic signed [23:0] adder8_stage8[0:16];
+    logic signed [23:0] adder8_stage9[0:8];
+    logic signed [23:0] adder8_stage10[0:4];
+    logic signed [23:0] adder8_stage11[0:2];
+    logic signed [23:0] adder8_stage12[0:1];
     logic signed [23:0] adder8_result;
     
-    logic signed [23:0] adder9_stage1[39:0];
-    logic signed [23:0] adder9_stage2[109:0];
-    logic signed [23:0] adder9_stage3[144:0];
-    logic signed [23:0] adder9_stage4[162:0];
-    logic signed [23:0] adder9_stage5[171:0];
-    logic signed [23:0] adder9_stage6[85:0];
-    logic signed [23:0] adder9_stage7[42:0];
-    logic signed [23:0] adder9_stage8[21:0];
-    logic signed [23:0] adder9_stage9[10:0];
-    logic signed [23:0] adder9_stage10[5:0];
-    logic signed [23:0] adder9_stage11[2:0];
-    logic signed [23:0] adder9_stage12[1:0];
+    logic signed [23:0] adder9_stage1[0:39];
+    logic signed [23:0] adder9_stage2[0:109];
+    logic signed [23:0] adder9_stage3[0:144];
+    logic signed [23:0] adder9_stage4[0:162];
+    logic signed [23:0] adder9_stage5[0:171];
+    logic signed [23:0] adder9_stage6[0:85];
+    logic signed [23:0] adder9_stage7[0:42];
+    logic signed [23:0] adder9_stage8[0:21];
+    logic signed [23:0] adder9_stage9[0:10];
+    logic signed [23:0] adder9_stage10[0:5];
+    logic signed [23:0] adder9_stage11[0:2];
+    logic signed [23:0] adder9_stage12[0:1];
     logic signed [23:0] adder9_result;
     
     
@@ -362,21 +363,21 @@ module conv3(
         
         for (int i = 0; i < 45; i++)
             adder1_stage2[i+90] <= adder1_stage1[i*2] + adder1_stage1[i*2+1];
-        adder1_stage2[89:0] <= mult_out;
+        adder1_stage2[0:89] <= mult_out;
         
         adder1_stage3[157] <= adder1_stage2[134];
         for (int i = 0; i < 67; i++)
             adder1_stage3[i+90] <= adder1_stage2[i*2] + adder1_stage2[i*2+1];
-        adder1_stage3[89:0] <= mult_out;
+        adder1_stage3[0:89] <= mult_out;
         
         for (int i = 0; i < 79; i++)
             adder1_stage4[i+90] <= adder1_stage3[i*2] + adder1_stage3[i*2+1];
-        adder1_stage4[89:0] <= mult_out;
+        adder1_stage4[0:89] <= mult_out;
         
         adder1_stage5[124] <= adder1_stage4[168];
         for (int i = 0; i < 84; i++)
             adder1_stage5[i+40] <= adder1_stage4[i*2] + adder1_stage4[i*2+1];
-        adder1_stage5[39:0] <= mult_out[39:0];
+        adder1_stage5[0:39] <= mult_out[39:0];
         
         adder1_stage6[62] <= adder1_stage5[124];
         for (int i = 0; i < 62; i++)

@@ -92,6 +92,13 @@ We will be able to better determine feasability of placement
 TODO:
     Send output out on MISO line
     
+    Explore BRAM placement for coefficients and
+    determine RAM contents from a top level perspective
+    Should we line up all the coefficients used for all
+    layers and have a global counters that perfectly times
+    the coefficient operands of the DSPs and brings the
+    correct data to the RAM output data registers on time?
+    
     conv 2 FSM, DSP feature muxing, coefficient flow
     conv 3 FSM, DSP feature muxing, coefficient flow
     fc layer feature buffering, control logic
@@ -133,7 +140,7 @@ module inference_top(
     logic               pixel_valid;
     logic         [7:0] w_pixel;
     logic               conv1_feature_valid, conv2_feature_valid;
-    logic signed [15:0] conv1_features[CONV1_CHANNELS-1:0], conv2_features[CONV2_CHANNELS-1:0];
+    logic signed [15:0] conv1_features[0:CONV1_CHANNELS-1], conv2_features[0:CONV2_CHANNELS-1];
     logic               pool1_feature_valid, pool2_feature_valid;
     logic signed [15:0] pool1_feature,       pool2_feature;
     

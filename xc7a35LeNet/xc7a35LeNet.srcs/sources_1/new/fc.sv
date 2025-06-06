@@ -136,7 +136,7 @@ module fc (
             state <= next_state;
     end
     
-    always_comb begin
+    always_comb
         if (~is_processing) begin
             next_state = FC_ONE;
             feature_operands <= '{default: 0};
@@ -160,7 +160,6 @@ module fc (
                 end
                 default: next_state = FC_ONE;
             endcase
-    end
     
     always_ff @(posedge i_clk) begin
         if (i_rst)

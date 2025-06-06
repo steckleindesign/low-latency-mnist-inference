@@ -155,7 +155,7 @@ module conv2(
     logic [INPUT_HEIGHT-1:0] ram_row_ctr;
     logic [INPUT_WIDTH-1:0]  ram_col_ctr;
     // Can use 6xRAM196 => 6*3=18 LUTs, or an 18-Kb Block RAM
-    logic signed [15:0] feature_ram[INPUT_CHANNELS-1:0][INPUT_HEIGHT-1:0][INPUT_WIDTH-1:0];
+    logic signed [7:0] feature_ram[0:INPUT_CHANNELS-1][0:INPUT_HEIGHT-1][0:INPUT_WIDTH-1];
     // Feature RAM full flag
     logic ram_full;
     
@@ -169,20 +169,20 @@ module conv2(
     logic macc_en;
     
     // Adder tree valid signals implemented as SRL16
-    logic [6:0] adder_tree_valid_sr[2:0];
+    logic [6:0] adder_tree_valid_sr[0:2];
     // Adder tree stage depths
     // TODO: Add in bias at some stage for each of the adder tree structures
     // 3-Map adder structure
-    logic signed [23:0] adder3map_stage1[5:0][14:0];
-    logic signed [23:0] adder3map_stage2[5:0][22:0];
-    logic signed [23:0] adder3map_stage3[5:0][26:0];
-    logic signed [23:0] adder3map_stage4[5:0][28:0];
-    logic signed [23:0] adder3map_stage5[5:0][29:0];
-    logic signed [23:0] adder3map_stage6[5:0][14:0];
-    logic signed [23:0] adder3map_stage7[5:0][7:0];
-    logic signed [23:0] adder3map_stage8[5:0][3:0];
-    logic signed [23:0] adder3map_stage9[5:0][1:0];
-    logic signed [23:0] adder3map_result[5:0];
+    logic signed [23:0] adder3map_stage1[0:5][0:14];
+    logic signed [23:0] adder3map_stage2[0:5][0:22];
+    logic signed [23:0] adder3map_stage3[0:5][0:26];
+    logic signed [23:0] adder3map_stage4[0:5][0:28];
+    logic signed [23:0] adder3map_stage5[0:5][0:29];
+    logic signed [23:0] adder3map_stage6[0:5][0:14];
+    logic signed [23:0] adder3map_stage7[0:5][0:7];
+    logic signed [23:0] adder3map_stage8[0:5][0:3];
+    logic signed [23:0] adder3map_stage9[0:5][0:1];
+    logic signed [23:0] adder3map_result[0:5];
     // 4-Map adder tree structure
     logic signed [23:0] adder4map_stage1[8:0][9:0];
     logic signed [23:0] adder4map_stage2[8:0][14:0];
