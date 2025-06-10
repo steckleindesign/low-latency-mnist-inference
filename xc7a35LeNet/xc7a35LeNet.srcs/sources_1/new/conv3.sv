@@ -220,11 +220,13 @@ module conv3(
     
     // Initialize trainable parameters
     // Weights
-    (* rom_style = "block" *) logic signed [7:0]
+    // (* rom_style = "block" *)
+    logic signed [7:0]
     weights [0:NUM_FILTERS-1][0:FILTER_SIZE-1][0:FILTER_SIZE-1];
     initial $readmemb(WEIGHTS_FILE, weights);
     // Biases
-    (* rom_style = "block" *) logic signed [7:0]
+    // (* rom_style = "block" *)
+    logic signed [7:0]
     biases [0:NUM_FILTERS-1];
     initial $readmemb(BIASES_FILE, biases);
     
