@@ -114,9 +114,6 @@ module conv2(
     output logic signed [15:0] o_features
 );
 
-//    localparam WEIGHTS_FILE3MAP = "conv2_weights3map.mem";
-//    localparam WEIGHTS_FILE4MAP = "conv2_weights4map.mem";
-//    localparam WEIGHTS_FILE6MAP = "conv2_weights6map.mem";
     localparam WEIGHTS_FILE     = "conv2_weights.mem";
     localparam BIASES_FILE      = "conv2_biases.mem";
     localparam INPUT_CHANNELS   = 6;
@@ -128,24 +125,6 @@ module conv2(
     localparam WINDOW_AREA   = FILTER_SIZE * FILTER_SIZE;
     localparam OUTPUT_HEIGHT = INPUT_HEIGHT - FILTER_SIZE + 1;
     localparam OUTPUT_WIDTH  = INPUT_WIDTH - FILTER_SIZE + 1;
-    
-//    // Initialize trainable parameters
-//    // 3 S2 map connections weights
-//    (* rom_style = "block" *) logic signed [15:0]
-//    weights3map [5:0][2:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
-//    initial $readmemb(WEIGHTS_FILE3MAP, weights3map);
-//    // 4 S2 map connections weights
-//    (* rom_style = "block" *) logic signed [15:0]
-//    weights4map [8:0][3:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
-//    initial $readmemb(WEIGHTS_FILE4MAP, weights4map);
-//    // 6 S2 map connections weights
-//    (* rom_style = "block" *) logic signed [15:0]
-//    weights6map [5:0][FILTER_SIZE-1:0][FILTER_SIZE-1:0];
-//    initial $readmemb(WEIGHTS_FILE6MAP, weights6map);
-//    // Biases (1 bias per C3 feature map)
-//    (* rom_style = "block" *) logic signed [15:0]
-//    biases [NUM_FILTERS-1:0];
-//    initial $readmemb(BIASES_FILE, biases);
 
     logic signed [7:0] weights [0:5][0:9][0:FILTER_SIZE-1][0:FILTER_SIZE-1];
     initial $readmemb(WEIGHTS_FILE, weights);

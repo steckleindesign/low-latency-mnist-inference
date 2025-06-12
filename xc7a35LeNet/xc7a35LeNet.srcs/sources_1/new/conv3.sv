@@ -50,9 +50,9 @@ module conv3(
     input  logic        i_clk,
     input  logic        i_rst,
     input  logic        i_feature_valid,
-    input  logic [15:0] i_features,
+    input  logic [15:0] i_feature,
     output logic        o_feature_valid,
-    output logic [15:0] o_features
+    output logic [15:0] o_feature
 );
     
     localparam string WEIGHTS_FILE = "weights.mem";
@@ -77,14 +77,33 @@ module conv3(
     initial $readmemb(BIASES_FILE, biases);
     
     // 120 accumulate values for each of the 120 neurons in the following layer
-    logic signed [8+$clog2(NUM_NEURONS)-1:0] accumulates[0:NUM_NEURONS-1];
+    logic signed [8+$clog2(NUM_NEURONS)-1:0] accumulates[0:NUM_NEURONS-1] = '{default: 0};
     
     // 3 DSP groups (30 DSP48E1s per group)
     logic signed [23:0] mult_out[0:2][0:(NUM_DSP/3)-1];
     
+    logic signed [7:0] feature_operands[0:2];
+    logic signed [7:0] weight_operands[0:NUM_DSP-1];
+    
     // TODO: Can we shink this so we dont take up 3200 FFs? Thats 400 slices.
     logic signed [7:0] feature_buf[0:S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE-1];
     logic signed [7:0] current_features[0:1];
+    
+    // Used for storing incoming features at their arrival location
+    logic [$clog2(S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE)-1:0] feature_buf_ctr  = 0;
+    // Used for reading feature from buffer into current feature slot
+    logic [$clog2(S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE)-1:0] feature_buf_addr = 0;
+    
+    logic [$clog2(NUM_NEURONS)-1:0] neuron_ctr = 0;
+    
+    // 544 clock cycles of * operations in this layer
+    logic [$clog2(543)-1:0] conv3_cyc;
+    
+    logic is_processing    = 0;
+    logic feature_buf_full = 0;
+    
+    
+    
     
     typedef enum logic [1:0] {
         CONV3_ONE,
@@ -94,13 +113,164 @@ module conv3(
     } conv3_state_t;
     conv3_state_t state = CONV3_ONE;
     
-    // Fill feature buffer with input data when valid
+    always_ff @(posedge i_clk) begin
+        
+        case(state)
+            CONV3_ONE: begin
+                if (is_processing)
+                    state <= CONV3_TWO;
+                current_features <= {current_features[0], feature_buf[feature_buf_addr]};
+                feature_buf_addr <= feature_buf_addr + 1;
+                // 90
+                // [0,x] | [3,x] | [6,x]
+            end
+            CONV3_TWO: begin
+                if (is_processing)
+                    state <= CONV3_THREE;
+                current_features <= {current_features[0], feature_buf[feature_buf_addr]};
+                feature_buf_addr <= feature_buf_addr + 1;
+                // 30, 60
+                // [1,0] | [4,3] | [7,6]
+            end
+            CONV3_THREE: begin
+                if (is_processing)
+                    state <= CONV3_FOUR;
+                current_features <= {current_features[0], feature_buf[feature_buf_addr]};
+                feature_buf_addr <= feature_buf_addr + 1;
+                // 60, 30
+                // [2,1] | [5,4] | [8,7]
+            end
+            CONV3_FOUR: begin
+                if (is_processing)
+                    state <= CONV3_ONE;
+                // 90
+                // [3,2] | [6,5], [9,8]
+            end
+            default: state <= state;
+        endcase
+    end
     
-    // Begin processing via MACC operations when we have first feature
+    always_ff @(posedge i_clk) begin
+        if (i_feature_valid) begin
+            is_processing <= 1;
+        
+            if (~feature_buf_full) begin
+                feature_buf[feature_buf_ctr] <= i_feature;
+                feature_buf_ctr <= feature_buf_ctr + 1;
+                if (feature_buf_ctr == S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE)
+                    feature_buf_full <= 1;
+            end
+        end
+    end
     
-    // Current feature slot conditional shift and datapath from feature buffer
+    always_ff @(posedge i_clk) begin
+        if (is_processing) begin
+            conv3_cyc <= conv3_cyc + 1;
+            case(state)
+                CONV3_ONE: begin
+                    feature_operands[0] <= current_features[0];
+                    feature_operands[1] <= current_features[1];
+                    feature_operands[2] <= current_features[1];
+                    // weight_operands <= weights[conv3_cyc];
+                end
+                CONV3_TWO: begin
+                    feature_operands[0] <= current_features[0];
+                    feature_operands[1] <= current_features[0];
+                    feature_operands[2] <= current_features[1];
+                    // weight_operands <= weights[conv3_cyc];
+                end
+                CONV3_THREE: begin
+                    feature_operands[0] <= current_features[1];
+                    feature_operands[1] <= current_features[1];
+                    feature_operands[2] <= current_features[1];
+                    // weight_operands <= weights[conv3_cyc];
+                end
+                CONV3_FOUR: begin
+                    feature_operands[0] <= current_features[0];
+                    feature_operands[1] <= current_features[0];
+                    feature_operands[2] <= current_features[0];
+                    // weight_operands <= weights[conv3_cyc];
+                end
+                default: state <= state;
+            endcase
+        end
+    end
     
-    // Datapath from current feature slots to DSPs
+    always_ff @(posedge i_clk)
+        for (int i = 0; i < 3; i++)
+            for (int j = 0; j < 30; j++)
+                mult_out[i][j] <=
+                    feature_operands[i] *
+                        weight_operands[i*30 + j];
+    
+    always_ff @(posedge i_clk) begin
+        if (is_processing) begin
+            neuron_ctr <= neuron_ctr + 1;
+            case(state)
+                CONV3_ONE: begin
+                    /*
+                    dsp group 1 outputs mapped to neuron cnt 0-29
+                    dsp group 2 outputs mapped to neuron cnt 30-59
+                    dsp group 3 outputs mapped to neuron cnt 60-89
+                    */
+                    
+                    accumulates[0] <= current_features[0];
+                    feature_operands[1] <= current_features[1];
+                    feature_operands[2] <= current_features[1];
+                    // weight_operands <= weights[conv3_cyc];
+                    
+                end
+                CONV3_TWO: begin
+                    /*
+                    dsp group 1 outputs mapped to neuron cnt+1 0-29
+                    dsp group 2 outputs mapped to neuron cnt+1 30-59
+                    dsp group 3 outputs mapped to neuron cnt 90-119
+                    */
+                    
+                    feature_operands[0] <= current_features[0];
+                    feature_operands[1] <= current_features[0];
+                    feature_operands[2] <= current_features[1];
+                    // weight_operands <= weights[conv3_cyc];
+                    
+                    neuron_ctr <= neuron_ctr + 1;
+                end
+                CONV3_THREE: begin
+                    /*
+                    dsp group 1 outputs mapped to neuron cnt 60-89
+                    dsp group 2 outputs mapped to neuron cnt 90-119
+                    dsp group 3 outputs mapped to neuron cnt+1 0-29
+                    */
+                
+                    feature_operands[0] <= current_features[1];
+                    feature_operands[1] <= current_features[1];
+                    feature_operands[2] <= current_features[1];
+                    // weight_operands <= weights[conv3_cyc];
+                    
+                    neuron_ctr <= neuron_ctr + 1;
+                end
+                CONV3_FOUR: begin
+                    /*
+                    dsp group 1 outputs mapped to neuron cnt 30-59
+                    dsp group 2 outputs mapped to neuron cnt 60-89
+                    dsp group 3 outputs mapped to neuron cnt 90-119
+                    */
+                    
+                    feature_operands[0] <= current_features[0];
+                    feature_operands[1] <= current_features[0];
+                    feature_operands[2] <= current_features[0];
+                    // weight_operands <= weights[conv3_cyc];
+                    
+                    neuron_ctr <= neuron_ctr + 1;
+                end
+                default: state <= state;
+            endcase
+        end
+    end
+    
+    // Fill feature buffer with input data when valid                          - X
+    // Begin processing via MACC operations when we have first feature         - X
+    // Current feature slot conditional shift and datapath from feature buffer - X
+    // Datapath from current feature slots to DSPs                             - X
     
     // Datapath from DSPs to accumulates, includes 2 logic levels, mux and adder
     
