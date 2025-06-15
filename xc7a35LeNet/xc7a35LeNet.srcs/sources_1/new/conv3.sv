@@ -42,6 +42,10 @@
     
     Theory of operation:
     
+    
+    TODO: Data out valid control
+          Verify control logic and check for off-by-ones
+    
 */
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -114,39 +118,29 @@ module conv3(
     conv3_state_t state = CONV3_ONE;
     
     always_ff @(posedge i_clk) begin
-        
         case(state)
             CONV3_ONE: begin
                 if (is_processing)
                     state <= CONV3_TWO;
                 current_features <= {current_features[0], feature_buf[feature_buf_addr]};
                 feature_buf_addr <= feature_buf_addr + 1;
-                // 90
-                // [0,x] | [3,x] | [6,x]
             end
             CONV3_TWO: begin
                 if (is_processing)
                     state <= CONV3_THREE;
                 current_features <= {current_features[0], feature_buf[feature_buf_addr]};
                 feature_buf_addr <= feature_buf_addr + 1;
-                // 30, 60
-                // [1,0] | [4,3] | [7,6]
             end
             CONV3_THREE: begin
                 if (is_processing)
                     state <= CONV3_FOUR;
                 current_features <= {current_features[0], feature_buf[feature_buf_addr]};
                 feature_buf_addr <= feature_buf_addr + 1;
-                // 60, 30
-                // [2,1] | [5,4] | [8,7]
             end
             CONV3_FOUR: begin
                 if (is_processing)
                     state <= CONV3_ONE;
-                // 90
-                // [3,2] | [6,5], [9,8]
             end
-            default: state <= state;
         endcase
     end
     
@@ -251,40 +245,6 @@ module conv3(
                     end
                 end
                 CONV3_TWO: begin
-                    /*
-                    For the 1st convolution pattern,
-                    we perform MACC operations and store data
-                    in MACC registers 0-29, 30-59, 60-89
-                    
-                    In the state before 1 (state 4),
-                        we set the DSP operands
-                            feature operands are set via state machine
-                            weight operands are set via global weights RAMs (Large SR?, FIFO?)
-                            Accumulates are fed back into C input of DSP48E1
-                                They are also set via state machine, similar to features
-                    
-                    During state 1, the MACC operation executes
-                        Stateless operation, multiply features and weights, add accumulates
-                        Store result in output register (P reg of DSP, more pipelining later in design process)
-                    
-                    In the state after 1 (State 2), we store this value in the accumulates results
-                        Capture P reg data into appropriate accumulate register
-                            The proper accumulate registers to store data are the same
-                            accumulate registers passed as accumulate operands 2 states before (state 4)
-                    
-                            
-                    For the 1st convolution pattern
-                    state 4:
-                        feature operands are set as current feature 0                              -X
-                        weight operands are set with data shifted out of global weight SR          -|
-                        accumulate operands are set to 0-29, 30-59, 60-89                          -X
-                    state 1:
-                        MACC operation executes and output is connected to D input of M reg        -X
-                    state 2:
-                        On launch clock of M reg, data is propagated though the FF to the Q output,-X
-                        propagated through a 2:1 mux, to the accumulate registers 0-90             -X
-                    
-                    */
                     for (int i = 0; i < 30; i++) begin
                         accumulates[     i] <= macc_out[0][i];
                         accumulates[30 + i] <= macc_out[1][i];
@@ -308,15 +268,5 @@ module conv3(
             endcase
         end
     end
-    
-    // Fill feature buffer with input data when valid                          - X
-    // Begin processing via MACC operations when we have first feature         - X
-    // Current feature slot conditional shift and datapath from feature buffer - X
-    // Datapath from current feature slots to DSPs                             - X
-    
-    // Datapath from DSPs to accumulates, includes 2 logic levels, mux and adder
-    
-    // Data out valid control
-    
     
 endmodule
