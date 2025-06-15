@@ -66,6 +66,7 @@ module conv3(
     
     // Initialize trainable parameters
     // Weights
+    // Will probably need to be reshaped into 90 RAMs dedicated to each DSP throughout the design
     // (* rom_style = "block" *)
     logic signed [7:0]
     weights [0:NUM_NEURONS-1][0:S4_MAP_SIZE-1][0:S4_MAP_SIZE-1];
@@ -205,20 +206,12 @@ module conv3(
     
     always_ff @(posedge i_clk) begin
         if (is_processing) begin
-            neuron_ctr <= neuron_ctr + 1;
             case(state)
                 CONV3_ONE: begin
-                    /*
-                    dsp group 1 outputs mapped to neuron cnt 0-29
-                    dsp group 2 outputs mapped to neuron cnt 30-59
-                    dsp group 3 outputs mapped to neuron cnt 60-89
-                    */
-                    
-                    accumulates[0] <= current_features[0];
-                    feature_operands[1] <= current_features[1];
-                    feature_operands[2] <= current_features[1];
+                    accumulates[neuron_ctr] <= mult_out[0];
+                    accumulates[neuron_ctr] <= mult_out[1];
+                    accumulates[neuron_ctr] <= mult_out[2];
                     // weight_operands <= weights[conv3_cyc];
-                    
                 end
                 CONV3_TWO: begin
                     /*
@@ -227,9 +220,9 @@ module conv3(
                     dsp group 3 outputs mapped to neuron cnt 90-119
                     */
                     
-                    feature_operands[0] <= current_features[0];
-                    feature_operands[1] <= current_features[0];
-                    feature_operands[2] <= current_features[1];
+                    accumulates[neuron_ctr] <= mult_out[0];
+                    accumulates[neuron_ctr+1] <= mult_out[1];
+                    accumulates[neuron_ctr+1] <= mult_out[2];
                     // weight_operands <= weights[conv3_cyc];
                     
                     neuron_ctr <= neuron_ctr + 1;
@@ -241,9 +234,9 @@ module conv3(
                     dsp group 3 outputs mapped to neuron cnt+1 0-29
                     */
                 
-                    feature_operands[0] <= current_features[1];
-                    feature_operands[1] <= current_features[1];
-                    feature_operands[2] <= current_features[1];
+                    accumulates[mult_out] <= mult_out[0];
+                    accumulates[mult_out] <= mult_out[1];
+                    accumulates[mult_out+1] <= mult_out[2];
                     // weight_operands <= weights[conv3_cyc];
                     
                     neuron_ctr <= neuron_ctr + 1;
@@ -255,10 +248,9 @@ module conv3(
                     dsp group 3 outputs mapped to neuron cnt 90-119
                     */
                     
-                    feature_operands[0] <= current_features[0];
-                    feature_operands[1] <= current_features[0];
-                    feature_operands[2] <= current_features[0];
-                    // weight_operands <= weights[conv3_cyc];
+                    accumulates[neuron_ctr] <= mult_out[0];
+                    accumulates[neuron_ctr] <= mult_out[1];
+                    accumulates[neuron_ctr] <= mult_out[2];
                     
                     neuron_ctr <= neuron_ctr + 1;
                 end
