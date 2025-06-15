@@ -85,6 +85,8 @@ module conv3(
     
     logic signed [7:0] feature_operands[0:2];
     logic signed [7:0] weight_operands[0:NUM_DSP-1];
+    logic signed [$clog2(S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE)+7:0] accumulate_operands
+                                                                    [0:2][0:(NUM_DSP/3)-1];
     
     // TODO: Can we shink this so we dont take up 3200 FFs? Thats 400 slices.
     logic signed [7:0] feature_buf[0:S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE-1];
@@ -102,9 +104,6 @@ module conv3(
     
     logic is_processing    = 0;
     logic feature_buf_full = 0;
-    
-    
-    
     
     typedef enum logic [1:0] {
         CONV3_ONE,
@@ -163,9 +162,12 @@ module conv3(
         end
     end
     
+    always_ff @(posedge i_clk)
+        if (is_processing)
+            conv3_cyc <= conv3_cyc + 1;
+    
     always_ff @(posedge i_clk) begin
         if (is_processing) begin
-            conv3_cyc <= conv3_cyc + 1;
             case(state)
                 CONV3_ONE: begin
                     feature_operands[0] <= current_features[0];
@@ -191,7 +193,41 @@ module conv3(
                     feature_operands[2] <= current_features[0];
                     // weight_operands <= weights[conv3_cyc];
                 end
-                default: state <= state;
+            endcase
+        end
+    end
+    
+    always_ff @(posedge i_clk) begin
+        if (is_processing) begin
+            case(state)
+                CONV3_ONE: begin
+                    for (int i = 0; i < 30; i++) begin
+                        accumulate_operands[0][i] <= accumulates[90 + i];
+                        accumulate_operands[1][i] <= accumulates[     i];
+                        accumulate_operands[2][i] <= accumulates[30 + i];
+                    end
+                end
+                CONV3_TWO: begin
+                    for (int i = 0; i < 30; i++) begin
+                        accumulate_operands[0][i] <= accumulates[60 + i];
+                        accumulate_operands[1][i] <= accumulates[90 + i];
+                        accumulate_operands[2][i] <= accumulates[     i];
+                    end
+                end
+                CONV3_THREE: begin
+                    for (int i = 0; i < 30; i++) begin
+                        accumulate_operands[0][i] <= accumulates[30 + i];
+                        accumulate_operands[1][i] <= accumulates[60 + i];
+                        accumulate_operands[2][i] <= accumulates[90 + i];
+                    end
+                end
+                CONV3_FOUR: begin
+                    for (int i = 0; i < 30; i++) begin
+                        accumulate_operands[0][i] <= accumulates[     i];
+                        accumulate_operands[1][i] <= accumulates[30 + i];
+                        accumulate_operands[2][i] <= accumulates[60 + i];
+                    end
+                end
             endcase
         end
     end
@@ -202,27 +238,20 @@ module conv3(
                 macc_out[i][j] <=
                     feature_operands[i] *
                         weight_operands[i*30+j] +
-                            accumulate_operands[i*30+j];
+                            accumulate_operands[i][j];
     
     always_ff @(posedge i_clk) begin
         if (is_processing) begin
             case(state)
                 CONV3_ONE: begin
                     for (int i = 0; i < 30; i++) begin
-                        accumulates[neuron_ctr + 1] <=
-                            [neuron_ctr + 1] + macc_out[0];
-                        accumulates[neuron_ctr] <=
-                            [neuron_ctr] + macc_out[1];
-                        accumulates[neuron_ctr] <=
-                            [neuron_ctr] + macc_out[2];
+                        accumulates[30 + i] <= macc_out[0][i];
+                        accumulates[60 + i] <= macc_out[1][i];
+                        accumulates[90 + i] <= macc_out[2][i];
                     end
                 end
                 CONV3_TWO: begin
                     /*
-                    dsp group 1 outputs mapped to neuron cnt+1 0-29
-                    dsp group 2 outputs mapped to neuron cnt+1 30-59
-                    dsp group 3 outputs mapped to neuron cnt 90-119
-                    
                     For the 1st convolution pattern,
                     we perform MACC operations and store data
                     in MACC registers 0-29, 30-59, 60-89
@@ -243,51 +272,38 @@ module conv3(
                             The proper accumulate registers to store data are the same
                             accumulate registers passed as accumulate operands 2 states before (state 4)
                     
+                            
+                    For the 1st convolution pattern
+                    state 4:
+                        feature operands are set as current feature 0                              -X
+                        weight operands are set with data shifted out of global weight SR          -|
+                        accumulate operands are set to 0-29, 30-59, 60-89                          -X
+                    state 1:
+                        MACC operation executes and output is connected to D input of M reg        -X
+                    state 2:
+                        On launch clock of M reg, data is propagated though the FF to the Q output,-X
+                        propagated through a 2:1 mux, to the accumulate registers 0-90             -X
+                    
                     */
-                    
-                    
-                    
                     for (int i = 0; i < 30; i++) begin
-                        accumulates[neuron_ctr] <=
-                            accumulates[neuron_ctr] + macc_out[0];
-                        accumulates[neuron_ctr+1] <=
-                            accumulates[neuron_ctr+1] + macc_out[1];
-                        accumulates[neuron_ctr+1] <=
-                            accumulates[neuron_ctr+1] + macc_out[2];
+                        accumulates[     i] <= macc_out[0][i];
+                        accumulates[30 + i] <= macc_out[1][i];
+                        accumulates[60 + i] <= macc_out[2][i];
                     end
-                    neuron_ctr <= neuron_ctr + 1;
                 end
                 CONV3_THREE: begin
-                    /*
-                    dsp group 1 outputs mapped to neuron cnt 60-89
-                    dsp group 2 outputs mapped to neuron cnt 90-119
-                    dsp group 3 outputs mapped to neuron cnt+1 0-29
-                    */
                     for (int i = 0; i < 30; i++) begin
-                        accumulates[neuron_ctr] <=
-                            accumulates[neuron_ctr] + macc_out[0];
-                        accumulates[neuron_ctr] <=
-                            accumulates[neuron_ctr] + macc_out[1];
-                        accumulates[neuron_ctr+1] <=
-                            accumulates[neuron_ctr+1] + macc_out[2];
+                        accumulates[90 + i] <= macc_out[0][i];
+                        accumulates[     i] <= macc_out[1][i];
+                        accumulates[30 + i] <= macc_out[2][i];
                     end
-                    neuron_ctr <= neuron_ctr + 1;
                 end
                 CONV3_FOUR: begin
-                    /*
-                    dsp group 1 outputs mapped to neuron cnt 30-59
-                    dsp group 2 outputs mapped to neuron cnt 60-89
-                    dsp group 3 outputs mapped to neuron cnt 90-119
-                    */
                     for (int i = 0; i < 30; i++) begin
-                        accumulates[neuron_ctr] <=
-                            accumulates[neuron_ctr] + macc_out[0];
-                        accumulates[neuron_ctr] <=
-                            accumulates[neuron_ctr] + macc_out[1];
-                        accumulates[neuron_ctr] <=
-                            accumulates[neuron_ctr] + macc_out[2];
+                        accumulates[60 + i] <= macc_out[0][i];
+                        accumulates[90 + i] <= macc_out[1][i];
+                        accumulates[     i] <= macc_out[2][i];
                     end
-                    neuron_ctr <= neuron_ctr + 1;
                 end
             endcase
         end
