@@ -81,7 +81,7 @@ module conv3(
     logic signed [8+$clog2(NUM_NEURONS)-1:0] accumulates[0:NUM_NEURONS-1] = '{default: 0};
     
     // 3 DSP groups (30 DSP48E1s per group)
-    logic signed [23:0] mult_out[0:2][0:(NUM_DSP/3)-1];
+    logic signed [23:0] macc_out[0:2][0:(NUM_DSP/3)-1];
     
     logic signed [7:0] feature_operands[0:2];
     logic signed [7:0] weight_operands[0:NUM_DSP-1];
@@ -154,7 +154,6 @@ module conv3(
     always_ff @(posedge i_clk) begin
         if (i_feature_valid) begin
             is_processing <= 1;
-        
             if (~feature_buf_full) begin
                 feature_buf[feature_buf_ctr] <= i_feature;
                 feature_buf_ctr <= feature_buf_ctr + 1;
@@ -200,31 +199,62 @@ module conv3(
     always_ff @(posedge i_clk)
         for (int i = 0; i < 3; i++)
             for (int j = 0; j < 30; j++)
-                mult_out[i][j] <=
+                macc_out[i][j] <=
                     feature_operands[i] *
-                        weight_operands[i*30 + j];
+                        weight_operands[i*30+j] +
+                            accumulate_operands[i*30+j];
     
     always_ff @(posedge i_clk) begin
         if (is_processing) begin
             case(state)
                 CONV3_ONE: begin
-                    accumulates[neuron_ctr] <= mult_out[0];
-                    accumulates[neuron_ctr] <= mult_out[1];
-                    accumulates[neuron_ctr] <= mult_out[2];
-                    // weight_operands <= weights[conv3_cyc];
+                    for (int i = 0; i < 30; i++) begin
+                        accumulates[neuron_ctr + 1] <=
+                            [neuron_ctr + 1] + macc_out[0];
+                        accumulates[neuron_ctr] <=
+                            [neuron_ctr] + macc_out[1];
+                        accumulates[neuron_ctr] <=
+                            [neuron_ctr] + macc_out[2];
+                    end
                 end
                 CONV3_TWO: begin
                     /*
                     dsp group 1 outputs mapped to neuron cnt+1 0-29
                     dsp group 2 outputs mapped to neuron cnt+1 30-59
                     dsp group 3 outputs mapped to neuron cnt 90-119
+                    
+                    For the 1st convolution pattern,
+                    we perform MACC operations and store data
+                    in MACC registers 0-29, 30-59, 60-89
+                    
+                    In the state before 1 (state 4),
+                        we set the DSP operands
+                            feature operands are set via state machine
+                            weight operands are set via global weights RAMs (Large SR?, FIFO?)
+                            Accumulates are fed back into C input of DSP48E1
+                                They are also set via state machine, similar to features
+                    
+                    During state 1, the MACC operation executes
+                        Stateless operation, multiply features and weights, add accumulates
+                        Store result in output register (P reg of DSP, more pipelining later in design process)
+                    
+                    In the state after 1 (State 2), we store this value in the accumulates results
+                        Capture P reg data into appropriate accumulate register
+                            The proper accumulate registers to store data are the same
+                            accumulate registers passed as accumulate operands 2 states before (state 4)
+                    
                     */
                     
-                    accumulates[neuron_ctr] <= mult_out[0];
-                    accumulates[neuron_ctr+1] <= mult_out[1];
-                    accumulates[neuron_ctr+1] <= mult_out[2];
-                    // weight_operands <= weights[conv3_cyc];
                     
+                    
+                    for (int i = 0; i < 30; i++) begin
+                        accumulates[neuron_ctr] <=
+                            accumulates[neuron_ctr] + macc_out[0];
+                        accumulates[neuron_ctr+1] <=
+                            accumulates[neuron_ctr+1] + macc_out[1];
+                        accumulates[neuron_ctr+1] <=
+                            accumulates[neuron_ctr+1] + macc_out[2];
+                    end
                     neuron_ctr <= neuron_ctr + 1;
                 end
                 CONV3_THREE: begin
@@ -233,12 +263,14 @@ module conv3(
                     dsp group 2 outputs mapped to neuron cnt 90-119
                     dsp group 3 outputs mapped to neuron cnt+1 0-29
                     */
-                
-                    accumulates[mult_out] <= mult_out[0];
-                    accumulates[mult_out] <= mult_out[1];
-                    accumulates[mult_out+1] <= mult_out[2];
-                    // weight_operands <= weights[conv3_cyc];
-                    
+                    for (int i = 0; i < 30; i++) begin
+                        accumulates[neuron_ctr] <=
+                            accumulates[neuron_ctr] + macc_out[0];
+                        accumulates[neuron_ctr] <=
+                            accumulates[neuron_ctr] + macc_out[1];
+                        accumulates[neuron_ctr+1] <=
+                            accumulates[neuron_ctr+1] + macc_out[2];
+                    end
                     neuron_ctr <= neuron_ctr + 1;
                 end
                 CONV3_FOUR: begin
@@ -247,14 +279,16 @@ module conv3(
                     dsp group 2 outputs mapped to neuron cnt 60-89
                     dsp group 3 outputs mapped to neuron cnt 90-119
                     */
-                    
-                    accumulates[neuron_ctr] <= mult_out[0];
-                    accumulates[neuron_ctr] <= mult_out[1];
-                    accumulates[neuron_ctr] <= mult_out[2];
-                    
+                    for (int i = 0; i < 30; i++) begin
+                        accumulates[neuron_ctr] <=
+                            accumulates[neuron_ctr] + macc_out[0];
+                        accumulates[neuron_ctr] <=
+                            accumulates[neuron_ctr] + macc_out[1];
+                        accumulates[neuron_ctr] <=
+                            accumulates[neuron_ctr] + macc_out[2];
+                    end
                     neuron_ctr <= neuron_ctr + 1;
                 end
-                default: state <= state;
             endcase
         end
     end
