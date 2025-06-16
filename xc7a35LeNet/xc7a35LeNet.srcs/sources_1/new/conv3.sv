@@ -2,49 +2,18 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 /*
-    Trainable parameters:
-        120 * (16*5*5 + 1) = 48120
-        
-    # of * ops = 120*16*5*5 = 48000
-    
+    Trainable parameters = 120 * (16*5*5 + 1) = 48120
+    Num multiplies = 120*16*5*5 = 48000
     90 DSP48s, 48000/90 = 533.3 = 534 clock cycles
     
-    400 * ops required for each of the 120 features
-    
-    least common multiple of 400 and 9 is 9*400=3600
-    
-    9 sets of 400, will require 3600/90 = 40 clock cycles
-    
-    We perform 120 5x5 convolutions on each S4 map.
-    So each s4 map has 120x25 = 3000 * operations.
-    3000/90 = 34 cycles.
-    
-    Architecture:
-    Focus on a max of 2 features each cycle
-    Greatly reduces latency
-    FSM has 4 states:
-    DSP48E1 usage by state:
+    Architecture: 4 state FSM
+    DSP48E1 mapping by state
     State:      1,  2,  3,  4
     Neuron n+1: 90, 30
     Neuron n+2:     60, 60
     Neuron n+3:         30, 90
     
-    2 levels of logic (2:1 mux between DSP output and adder w/ ACC)
-    We could keep this basic architecture to minimize area, or if
-    logic is not too congested (rent is not too high) then we could have
-    2 adders on each DSP output datapath and mux between the adder results.
-    We could also use the DSPs for the ACC operation so that the DSPs
-    perform a MACC operation instead of just Multiply.
-    
-    Feature operand datapath to DSP input:
-    2:1 muxes from 2 features facing the array of muxes at a single point in time.
-    
-    
-    Theory of operation:
-    
-    
-    TODO: Data out valid control
-          Verify control logic and check for off-by-ones
+    TODO: Verify control logic and check for off-by-ones
     
 */
 
@@ -101,13 +70,14 @@ module conv3(
     // Used for reading feature from buffer into current feature slot
     logic [$clog2(S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE)-1:0] feature_buf_addr = 0;
     
-    logic [$clog2(NUM_NEURONS)-1:0] neuron_ctr = 0;
+    logic [$clog2(NUM_NEURONS)-1:0] conv_pattern_rollover_cnt = 0;
     
     // 544 clock cycles of * operations in this layer
     logic [$clog2(543)-1:0] conv3_cyc;
     
     logic is_processing    = 0;
     logic feature_buf_full = 0;
+    logic data_valid       = 0;
     
     typedef enum logic [1:0] {
         CONV3_ONE,
@@ -118,30 +88,29 @@ module conv3(
     conv3_state_t state = CONV3_ONE;
     
     always_ff @(posedge i_clk) begin
-        case(state)
-            CONV3_ONE: begin
-                if (is_processing)
+        if (is_processing) begin
+            case(state)
+                CONV3_ONE: begin
+                    current_features <= {current_features[0], feature_buf[feature_buf_addr]};
+                    feature_buf_addr <= feature_buf_addr + 1;
                     state <= CONV3_TWO;
-                current_features <= {current_features[0], feature_buf[feature_buf_addr]};
-                feature_buf_addr <= feature_buf_addr + 1;
-            end
-            CONV3_TWO: begin
-                if (is_processing)
+                end
+                CONV3_TWO: begin
+                    current_features <= {current_features[0], feature_buf[feature_buf_addr]};
+                    feature_buf_addr <= feature_buf_addr + 1;
                     state <= CONV3_THREE;
-                current_features <= {current_features[0], feature_buf[feature_buf_addr]};
-                feature_buf_addr <= feature_buf_addr + 1;
-            end
-            CONV3_THREE: begin
-                if (is_processing)
+                end
+                CONV3_THREE: begin
+                    current_features <= {current_features[0], feature_buf[feature_buf_addr]};
+                    feature_buf_addr <= feature_buf_addr + 1;
                     state <= CONV3_FOUR;
-                current_features <= {current_features[0], feature_buf[feature_buf_addr]};
-                feature_buf_addr <= feature_buf_addr + 1;
-            end
-            CONV3_FOUR: begin
-                if (is_processing)
+                end
+                CONV3_FOUR: begin
+                    conv_pattern_rollover_cnt <= conv_pattern_rollover_cnt + 1;
                     state <= CONV3_ONE;
-            end
-        endcase
+                end
+            endcase
+        end
     end
     
     always_ff @(posedge i_clk) begin
@@ -156,9 +125,17 @@ module conv3(
         end
     end
     
+//    always_ff @(posedge i_clk)
+//        if (is_processing)
+//            conv3_cyc <= conv3_cyc + 1;
+    
     always_ff @(posedge i_clk)
-        if (is_processing)
-            conv3_cyc <= conv3_cyc + 1;
+        // 16*5*5=400 features, 3 features per pattern, 400/3=133.3
+        // All valid data is present in 2 cycles
+        // 30 neurons are ready on the first cycle valid is high
+        // 90 other neurons are valid the next cycle
+        if (conv_pattern_rollover_cnt == 8'd133 && (state == CONV3_THREE || state == CONV3_FOUR))
+            data_valid <= 1;
     
     always_ff @(posedge i_clk) begin
         if (is_processing) begin
