@@ -44,8 +44,6 @@
     // For logic simplicity, FRAM should become full
     // before MACC is enabled
     
-    // For distributed RAM should we aim for sync or async reads?
-    
     // Study the performance hit when using a fixed addition/subtraction on memory addressing
 
 module conv1
@@ -677,10 +675,8 @@ module conv1
             if (done_consuming)
                 consume_features <= 0;
             else if (i_feature_valid &&
-                    (
-                        (conv_col_ctr == (19) && state == FIVE) ||
-                        ~fram_has_been_full
-                    ))
+                    ((conv_col_ctr == (19) && state == FIVE) ||
+                        ~fram_has_been_full))
             begin
                 consume_features <= 1;
             end

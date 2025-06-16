@@ -99,8 +99,9 @@ TODO:
     the coefficient operands of the DSPs and brings the
     correct data to the RAM output data registers on time?
     
+    conv 1 re-architect
     conv 2 FSM, DSP feature muxing, coefficient flow
-    conv 3 FSM, DSP feature muxing, coefficient flow
+    conv 3 control logic
     fc layer feature buffering, control logic
     output layer control logic
 

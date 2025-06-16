@@ -4,7 +4,7 @@
 /*
     Connections in the 2nd convolutional layer are not as trivial
     In the prior layer, S2, the first max pooling layer, there are 6x14x14 feature maps
-    In this convolutional layer, there are 16 feature maps. The feature maps of S2 are
+    In this convolutional layer, there are 16 output feature maps. The feature maps of S2 are
     tied to each map of this convolutional layer, C3, are as follows:
     Map 0:  0, 1, 2
     Map 1:  1, 2, 3
@@ -23,42 +23,21 @@
     Map 14: 0, 2, 3, 5
     Map 15: 0, 1, 2, 3, 4, 5
     
-    Volume of S2 Maps
-    0: 10
-    1: 10
-    2: 10
-    3: 10
-    4: 10
-    5: 10
+    Each S2 map has 10 different weight kernels
     
     There are 6*(3*5*5 + 1) + 9*(4*5*5 + 1) + 6*5*5 + 1 = 1516 trainable parameters
     
-    Total * operations = 6*10*10*5*5*3 + 9*10*10*5*5*4 + 10*10*5*5*6 = 10*10*(1516-16) = 150000
+    Num multiplies = 6*10*10*5*5*3 + 9*10*10*5*5*4 + 10*10*5*5*6 = 10*10*(1516-16) = 150000
     
     The Artix-7 35 device has 90 DSP48s.
     We will have all 90 DSPs available as with the current architecture, all 90 DSPs will be free for conv2.
     150000/90 = 1666.67 = 1667 clock cycles worth of full DSP48 utilization.
     
-    DSP distribution:
-    First process the 3*5*5 maps (6 maps, 90/6 = 15 DSP48s per map)
-    second process the 4*5*5 maps (9 maps, 90/9 = 10 DSP48s per map),
-    third process the 6*5*5 map (1 map, 90 DSPs used for this map)
-
-    We might need to be smarter, lots of unique adder tree structures across the 2 conv layers alone
+    We need to store all 6 S2 maps simultaneously. However, one S2 map
+    will be used to fill the feature window at any given point in time.
     
-    If we dedicate 15 DSPs to each of the 6 S2 maps,
-    and each S2 map is 14x14, then there is 5x5x10x10=2500
-    multiply operations, this will be 10*2500=25000 operations
-    per group of 15 DSPs, so 1000/15 = 1666.67 = 1667 clock cycles
-    to do this processing.
-    
-    We need to store all 6 S2 maps simultaneously.
-    However, one S2 map will be used to fill the
-    feature window at any given point in time.
-    
-    A similar convolution pattern will be implemented
-    for conv2 as was implemented in conv1. However,
-    all 90 DSPs will be working on the same input feature map
+    A similar convolution pattern will be implemented for conv2 as was implemented in conv1.
+    However all 90 DSPs will be working on the same input feature map
     
     DSP mapping over 5x5 kernels (5 cycles to compute 18 kernels)
     25 25 25 15
@@ -66,13 +45,56 @@
                          20 25 25 20
                                    5 25 25 25 10
                                               15 25 25 25
+    
+    Can we make this a 4:1 mux or is 8:1 the smallest we can do
+    
+    Potential mapping of the 18 DSP groups
+    By cycle
+    cyc 1: 
+        row 1: 4
+        row 2: 4
+        row 3: 4
+        row 4: 3
+        row 5: 3
+    cyc 2:
+        row 1: 4
+        row 2: 3
+        row 3: 3
+        row 4: 4
+        row 5: 4
+    cyc 3:
+        row 1: 3
+        row 2: 4
+        row 3: 4
+        row 4: 4
+        row 5: 3
+    cyc 4:
+        row 1: 4
+        row 2: 4
+        row 3: 3
+        row 4: 3
+        row 5: 4
+    cyc 5:
+        row 1: 3
+        row 2: 3
+        row 3: 4
+        row 4: 4
+        row 5: 4
+    By rows
+    row 1: 4, 4, 3, 4, 3
+    row 2: 4, 3, 4, 4, 3
+    row 3: 4, 3, 4, 3, 4
+    row 4: 3, 4, 4, 3, 4
+    row 5: 3, 4, 3, 4, 4
+    
+    
     Total of 10x10 = 100 kernels in each S2 map
     If we only process 9x9, then there is 81 kernels.
     Then there would be 2x81 = 162 kernels in 2 S2 maps.
     So it would take 162/18 * 5 = 45 cycles to compute the *
     for 2 full feature maps, and 5x45=225 cycles to
-    process all * for the 10 iterations over a single
-    S2 map. So 6x225=1350 cycles for all * operations
+    process all multiplies for the 10 iterations over a single
+    S2 map. So 6x225=1350 cycles for all multiply operations
     in the covolution computation for conv2.
     
     ______________________________________
@@ -88,12 +110,6 @@
     6 DSP groups: \   \   \   \   \ 6 \   \
     6 DSP groups: \   \   \   \   \ 2 \ 4 \
     6 DSP groups: \   \   \   \   \   \ 6 \
-    
-    
-    Theory of operation:
-    S2 maps will come in parallel -> store them into RAM (let Vivado infer RAM style)
-    
-    
     
     Logic theory (1 always block for each component):
     Feature buffer consumption and control
