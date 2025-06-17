@@ -87,6 +87,16 @@
     row 4: 3, 4, 4, 3, 4
     row 5: 3, 4, 3, 4, 4
     
+    Adder tree structure:
+    
+    Instead of having wide multiplexers on the outputs of the MACC operations,
+    just store the data into a big SR and after the MACC operations finished
+    processing we can shift out the processed data and we know the order
+    We'll have 6 SRs, 1 for each S2 map. Each SR will be 10x9x9x8-bit = 6480 bits
+    May need to store data in BRAMs
+    What will the mux structure on the output datapath look like
+    
+    
     
     Total of 10x10 = 100 kernels in each S2 map
     If we only process 9x9, then there is 81 kernels.
@@ -115,6 +125,63 @@
     Feature buffer consumption and control
     Feature window loading (muxing?)
     Feature operand muxing
+    
+    
+    
+    
+    New architecture
+    
+    We are only doing 9x9 convolutions
+    and there are 10 weight kernals for
+    each S2 map and 90 DSPs.
+    
+    So we divide DSPs into 10 groups of 9.
+    Each DSP group has the job of working on its own row
+    It will take 25 clock cycles For each of these rows
+    
+    16 10x10 output feature maps = 1600 8-bit values = 12,800 bits
+    So there are 1600 accumulate values
+    
+    
+    
+    Another idea is to have a single DSP dedicated to each input feature map
+    However, there are only 60 input features maps.
+    How to utilize the other 60 DSPs
+    
+    We want to end up with 60 intermediate maps, each are 10x10 8-bit values = 800 bits
+    They will have to be stored in BRAM as SRs
+    
+    After we have the 60 intermediate maps, we have to add these to the output accums
+    
+    For now we may just use 60 DSPs for the convolution operations in this layer.
+    
+    
+    6x196 8-bit feature RAMs of S2 feature data
+    each feature RAM feeds feature operands to 10 different DSPs, no muxing involved
+    
+    MACC (DSP48E1) output muxing to C3 feature maps:
+    There are either 3, 4, or 6 DSP outputs to be added
+    The remaining 30 DSP48E1s shall be used efficiently to perform these additions
+    Each of the 60 "*" DSP outputs can be directly connected to the
+    appropriate "+" DSP inputs as adder operands.
+    The DSP48E1 based adder tree structure may need to be instantiated or at least
+    synthesis attributes shall be used to ensure the adder tree structure uses DSPs
+    This architecture will seriously minimize hardware resources and specifically
+    elimates large muxes introduced in this layer.
+    The tradeoff is latency wont be optimal, but we can work towards lower latency
+    in the future.
+    
+    The last thing we decide is how the output data shall be configured in HW.
+    conv3 processes the feature maps sequentially from top left of S4 to
+    bottom right of S4. So we need to store the output feature map data for
+    this layer in a single deep shift register. Using a block RAM will suffice.
+    We will have 16 new results valid to be added to this SR in a single clock
+    cycle so we will need a smart way to load these results into the SR as
+    there will be 1 or 2 input data ports max.
+    
+    Other option is to have a SR for each S4 feature map, but this will require
+    muxes in conv3 and will be a worse tradeoff it seems as of now.
+    
     
     
 */
@@ -164,11 +231,13 @@ module conv2(
     // TODO: Need to draw diagram on paper for memory design here
     logic signed [7:0] feature_ram[0:INPUT_CHANNELS-1][0:INPUT_HEIGHT-1][0:INPUT_WIDTH-1];
     
+    // C3 features are structured as 16 10x10 feature maps
+    logic signed [7:0] c3_maps[0:15][0:9][0:9];
+    
     // Feature RAM full flag
     logic feature_ram_full;
     // Enable convolution MACC operations on this layer (CONV2)
     logic layer_en;
-    
     
     // MACC accumulate, 4 deep to hold at least 9 accumates during the 4-map convolutions
     // logic signed [23:0] macc_acc[0:3];

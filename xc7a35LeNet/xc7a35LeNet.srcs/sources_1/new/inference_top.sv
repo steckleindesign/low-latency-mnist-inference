@@ -58,6 +58,13 @@ x      = F.relu(self.fc2  (x)  )
 logits =        self.fc3  (x)
 
 
+Device resources:
+    Slices:  5200
+    BRAM 36Kb: 50
+
+Weight operands for DSPs should be connected to dual port RAM (ROM) outputs
+Or just split into 100 18Kb RAMs? We need 90 dout pins for the 90 DSPs.
+If RAMs are not deep enough, we may need to use additional FFs.
 
 
 DSP Mapping:
@@ -87,6 +94,12 @@ Once we understand
 2) DSP output data paths
 3) adder tree architecture
 We will be able to better determine feasability of placement
+
+
+
+weights
+    conv1 does not use global weights rams
+    
 
 
 TODO:
