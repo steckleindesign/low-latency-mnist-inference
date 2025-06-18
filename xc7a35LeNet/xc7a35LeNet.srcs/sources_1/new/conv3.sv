@@ -113,7 +113,7 @@ module conv3(
         end
     end
     
-    always_ff @(posedge i_clk) begin
+    always_ff @(posedge i_clk)
         if (i_feature_valid) begin
             is_processing <= 1;
             if (~feature_buf_full) begin
@@ -123,7 +123,6 @@ module conv3(
                     feature_buf_full <= 1;
             end
         end
-    end
     
 //    always_ff @(posedge i_clk)
 //        if (is_processing)

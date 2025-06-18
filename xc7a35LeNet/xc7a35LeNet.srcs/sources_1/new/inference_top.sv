@@ -40,6 +40,8 @@ Thank you!
 
 (Latency is limited first by input data rate, second by DSP48s)
 
+Consider SW techniques to improve the HW design process for conv and fc layers
+
 Structure - pytorch
 self.conv1 = nn.Conv2d    (1,      6,  5 )
 self.pool1 = nn.MaxPool2d (2,      2     )
@@ -57,66 +59,35 @@ x      = F.relu(self.fc1  (x)  )
 x      = F.relu(self.fc2  (x)  )
 logits =        self.fc3  (x)
 
-
-Device resources:
-    Slices:  5200
-    BRAM 36Kb: 50
-
-Weight operands for DSPs should be connected to dual port RAM (ROM) outputs
-Or just split into 100 18Kb RAMs? We need 90 dout pins for the 90 DSPs.
-If RAMs are not deep enough, we may need to use additional FFs.
-
-
-DSP Mapping:
-conv1:
-    6 groups of 15 -> grouped by parameterized kernel: 5:1 mux
-conv2:
-    6 groups of 15 -> grouped by S2 maps - 5:1 mux
-conv3:
-    No efficient way to group as of now except 40:1 muxes
-    feeding in to each DSP - 40:1 mux
-fc1:
-    90 DSPs cover the 120 neurons for 3 full connection
-    iterations over 4 clock cycles - 4:1 mux
-output layer:
-    No need for mux
-    84 neurons maps to their own DSP, 6 DSPs unused
-    
-We should consider SW techniques to improve the HW design
-process for conv3 and fc1 especially, but for the other
-layers as well.
-
-We need also to study the output data paths from the DSPs
-in each layer and the adder tree architecture.
+weights RAMs
+    conv1 does not use global weights rams
+    conv2, conv3, fc, output layers uses global weights RAM
+    conv2 + conv3 + fc + output weights RAM depth = 2300-2800?
+    With 90x18Kb RAM we can only store 2250 8-bit values.
+    This is close to the requirement so the extra weights coefficients
+    could be stored in fabric FFs upon the GSR, and wrote into the
+    weights BRAMs once conv2 begins reading weight data from the RAMs
 
 Once we understand
 1) DSP input data paths
 2) DSP output data paths
-3) adder tree architecture
+3) Adder tree / MACC architecture
 We will be able to better determine feasability of placement
-
-
-
-weights
-    conv1 does not use global weights rams
     
-
-
 TODO:
     Send output out on MISO line
     
-    Explore BRAM placement for coefficients and
-    determine RAM contents from a top level perspective
-    Should we line up all the coefficients used for all
-    layers and have a global counters that perfectly times
-    the coefficient operands of the DSPs and brings the
-    correct data to the RAM output data registers on time?
-    
-    conv 1 re-architect
-    conv 2 FSM, DSP feature muxing, coefficient flow
-    conv 3 control logic
-    fc layer feature buffering, control logic
-    output layer control logic
+    conv 1: re-architect
+    conv 2: FSM, DSP feature muxing, coefficient flow
+    conv 3: control logic
+    fc:     feature buffering, control logic
+    output: control logic
+
+Future:
+    Floorplanning
+    Synthesis attributes
+    Synthesis and implementation strategies
+    Transceiver for IO data
 
 */
 //////////////////////////////////////////////////////////////////////////////////
