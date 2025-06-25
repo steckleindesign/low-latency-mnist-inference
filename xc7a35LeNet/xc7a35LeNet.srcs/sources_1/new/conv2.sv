@@ -81,8 +81,6 @@
     Feature operand muxing
     
     
-    
-    
     New architecture
     
     We are only doing 9x9 convolutions
@@ -100,7 +98,11 @@
     
     Another idea is to have a single DSP dedicated to each input feature map
     However, there are only 60 input features maps.
-    How to utilize the other 60 DSPs
+    How to utilize the other 30 DSPs
+    
+    While we are performing a 5x5 kernel multiply on a single DSP
+    We also need to accumulate each of the 25 multiply results
+    Every 5x5=25 cycles, 
     
     We want to end up with 60 intermediate maps, each are 10x10 8-bit values = 800 bits
     They will have to be stored in BRAM as SRs
@@ -136,7 +138,20 @@
     Other option is to have a SR for each S4 feature map, but this will require
     muxes in conv3 and will be a worse tradeoff it seems as of now.
     
+    The data from S2 comes in parallel between all 6 feature maps, and serially
+    on a per feature map basis
     
+    Theory of operation:
+    1) Gather features into 6 14x5 8-bit feature buffers (6x70 8-bit data)
+    2) When the feature buffer is full enough (4 rows and first feature of 5th row)
+        MACC operations should begin
+    3) MACC operation consists of 25 cycles per output feature accumulation
+    4) Store output feature accumulations in their own 60 feature maps
+        That's 60x10x10 8-bit values = 6000 8-bit values, or 48,000 bits (Needs 3 18kb BRAMs)
+    5) Use DSPs to add appropriate output feature map values into 16 C3 feature maps
+    
+    Difficult part is the control logic and the mechanism for storing data between
+    each data processing phase
     
 */
 

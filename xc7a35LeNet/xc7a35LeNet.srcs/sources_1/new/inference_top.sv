@@ -75,15 +75,14 @@ Once we understand
 We will be able to better determine feasability of placement
     
 TODO:
-    Send output out on MISO line
-    
-    conv 1: re-architect
     conv 2: FSM, DSP feature muxing, coefficient flow
     conv 3: control logic
     fc:     feature buffering, control logic
     output: control logic
 
 Future:
+    conv 1: re-architect
+    Send output out on MISO line
     Floorplanning
     Synthesis attributes
     Synthesis and implementation strategies
