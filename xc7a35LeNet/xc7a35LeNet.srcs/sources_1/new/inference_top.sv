@@ -73,6 +73,35 @@ Once we understand
 2) DSP output data paths
 3) Adder tree / MACC architecture
 We will be able to better determine feasability of placement
+
+
+Resource mapping
+
+100 RAMB18Es?
+How many ports?
+
+90 18kb Block RAMs dedicated to DSP weights operands
+
+Memory resources (10 free 18kb Block RAMs):
+    Where to store image input data (8,192 bits) -> BRAM_0
+
+    Where to store feature RAM data in conv1 (1,280 bits) -> BRAM_1
+
+    Where to store S2 feature maps (9,408 bits) -> BRAM_2-6
+    
+    Where to store 60 intermediate feature maps for conv2 operation (48,000 bits) ???
+        With each intermediate map as 10x10 8-bit values, we could use Distributed RAMs
+        Each RAM is 100 Deep x 8 Wide
+        Effectively 60 x 128 x 8-bit Distributed RAMs
+        We will use RAM32M => 32x8-bit LUTRAM uses 4 LUT6 per RAM32M
+        128x8-bit Distributed RAM will use 16 LUTRAMs (2 CLBs)
+        60 of these will utilize 120 CLBs
+    
+    Where to store S4 feature maps, should be stored in SR (3,200 bits) -> BRAM_7
+    
+    Where to store C5 120 neurons 8-bit data (960 bits) -> Fabric FFs
+    
+    Where to store F6 84 neurons 8-bit data (672 bits) -> Fabric FFs
     
 TODO:
     conv 2: FSM, DSP feature muxing, coefficient flow

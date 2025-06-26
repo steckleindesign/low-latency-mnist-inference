@@ -16,15 +16,13 @@
             Start when there is just enough data in the feature RAMs in the future,
             but for now we wait until the feature RAMs are full for simplicity.
         
-        Artix7-35 Resources
-            90 DSPs, 50 BRAMS (36Kb each)
-        Required Resources by Design
-        
         Latency due to Design
             6 filters for conv1, 5x5 filter (25 * ops), 27x27 conv ops (730)
             = 6*(5*5)*(27*27) = 109350 * ops / 90 DSPs = 1215 cycs theoretically
         
         Study how to get outputs of DSP48s to carry chain resources efficiently
+        Compare SWaP and performance between fixed addition and fixed subtraction for memory addressing
+        Example: Incrementing address by 1 each clock vs. decreasing address by 1 each clock
         
         State:         0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14
         
@@ -37,14 +35,6 @@
         adder 3-2:                                    10, 20, 10,  5,  3,  2,  1
 */
 //////////////////////////////////////////////////////////////////////////////////
-
-
-    // Takes 27*3=81 clock cycles for FRAM to become full
-    // MACC enable set after 27*2=54 clock cycles
-    // For logic simplicity, FRAM should become full
-    // before MACC is enabled
-    
-    // Study the performance hit when using a fixed addition/subtraction on memory addressing
 
 module conv1
     #(
@@ -83,10 +73,10 @@ module conv1
     
     // Weight ROMs
     // 90 distributed RAMs -> 1 per DSP48E1
-    // 16-bit signed data x 6 filters x 5 rows x 3 columns x 5 deep
-    // Overall there is 90x5 = 90 8x16-bit Distributed RAMs
-    // One SLICEM can implement 2 8x16-bit Distruibuted RAMs
-    // Hence, 45 slices will be used for the weight RAMs
+    // 6 filters x 5 rows x 3 columns x 5 deep => 8-bit data
+    // Overall there is 90x5 = 90 8x8-bit Distributed RAMs
+    // One SLICEM can implement 4 8x8-bit Distributed RAMs
+    // Hence, 23 slices will be used for the weight RAMs
     // Initialize trainable parameters
     // Weights
     // (* rom_style = "block" *)
@@ -567,27 +557,21 @@ module conv1
     logic signed [15:0] biases [0:NUM_FILTERS-1];
     initial $readmemb(BIASES_FILE, biases);
     
-    // Make sure distributed RAMs are synthesized
     // These feature RAMs are essentially line buffers
     // (* ram_style = "distributed" *)
-    logic [7:0] feature_rams [0:FILTER_SIZE-1][0:INPUT_WIDTH-1];
-    // initial feature_rams = '{default: 0};
-    initial
-        for (int i = 0; i < FILTER_SIZE; i++)
-            for (int j = 0; j < INPUT_WIDTH; j++)
-                feature_rams[i][j] = 0;
+    logic [7:0] feature_rams [0:FILTER_SIZE-1][0:INPUT_WIDTH-1] = '{default: 0};
     
     // The actual feature window to be multiplied by the filter kernel
-    logic [7:0] feature_window [0:FILTER_SIZE-1][0:FILTER_SIZE-1];
+    logic [7:0] feature_window [0:FILTER_SIZE-1][0:FILTER_SIZE-1] = '{default: 0};
     
     // We buffer the initial feature window of the next row
     // It loads during convolution operation of the preceeding row
     logic [7:0] next_initial_feature_window[0:FILTER_SIZE-1]
-                                           [0:FILTER_SIZE-1];
+                                           [0:FILTER_SIZE-1] = '{default: 0};
     
     // Registers to hold temporary feature RAM data
     // as part of the input feature consumption logic
-    logic signed [15:0] fram_swap_regs[0:NUM_FILTERS-2];
+    logic signed [15:0] fram_swap_regs[0:NUM_FILTERS-2] = '{default: 0};
     
     // Signals holding the DSP48E1 operands, used for readability
     logic [7:0] feature_operands[0:FILTER_SIZE-1][0:2];
@@ -596,12 +580,11 @@ module conv1
                                        [0:OFFSET_GRP_SZ-1];
     
     // All 90 DSP48E1 outputs
-    // (* use_dsp = "yes" *)
     logic signed [15:0] mult_out[0:NUM_FILTERS-1][0:FILTER_SIZE*OFFSET_GRP_SZ-1];
     
     // Feature RAM location
     logic [$clog2(FILTER_SIZE)-1:0] fram_row_ctr;
-    logic [$clog2(COL_END)-1:0]     fram_col_ctr;
+    logic     [$clog2(COL_END)-1:0] fram_col_ctr;
     
     // Convolution Feature location
     logic [$clog2(ROW_END)-1:0] conv_row_ctr;
@@ -675,11 +658,8 @@ module conv1
             if (done_consuming)
                 consume_features <= 0;
             else if (i_feature_valid &&
-                    ((conv_col_ctr == (19) && state == FIVE) ||
-                        ~fram_has_been_full))
-            begin
+                    ((conv_col_ctr == (19) && state == FIVE) || ~fram_has_been_full))
                 consume_features <= 1;
-            end
             if (conv_row_ctr == ROW_END) begin
                 done_receiving <= 1;
                 if (conv_col_ctr == COL_END)
@@ -812,7 +792,7 @@ module conv1
         else if (adder_tree_valid_sr[2][7])
             macc_acc = adder3_result;
         else
-            macc_acc = adder1_result; // '{default: 0};
+            macc_acc = adder1_result;
     
     // DSP48E1 operands
     always_comb begin
@@ -900,22 +880,19 @@ module conv1
             begin
                 conv_col_ctr <= conv_col_ctr + 1;
                 for (int i = 0; i < FILTER_SIZE; i++)
+                    // Check direction of SR
                     feature_window[i] <=
                         {feature_rams[i][conv_col_ctr],
                          feature_window[i][1:4]};
             end
             
-            // Update convolution row count
-            // Reset column count to column 2
             if (next_row) begin
                 conv_row_ctr <= conv_row_ctr + 1;
                 conv_col_ctr <= COL_START;
             end
             
-            // Review: We have 2 ports for the feature RAM
-            //         (read port and write port)
-            //         Does this make it impossible
-            //         to synthesize distributed RAM?
+            // Review: We have 2 ports for the feature RAM (read port and write port)
+            //         Does this make it impossible to synthesize distributed RAM?
             if (next_row | macc_ready)
                 feature_window <= next_initial_feature_window;
         end
