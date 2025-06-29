@@ -251,45 +251,33 @@ module conv2(
         // C3 maps 15   use 3 DSP
         // Total DSP = 6 + 2*9 + 3 = 27
         // We will label these adder_DSP_0-26
-    
-    Map  6: 0, 1, 2, 3
-    Map  7: 1, 2, 3, 4
-    Map  8: 2, 3, 4, 5
-    Map  9: 0, 3, 4, 5
-    Map 10: 0, 1, 4, 5
-    Map 11: 0, 1, 2, 5
-    Map 12: 0, 1, 3, 4
-    Map 13: 1, 2, 4, 5
-    Map 14: 0, 2, 3, 5
-    Map 15: 0, 1, 2, 3, 4, 5
-        
         // adder_dsp_0  -> map[0][0], map[1][0], map[2][0]
         // adder_dsp_1  -> map[1][1], map[2][1], map[3][0]
         // adder_dsp_2  -> map[2][2], map[3][1], map[4][0]
         // adder_dsp_3  -> map[3][2], map[4][1], map[5][0]
         // adder_dsp_4  -> map[0][1], map[4][2], map[5][1]
         // adder_dsp_5  -> map[0][2], map[1][2], map[5][2]
-        // adder_dsp_6  -> 
-        // adder_dsp_7  -> 
-        // adder_dsp_8  -> 
-        // adder_dsp_9  -> 
-        // adder_dsp_10 -> 
-        // adder_dsp_11 -> 
-        // adder_dsp_12 -> 
-        // adder_dsp_13 -> 
-        // adder_dsp_14 -> 
-        // adder_dsp_15 -> 
-        // adder_dsp_16 -> 
-        // adder_dsp_17 -> 
-        // adder_dsp_18 -> 
-        // adder_dsp_19 -> 
-        // adder_dsp_20 -> 
-        // adder_dsp_21 -> 
-        // adder_dsp_22 -> 
-        // adder_dsp_23 -> 
-        // adder_dsp_24 -> 
-        // adder_dsp_25 -> 
-        // adder_dsp_26 -> 
+        // adder_dsp_6  -> map[0][3], map[1][3], map[2][3]
+        // adder_dsp_7  -> adder_dsp_6, map[3][3]
+        // adder_dsp_8  -> map[1][4], map[2][4], map[3][4]
+        // adder_dsp_9  -> adder_dsp_8, map[4][3]
+        // adder_dsp_10 -> map[2][5], map[3][5], map[4][4]
+        // adder_dsp_11 -> adder_dsp_10, map[5][3]
+        // adder_dsp_12 -> map[0][4], map[3][6], map[4][5]
+        // adder_dsp_13 -> adder_dsp_12, map[5][4]
+        // adder_dsp_14 -> map[0][5], map[1][5], map[4][6]
+        // adder_dsp_15 -> adder_dsp_14, map[5][5]
+        // adder_dsp_16 -> map[0][6], map[1][6], map[2][6]
+        // adder_dsp_17 -> adder_dsp_16, map[5][6]
+        // adder_dsp_18 -> map[0][7], map[1][7], map[3][7]
+        // adder_dsp_19 -> adder_dsp_18, map[4][7]
+        // adder_dsp_20 -> map[1][8], map[2][7], map[4][8]
+        // adder_dsp_21 -> adder_dsp_20, map[5][7]
+        // adder_dsp_22 -> map[0][8], map[2][8], map[3][8]
+        // adder_dsp_23 -> adder_dsp_22, map[5][8]
+        // adder_dsp_24 -> map[0][9], map[1][9], map[2][9]
+        // adder_dsp_25 -> map[3][9], map[4][9], map[5][9]
+        // adder_dsp_26 -> adder_dsp_24, adder_dsp_25
     end
     
     always_ff @(posedge i_clk)
