@@ -83,11 +83,11 @@ How many ports?
 90 18kb Block RAMs dedicated to DSP weights operands
 
 Memory resources (10 free 18kb Block RAMs):
-    Where to store image input data (8,192 bits) -> BRAM_0
+    Store image input data (8,192 bits)          -> BRAM_0
 
-    Where to store feature RAM data in conv1 (1,280 bits) -> BRAM_1
+    Store feature RAM data in conv1 (1,280 bits) -> BRAM_1
 
-    Where to store S2 feature maps (9,408 bits) -> BRAM_2-6
+    Store S2 feature maps (9,408 bits)           -> BRAM_2-6
     
     Where to store 60 intermediate feature maps for conv2 operation (48,000 bits) ???
         With each intermediate map as 10x10 8-bit values, we could use Distributed RAMs
@@ -97,11 +97,19 @@ Memory resources (10 free 18kb Block RAMs):
         128x8-bit Distributed RAM will use 16 LUTRAMs (2 CLBs)
         60 of these will utilize 120 CLBs
     
-    Where to store S4 feature maps, should be stored in SR (3,200 bits) -> BRAM_7
+    Store S4 feature maps as large SR (FIFO??) in BRAM (3,200 bits) -> BRAM_7
     
-    Where to store C5 120 neurons 8-bit data (960 bits) -> Fabric FFs
+    Store C5 120 neurons 8-bit data (960 bits)                      -> Fabric FFs
     
-    Where to store F6 84 neurons 8-bit data (672 bits) -> Fabric FFs
+    Store F6 84 neurons 8-bit data (672 bits)                       -> Fabric FFs
+    
+
+PLAN:
+    develop data paths into BRAMs for s2 feature maps
+    develop conv2 datapaths, focus on DSP mapping and intermediate results storage
+    develop max pool 2 layer which quickly processes data out of conv2 and stores results in BRAM
+    
+    
     
 TODO:
     conv 2: FSM, DSP feature muxing, coefficient flow
@@ -152,6 +160,8 @@ module inference_top(
     // Valid signals, features
     logic               pixel_valid;
     logic         [7:0] w_pixel;
+    logic         [7:0] img_ram_data;
+    logic               img_ram_data_valid;
     logic               conv1_feature_valid, conv2_feature_valid;
     logic signed [15:0] conv1_features[0:CONV1_CHANNELS-1], conv2_features[0:CONV2_CHANNELS-1];
     logic               pool1_feature_valid, pool2_feature_valid;
@@ -187,20 +197,21 @@ module inference_top(
                         .i_spi_data(spi_wr_data),
                         .o_pixel(spi_pixel),
                         .o_pix_valid(spi_pixel_valid));
-                             
-//    input_image_buf   img_in (.i_clk        (clk100m),
-//                              .i_rst        (rst),
-//                              .i_pixel      ().
-//                              .i_pixel_valid(),
-//                              .i_hold       (conv1_lb_full)
-//                              .o_pixel      ());
+
+    image_buffer_ram
+        img_buf_ram (.clk(clk100m),
+                     .rst(rst),
+                     .pixel_in(spi_pixel),
+                     .pixel_in_valid(spi_pixel_valid),
+                     .hold(~conv1_take_feature),
+                     .pixel_out(img_ram_data));
     
     // Convolutional Layer 1
     conv1 #(.NUM_FILTERS(CONV1_CHANNELS))
           conv_1 (.i_clk(clk100m),
                   .i_rst(rst),
-                  .i_feature_valid(spi_pixel_valid),
-                  .i_feature(spi_pixel),
+                  .i_feature_valid(),
+                  .i_feature(img_ram_data),
                   .o_feature_valid(conv1_feature_valid),
                   .o_features(conv1_features),
                   .o_ready_feature(conv1_take_feature),

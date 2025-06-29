@@ -122,6 +122,14 @@
     The data from S2 comes in parallel between all 6 feature maps, and serially
     on a per feature map basis
     
+    
+    
+    create 60 DSPs which are mapped to input_features[0-5][0-9]
+    
+    
+    
+    
+    
 */
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -130,7 +138,7 @@ module conv2(
     input  logic               i_clk,
     input  logic               i_rst,
     input  logic               i_feature_valid,
-    input  logic         [7:0] i_features,
+    input  logic         [7:0] i_features[0:5],
     output logic               o_feature_valid,
     output logic signed [15:0] o_features
 );
@@ -153,21 +161,28 @@ module conv2(
     logic signed [7:0] biases [0:5][0:9];
     initial $readmemb(BIASES_FILE, biases);
     
-    // Indexed features to be used for * operation
-    logic        [7:0] feature_operands[0:NUM_DSP-1];
-    logic signed [7:0] weight_operands[0:NUM_DSP-1];
+    // DSP48E1 operands for the first stage of MACC operations
+    logic        [7:0] s2_conv_feature_operands[0:59];
+    logic signed [7:0] s2_conv_weight_operands[0:59];
     
     // Feature conv location
     logic [INPUT_HEIGHT-1:0] feat_row_ctr;
     logic [INPUT_WIDTH-1:0] feat_col_ctr;
-    // We're just going to use BRAM? here to store features
-    // Can and probably should do the same thing for conv1, and throughout design in general
+    
     logic [$clog2(INPUT_HEIGHT)-1:0] ram_row_ctr;
     logic [$clog2(INPUT_WIDTH)-1:0]  ram_col_ctr;
-    // Can use 6xRAM196 => 6*3=18 LUTs, or an 18-Kb Block RAM
-    // Do we want to deepen BRAM so its easier to register out features?
-    // TODO: Need to draw diagram on paper for memory design here
-    logic signed [7:0] feature_ram[0:INPUT_CHANNELS-1][0:INPUT_HEIGHT-1][0:INPUT_WIDTH-1];
+    
+    // Keep track of how many output features we have computed
+    logic [$clog2(10*10)-1:0] conv_output_feature_ctr;
+    // Keep track of how many elements in the current
+    // 5x5 conv kernel we've performed a MACC operation
+    logic [$clog2(25)-1:0] conv_acc_ctr;
+    // Intermediate results after convolving the 60 instances
+    // of convolutions on S2 input feature maps
+    // 6 S2 maps | 10 unique weight kernels for each S2 map | 10x10 feature map
+    // 48000 bits -> Distributed RAM utilization is 120 CLBs
+    // This is the case if both slices in each CLB are SLICEM
+    logic signed [7:0] s2_conv_acc_map[0:5][0:9][0:9][0:9];
     
     // C3 features are structured as 16 10x10 feature maps
     logic signed [7:0] c3_maps[0:15][0:9][0:9];
