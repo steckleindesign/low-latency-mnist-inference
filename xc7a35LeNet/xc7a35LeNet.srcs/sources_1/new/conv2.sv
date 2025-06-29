@@ -124,9 +124,16 @@
     
     
     
-    create 60 DSPs which are mapped to input_features[0-5][0-9]
+    Define the full DSP48E1 register pipeline for 60 DSPs                            - X
+    Create the datapaths from input_features[0-5][0-9] to DSPs first stage regs      - X
+    Develop the conv MACC DSP48 function logic                                       - X
+    Develop datapaths from Preg (accumulate) of DSP48 to intermediate feature RAMs   - X
     
+    Develop datapaths from intermediate feature RAMs to adder function DSP48s        
     
+    Develop adder function DSPs function logic                                       
+    
+    Develop datapaths from adder DSPs to output ports                                
     
     
     
@@ -155,7 +162,7 @@ module conv2(
     localparam OUTPUT_HEIGHT = INPUT_HEIGHT - FILTER_SIZE + 1;
     localparam OUTPUT_WIDTH  = INPUT_WIDTH - FILTER_SIZE + 1;
 
-    logic signed [7:0] weights [0:5][0:9][0:FILTER_SIZE-1][0:FILTER_SIZE-1];
+    logic signed [7:0] weights [0:59];
     initial $readmemb(WEIGHTS_FILE, weights);
     
     logic signed [7:0] biases [0:5][0:9];
@@ -172,8 +179,16 @@ module conv2(
     logic [$clog2(INPUT_HEIGHT)-1:0] ram_row_ctr;
     logic [$clog2(INPUT_WIDTH)-1:0]  ram_col_ctr;
     
+    // Enable convolution MACC operations on this layer (CONV2)
+    logic layer_en;
+    
+    
+    
+    
     // Keep track of how many output features we have computed
     logic [$clog2(10*10)-1:0] conv_output_feature_ctr;
+    // Keep track of how many intermediate features we have computed
+    logic [$clog2(10*10)-1:0] conv_interm_feature_ctr;
     // Keep track of how many elements in the current
     // 5x5 conv kernel we've performed a MACC operation
     logic [$clog2(25)-1:0] conv_acc_ctr;
@@ -182,21 +197,100 @@ module conv2(
     // 6 S2 maps | 10 unique weight kernels for each S2 map | 10x10 feature map
     // 48000 bits -> Distributed RAM utilization is 120 CLBs
     // This is the case if both slices in each CLB are SLICEM
-    logic signed [7:0] s2_conv_acc_map[0:5][0:9][0:9][0:9];
+    logic signed [7:0] s2_conv_acc_map[0:5][0:9][0:99];
+    // First stage DSPs should be fully pipelined => dual AD, dual B, M, P registers
+    // Register stage 1 -> pipeline inputs
+    logic signed [15:0] first_stage_macc_dsps_dualAD1reg[0:59];
+    logic signed [15:0] first_stage_macc_dsps_dualB1reg[0:59];
+    // Register stage 2 -> pipeline outputs 
+    logic signed [15:0] first_stage_macc_dsps_dualAD2reg[0:59];
+    logic signed [15:0] first_stage_macc_dsps_dualB2reg[0:59];
+    // Register stage 3 -> multiplcation result
+    logic signed [15:0] first_stage_macc_dsps_Mreg[0:59];
+    // Register stage 4 -> accumulate
+    logic signed [15:0] first_stage_macc_dsps_Preg[0:59];
     
-    // C3 features are structured as 16 10x10 feature maps
-    logic signed [7:0] c3_maps[0:15][0:9][0:9];
     
-    // Feature RAM full flag
-    logic feature_ram_full;
-    // Enable convolution MACC operations on this layer (CONV2)
-    logic layer_en;
+    // MACC DSP logic
+    always_ff @(posedge i_clk)
+        for (int i = 0; i < 6; i++)
+            for (int j = 0; j < 10; j++) begin
+                first_stage_macc_dsps_dualAD1reg[i][j]
+                    <= i_features[i];
+                first_stage_macc_dsps_dualB1reg[i][j]
+                    <= weights[i*10+j];
+                
+                first_stage_macc_dsps_dualAD2reg[i][j]
+                    <= first_stage_macc_dsps_dualAD1reg[i][j];
+                first_stage_macc_dsps_dualB2reg[i][j]
+                    <= first_stage_macc_dsps_dualB1reg[i][j];
+                
+                first_stage_macc_dsps_Mreg[i][j]
+                    <= first_stage_macc_dsps_dualAD2reg[i][j]
+                        * first_stage_macc_dsps_dualB2reg[i][j];
+                
+                first_stage_macc_dsps_Preg[i][j]
+                    <= first_stage_macc_dsps_Preg[i][j]
+                        + first_stage_macc_dsps_Mreg[i][j];
+            end
     
-    // MACC accumulate, 4 deep to hold at least 9 accumates during the 4-map convolutions
-    // logic signed [23:0] macc_acc[0:3];
-    // Register outputs of DSPs
-    logic signed [23:0] mult_out[0:89];
+    always_ff @(posedge i_clk) begin
+        if (conv_acc_ctr == 24) begin
+            for (int i = 0; i < 6; i++)
+                for (int j = 0; j < 10; j++)
+                    s2_conv_acc_map[i][j][conv_interm_feature_ctr]
+                        <= first_stage_macc_dsps_Preg[i][j];
+            conv_interm_feature_ctr <= conv_interm_feature_ctr + 1;
+        end
+    end
     
+    // Adder DSP logic
+    always_ff @(posedge i_clk) begin
+        // C3 maps 0-5  use 1 DSP
+        // C3 maps 6-14 use 2 DSP
+        // C3 maps 15   use 3 DSP
+        // Total DSP = 6 + 2*9 + 3 = 27
+        // We will label these adder_DSP_0-26
+    
+    Map  6: 0, 1, 2, 3
+    Map  7: 1, 2, 3, 4
+    Map  8: 2, 3, 4, 5
+    Map  9: 0, 3, 4, 5
+    Map 10: 0, 1, 4, 5
+    Map 11: 0, 1, 2, 5
+    Map 12: 0, 1, 3, 4
+    Map 13: 1, 2, 4, 5
+    Map 14: 0, 2, 3, 5
+    Map 15: 0, 1, 2, 3, 4, 5
+        
+        // adder_dsp_0  -> map[0][0], map[1][0], map[2][0]
+        // adder_dsp_1  -> map[1][1], map[2][1], map[3][0]
+        // adder_dsp_2  -> map[2][2], map[3][1], map[4][0]
+        // adder_dsp_3  -> map[3][2], map[4][1], map[5][0]
+        // adder_dsp_4  -> map[0][1], map[4][2], map[5][1]
+        // adder_dsp_5  -> map[0][2], map[1][2], map[5][2]
+        // adder_dsp_6  -> 
+        // adder_dsp_7  -> 
+        // adder_dsp_8  -> 
+        // adder_dsp_9  -> 
+        // adder_dsp_10 -> 
+        // adder_dsp_11 -> 
+        // adder_dsp_12 -> 
+        // adder_dsp_13 -> 
+        // adder_dsp_14 -> 
+        // adder_dsp_15 -> 
+        // adder_dsp_16 -> 
+        // adder_dsp_17 -> 
+        // adder_dsp_18 -> 
+        // adder_dsp_19 -> 
+        // adder_dsp_20 -> 
+        // adder_dsp_21 -> 
+        // adder_dsp_22 -> 
+        // adder_dsp_23 -> 
+        // adder_dsp_24 -> 
+        // adder_dsp_25 -> 
+        // adder_dsp_26 -> 
+    end
     
     always_ff @(posedge i_clk)
     begin
