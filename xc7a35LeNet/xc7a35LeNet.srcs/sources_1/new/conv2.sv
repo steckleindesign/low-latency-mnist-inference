@@ -128,8 +128,7 @@
     Create the datapaths from input_features[0-5][0-9] to DSPs first stage regs      - X
     Develop the conv MACC DSP48 function logic                                       - X
     Develop datapaths from Preg (accumulate) of DSP48 to intermediate feature RAMs   - X
-    
-    Develop datapaths from intermediate feature RAMs to adder function DSP48s        
+    Develop datapaths from intermediate feature RAMs to adder function DSP48s        - X
     
     Develop adder function DSPs function logic                                       
     
@@ -202,7 +201,7 @@ module conv2(
     // Register stage 1 -> pipeline inputs
     logic signed [15:0] first_stage_macc_dsps_dualAD1reg[0:59];
     logic signed [15:0] first_stage_macc_dsps_dualB1reg[0:59];
-    // Register stage 2 -> pipeline outputs 
+    // Register stage 2 -> pipeline outputs
     logic signed [15:0] first_stage_macc_dsps_dualAD2reg[0:59];
     logic signed [15:0] first_stage_macc_dsps_dualB2reg[0:59];
     // Register stage 3 -> multiplcation result
@@ -210,8 +209,286 @@ module conv2(
     // Register stage 4 -> accumulate
     logic signed [15:0] first_stage_macc_dsps_Preg[0:59];
     
+    // Three operand add, need to add fabric FFs for
+    // D and C operand to match pipeline delay of A operand
+    // A -> A1 -> A2 -> AD ->  M ->  P
+    // D -> FF ->  D -> AD ->  M ->  P
+    // C -> FF -> FF -> FF ->  C ->  P -> P
     
-    // MACC DSP logic
+    // C -> FF -> FF -> FF -> FF ->  C -> P
+    
+    // Adder DSPs
+    logic [15:0] adder_dsp_0_A1;
+    logic [15:0] adder_dsp_0_A2;
+    logic [15:0] adder_dsp_0_FFD;
+    logic [15:0] adder_dsp_0_D;
+    logic [15:0] adder_dsp_0_AD;
+    logic [15:0] adder_dsp_0_M;
+    logic [15:0] adder_dsp_0_FFC0;
+    logic [15:0] adder_dsp_0_FFC1;
+    logic [15:0] adder_dsp_0_FFC2;
+    logic [15:0] adder_dsp_0_C;
+    logic [15:0] adder_dsp_0_P;
+    
+    logic [15:0] adder_dsp_1_A1;
+    logic [15:0] adder_dsp_1_A2;
+    logic [15:0] adder_dsp_1_FFD;
+    logic [15:0] adder_dsp_1_D;
+    logic [15:0] adder_dsp_1_AD;
+    logic [15:0] adder_dsp_1_M;
+    logic [15:0] adder_dsp_1_FFC0;
+    logic [15:0] adder_dsp_1_FFC1;
+    logic [15:0] adder_dsp_1_FFC2;
+    logic [15:0] adder_dsp_1_C;
+    logic [15:0] adder_dsp_1_P;
+    
+    logic [15:0] adder_dsp_2_A1;
+    logic [15:0] adder_dsp_2_A2;
+    logic [15:0] adder_dsp_2_FFD;
+    logic [15:0] adder_dsp_2_D;
+    logic [15:0] adder_dsp_2_AD;
+    logic [15:0] adder_dsp_2_M;
+    logic [15:0] adder_dsp_2_FFC0;
+    logic [15:0] adder_dsp_2_FFC1;
+    logic [15:0] adder_dsp_2_FFC2;
+    logic [15:0] adder_dsp_2_C;
+    logic [15:0] adder_dsp_2_P;
+    
+    logic [15:0] adder_dsp_3_A1;
+    logic [15:0] adder_dsp_3_A2;
+    logic [15:0] adder_dsp_3_FFD;
+    logic [15:0] adder_dsp_3_D;
+    logic [15:0] adder_dsp_3_AD;
+    logic [15:0] adder_dsp_3_M;
+    logic [15:0] adder_dsp_3_FFC0;
+    logic [15:0] adder_dsp_3_FFC1;
+    logic [15:0] adder_dsp_3_FFC2;
+    logic [15:0] adder_dsp_3_C;
+    logic [15:0] adder_dsp_3_P;
+    
+    logic [15:0] adder_dsp_4_A1;
+    logic [15:0] adder_dsp_4_A2;
+    logic [15:0] adder_dsp_4_FFD;
+    logic [15:0] adder_dsp_4_D;
+    logic [15:0] adder_dsp_4_AD;
+    logic [15:0] adder_dsp_4_M;
+    logic [15:0] adder_dsp_4_FFC0;
+    logic [15:0] adder_dsp_4_FFC1;
+    logic [15:0] adder_dsp_4_FFC2;
+    logic [15:0] adder_dsp_4_C;
+    logic [15:0] adder_dsp_4_P;
+    
+    logic [15:0] adder_dsp_5_A1;
+    logic [15:0] adder_dsp_5_A2;
+    logic [15:0] adder_dsp_5_FFD;
+    logic [15:0] adder_dsp_5_D;
+    logic [15:0] adder_dsp_5_AD;
+    logic [15:0] adder_dsp_5_M;
+    logic [15:0] adder_dsp_5_FFC0;
+    logic [15:0] adder_dsp_5_FFC1;
+    logic [15:0] adder_dsp_5_FFC2;
+    logic [15:0] adder_dsp_5_C;
+    logic [15:0] adder_dsp_5_P;
+    
+    
+    logic [15:0] adder_dsp_6_A1;
+    logic [15:0] adder_dsp_6_A2;
+    logic [15:0] adder_dsp_6_FFD;
+    logic [15:0] adder_dsp_6_D;
+    logic [15:0] adder_dsp_6_AD;
+    logic [15:0] adder_dsp_6_M;
+    logic [15:0] adder_dsp_6_FFC0;
+    logic [15:0] adder_dsp_6_FFC1;
+    logic [15:0] adder_dsp_6_FFC2;
+    logic [15:0] adder_dsp_6_C;
+    logic [15:0] adder_dsp_6_P;
+    
+    logic [15:0] adder_dsp_7_FFC0;
+    logic [15:0] adder_dsp_7_FFC1;
+    logic [15:0] adder_dsp_7_FFC2;
+    logic [15:0] adder_dsp_7_FFC3;
+    logic [15:0] adder_dsp_7_C;
+    logic [15:0] adder_dsp_7_P;
+    
+    logic [15:0] adder_dsp_8_A1;
+    logic [15:0] adder_dsp_8_A2;
+    logic [15:0] adder_dsp_8_FFD;
+    logic [15:0] adder_dsp_8_D;
+    logic [15:0] adder_dsp_8_AD;
+    logic [15:0] adder_dsp_8_M;
+    logic [15:0] adder_dsp_8_FFC0;
+    logic [15:0] adder_dsp_8_FFC1;
+    logic [15:0] adder_dsp_8_FFC2;
+    logic [15:0] adder_dsp_8_C;
+    logic [15:0] adder_dsp_8_P;
+    
+    logic [15:0] adder_dsp_9_FFC0;
+    logic [15:0] adder_dsp_9_FFC1;
+    logic [15:0] adder_dsp_9_FFC2;
+    logic [15:0] adder_dsp_9_FFC3;
+    logic [15:0] adder_dsp_9_C;
+    logic [15:0] adder_dsp_9_P;
+    
+    logic [15:0] adder_dsp_10_A1;
+    logic [15:0] adder_dsp_10_A2;
+    logic [15:0] adder_dsp_10_FFD;
+    logic [15:0] adder_dsp_10_D;
+    logic [15:0] adder_dsp_10_AD;
+    logic [15:0] adder_dsp_10_M;
+    logic [15:0] adder_dsp_10_FFC0;
+    logic [15:0] adder_dsp_10_FFC1;
+    logic [15:0] adder_dsp_10_FFC2;
+    logic [15:0] adder_dsp_10_C;
+    logic [15:0] adder_dsp_10_P;
+    
+    logic [15:0] adder_dsp_11_FFC0;
+    logic [15:0] adder_dsp_11_FFC1;
+    logic [15:0] adder_dsp_11_FFC2;
+    logic [15:0] adder_dsp_11_FFC3;
+    logic [15:0] adder_dsp_11_C;
+    logic [15:0] adder_dsp_11_P;
+    
+    logic [15:0] adder_dsp_12_A1;
+    logic [15:0] adder_dsp_12_A2;
+    logic [15:0] adder_dsp_12_FFD;
+    logic [15:0] adder_dsp_12_D;
+    logic [15:0] adder_dsp_12_AD;
+    logic [15:0] adder_dsp_12_M;
+    logic [15:0] adder_dsp_12_FFC0;
+    logic [15:0] adder_dsp_12_FFC1;
+    logic [15:0] adder_dsp_12_FFC2;
+    logic [15:0] adder_dsp_12_C;
+    logic [15:0] adder_dsp_12_P;
+    
+    logic [15:0] adder_dsp_13_FFC0;
+    logic [15:0] adder_dsp_13_FFC1;
+    logic [15:0] adder_dsp_13_FFC2;
+    logic [15:0] adder_dsp_13_FFC3;
+    logic [15:0] adder_dsp_13_C;
+    logic [15:0] adder_dsp_13_P;
+    
+    logic [15:0] adder_dsp_14_A1;
+    logic [15:0] adder_dsp_14_A2;
+    logic [15:0] adder_dsp_14_FFD;
+    logic [15:0] adder_dsp_14_D;
+    logic [15:0] adder_dsp_14_AD;
+    logic [15:0] adder_dsp_14_M;
+    logic [15:0] adder_dsp_14_FFC0;
+    logic [15:0] adder_dsp_14_FFC1;
+    logic [15:0] adder_dsp_14_FFC2;
+    logic [15:0] adder_dsp_14_C;
+    logic [15:0] adder_dsp_14_P;
+    
+    logic [15:0] adder_dsp_15_FFC0;
+    logic [15:0] adder_dsp_15_FFC1;
+    logic [15:0] adder_dsp_15_FFC2;
+    logic [15:0] adder_dsp_15_FFC3;
+    logic [15:0] adder_dsp_15_C;
+    logic [15:0] adder_dsp_15_P;
+    
+    logic [15:0] adder_dsp_16_A1;
+    logic [15:0] adder_dsp_16_A2;
+    logic [15:0] adder_dsp_16_FFD;
+    logic [15:0] adder_dsp_16_D;
+    logic [15:0] adder_dsp_16_AD;
+    logic [15:0] adder_dsp_16_M;
+    logic [15:0] adder_dsp_16_FFC0;
+    logic [15:0] adder_dsp_16_FFC1;
+    logic [15:0] adder_dsp_16_FFC2;
+    logic [15:0] adder_dsp_16_C;
+    logic [15:0] adder_dsp_16_P;
+    
+    logic [15:0] adder_dsp_17_FFC0;
+    logic [15:0] adder_dsp_17_FFC1;
+    logic [15:0] adder_dsp_17_FFC2;
+    logic [15:0] adder_dsp_17_FFC3;
+    logic [15:0] adder_dsp_17_C;
+    logic [15:0] adder_dsp_17_P;
+    
+    logic [15:0] adder_dsp_18_A1;
+    logic [15:0] adder_dsp_18_A2;
+    logic [15:0] adder_dsp_18_FFD;
+    logic [15:0] adder_dsp_18_D;
+    logic [15:0] adder_dsp_18_AD;
+    logic [15:0] adder_dsp_18_M;
+    logic [15:0] adder_dsp_18_FFC0;
+    logic [15:0] adder_dsp_18_FFC1;
+    logic [15:0] adder_dsp_18_FFC2;
+    logic [15:0] adder_dsp_18_C;
+    logic [15:0] adder_dsp_18_P;
+    
+    logic [15:0] adder_dsp_19_FFC0;
+    logic [15:0] adder_dsp_19_FFC1;
+    logic [15:0] adder_dsp_19_FFC2;
+    logic [15:0] adder_dsp_19_FFC3;
+    logic [15:0] adder_dsp_19_C;
+    logic [15:0] adder_dsp_19_P;
+    
+    logic [15:0] adder_dsp_20_A1;
+    logic [15:0] adder_dsp_20_A2;
+    logic [15:0] adder_dsp_20_FFD;
+    logic [15:0] adder_dsp_20_D;
+    logic [15:0] adder_dsp_20_AD;
+    logic [15:0] adder_dsp_20_M;
+    logic [15:0] adder_dsp_20_FFC0;
+    logic [15:0] adder_dsp_20_FFC1;
+    logic [15:0] adder_dsp_20_FFC2;
+    logic [15:0] adder_dsp_20_C;
+    logic [15:0] adder_dsp_20_P;
+    
+    logic [15:0] adder_dsp_21_FFC0;
+    logic [15:0] adder_dsp_21_FFC1;
+    logic [15:0] adder_dsp_21_FFC2;
+    logic [15:0] adder_dsp_21_FFC3;
+    logic [15:0] adder_dsp_21_C;
+    logic [15:0] adder_dsp_21_P;
+    
+    logic [15:0] adder_dsp_22_A1;
+    logic [15:0] adder_dsp_22_A2;
+    logic [15:0] adder_dsp_22_FFD;
+    logic [15:0] adder_dsp_22_D;
+    logic [15:0] adder_dsp_22_AD;
+    logic [15:0] adder_dsp_22_M;
+    logic [15:0] adder_dsp_22_FFC0;
+    logic [15:0] adder_dsp_22_FFC1;
+    logic [15:0] adder_dsp_22_FFC2;
+    logic [15:0] adder_dsp_22_C;
+    logic [15:0] adder_dsp_22_P;
+    
+    logic [15:0] adder_dsp_23_FFC0;
+    logic [15:0] adder_dsp_23_FFC1;
+    logic [15:0] adder_dsp_23_FFC2;
+    logic [15:0] adder_dsp_23_FFC3;
+    logic [15:0] adder_dsp_23_C;
+    logic [15:0] adder_dsp_23_P;
+    
+    logic [15:0] adder_dsp_24_A1;
+    logic [15:0] adder_dsp_24_A2;
+    logic [15:0] adder_dsp_24_FFD;
+    logic [15:0] adder_dsp_24_D;
+    logic [15:0] adder_dsp_24_AD;
+    logic [15:0] adder_dsp_24_M;
+    logic [15:0] adder_dsp_24_FFC0;
+    logic [15:0] adder_dsp_24_FFC1;
+    logic [15:0] adder_dsp_24_FFC2;
+    logic [15:0] adder_dsp_24_C;
+    logic [15:0] adder_dsp_24_P;
+    
+    logic [15:0] adder_dsp_25_A1;
+    logic [15:0] adder_dsp_25_A2;
+    logic [15:0] adder_dsp_25_FFD;
+    logic [15:0] adder_dsp_25_D;
+    logic [15:0] adder_dsp_25_AD;
+    logic [15:0] adder_dsp_25_M;
+    logic [15:0] adder_dsp_25_FFC0;
+    logic [15:0] adder_dsp_25_FFC1;
+    logic [15:0] adder_dsp_25_FFC2;
+    logic [15:0] adder_dsp_25_C;
+    logic [15:0] adder_dsp_25_P;
+    
+    logic [15:0] adder_dsp_26_P;
+    
+    // Stage 1 MACC logic
     always_ff @(posedge i_clk)
         for (int i = 0; i < 6; i++)
             for (int j = 0; j < 10; j++) begin
