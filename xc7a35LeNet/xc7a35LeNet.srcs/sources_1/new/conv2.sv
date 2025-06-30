@@ -133,8 +133,10 @@
     Develop adder function DSPs function logic                                       
     
     Develop datapaths from adder DSPs to output ports                                
-    
-    
+        - Data shall be serially sent to max pooling layer 2,
+            in parallel between the 16 C3 feature maps
+        - It is the max pooling layers job to to arange the
+            data in an ordered RAM format
     
 */
 
@@ -462,6 +464,7 @@ module conv2(
     logic [15:0] adder_dsp_23_C;
     logic [15:0] adder_dsp_23_P;
     
+    
     logic [15:0] adder_dsp_24_A1;
     logic [15:0] adder_dsp_24_A2;
     logic [15:0] adder_dsp_24_FFD;
@@ -524,16 +527,14 @@ module conv2(
     // Adder DSP logic
     always_ff @(posedge i_clk) begin
         // C3 maps 0-5  use 1 DSP
-        // C3 maps 6-14 use 2 DSP
-        // C3 maps 15   use 3 DSP
-        // Total DSP = 6 + 2*9 + 3 = 27
-        // We will label these adder_DSP_0-26
         // adder_dsp_0  -> map[0][0], map[1][0], map[2][0]
         // adder_dsp_1  -> map[1][1], map[2][1], map[3][0]
         // adder_dsp_2  -> map[2][2], map[3][1], map[4][0]
         // adder_dsp_3  -> map[3][2], map[4][1], map[5][0]
         // adder_dsp_4  -> map[0][1], map[4][2], map[5][1]
         // adder_dsp_5  -> map[0][2], map[1][2], map[5][2]
+        
+        // C3 maps 6-14 use 2 DSP
         // adder_dsp_6  -> map[0][3], map[1][3], map[2][3]
         // adder_dsp_7  -> adder_dsp_6, map[3][3]
         // adder_dsp_8  -> map[1][4], map[2][4], map[3][4]
@@ -552,9 +553,290 @@ module conv2(
         // adder_dsp_21 -> adder_dsp_20, map[5][7]
         // adder_dsp_22 -> map[0][8], map[2][8], map[3][8]
         // adder_dsp_23 -> adder_dsp_22, map[5][8]
+        
+        // C3 maps 15   use 3 DSP
         // adder_dsp_24 -> map[0][9], map[1][9], map[2][9]
         // adder_dsp_25 -> map[3][9], map[4][9], map[5][9]
         // adder_dsp_26 -> adder_dsp_24, adder_dsp_25
+        
+        // Operand 1
+        adder_dsp_0_A1 <= s2_conv_acc_map[0][0];
+        adder_dsp_0_A2 <= adder_dsp_0_A1;
+        // Operand 2
+        adder_dsp_0_FFD <= s2_conv_acc_map[1][0];
+        adder_dsp_0_D <= adder_dsp_0_FFD;
+        // Operand 1 + 2
+        adder_dsp_0_AD <= adder_dsp_0_A2 + adder_dsp_0_D;
+        // Multiply AD register value with B2 register value of 1
+        // Result is just AD register value, delayed by 1 clock cycle
+        // In other words, the AD register value with 1 clock cycle of latency
+        adder_dsp_0_M <= adder_dsp_0_AD;
+        // Operand 3
+        adder_dsp_0_FFC0 <= s2_conv_acc_map[2][0];
+        adder_dsp_0_FFC1 <= adder_dsp_0_FFC0;
+        adder_dsp_0_FFC2 <= adder_dsp_0_FFC1;
+        adder_dsp_0_C <= adder_dsp_0_FFC2;
+        // Operand 1+2 + 3
+        adder_dsp_0_P <= adder_dsp_0_M + adder_dsp_0_C;
+        
+        adder_dsp_1_A1 <= s2_conv_acc_map[1][1];
+        adder_dsp_1_A2 <= adder_dsp_1_A1;
+        adder_dsp_1_FFD <= s2_conv_acc_map[2][1];
+        adder_dsp_1_D <= adder_dsp_1_FFD;
+        adder_dsp_1_AD <= adder_dsp_1_A2 + adder_dsp_1_D;
+        adder_dsp_1_M <= adder_dsp_1_AD;
+        adder_dsp_1_FFC0 <= s2_conv_acc_map[3][0];
+        adder_dsp_1_FFC1 <= adder_dsp_1_FFC0;
+        adder_dsp_1_FFC2 <= adder_dsp_1_FFC1;
+        adder_dsp_1_C <= adder_dsp_1_FFC2;
+        adder_dsp_1_P <= adder_dsp_1_M + adder_dsp_1_C;
+        
+        adder_dsp_2_A1 <= s2_conv_acc_map[2][2];
+        adder_dsp_2_A2 <= adder_dsp_2_A1;
+        adder_dsp_2_FFD <= s2_conv_acc_map[3][1];
+        adder_dsp_2_D <= adder_dsp_2_FFD;
+        adder_dsp_2_AD <= adder_dsp_2_A2 + adder_dsp_2_D;
+        adder_dsp_2_M <= adder_dsp_2_AD;
+        adder_dsp_2_FFC0 <= s2_conv_acc_map[4][0];
+        adder_dsp_2_FFC1 <= adder_dsp_2_FFC0;
+        adder_dsp_2_FFC2 <= adder_dsp_2_FFC1;
+        adder_dsp_2_C <= adder_dsp_2_FFC2;
+        adder_dsp_2_P <= adder_dsp_2_M + adder_dsp_2_C;
+        
+        adder_dsp_3_A1 <= s2_conv_acc_map[3][2];
+        adder_dsp_3_A2 <= adder_dsp_3_A1;
+        adder_dsp_3_FFD <= s2_conv_acc_map[4][1];
+        adder_dsp_3_D <= adder_dsp_3_FFD;
+        adder_dsp_3_AD <= adder_dsp_3_A2 + adder_dsp_3_D;
+        adder_dsp_3_M <= adder_dsp_3_AD;
+        adder_dsp_3_FFC0 <= s2_conv_acc_map[5][0];
+        adder_dsp_3_FFC1 <= adder_dsp_3_FFC0;
+        adder_dsp_3_FFC2 <= adder_dsp_3_FFC1;
+        adder_dsp_3_C <= adder_dsp_3_FFC2;
+        adder_dsp_3_P <= adder_dsp_3_M + adder_dsp_3_C;
+        
+        adder_dsp_4_A1 <= s2_conv_acc_map[0][1];
+        adder_dsp_4_A2 <= adder_dsp_4_A1;
+        adder_dsp_4_FFD <= s2_conv_acc_map[4][2];
+        adder_dsp_4_D <= adder_dsp_4_FFD;
+        adder_dsp_4_AD <= adder_dsp_4_A2 + adder_dsp_4_D;
+        adder_dsp_4_M <= adder_dsp_4_AD;
+        adder_dsp_4_FFC0 <= s2_conv_acc_map[5][1];
+        adder_dsp_4_FFC1 <= adder_dsp_4_FFC0;
+        adder_dsp_4_FFC2 <= adder_dsp_4_FFC1;
+        adder_dsp_4_C <= adder_dsp_4_FFC2;
+        adder_dsp_4_P <= adder_dsp_4_M + adder_dsp_4_C;
+        
+        adder_dsp_5_A1 <= s2_conv_acc_map[0][2];
+        adder_dsp_5_A2 <= adder_dsp_5_A1;
+        adder_dsp_5_FFD <= s2_conv_acc_map[1][2];
+        adder_dsp_5_D <= adder_dsp_5_FFD;
+        adder_dsp_5_AD <= adder_dsp_5_A2 + adder_dsp_5_D;
+        adder_dsp_5_M <= adder_dsp_5_AD;
+        adder_dsp_5_FFC0 <= s2_conv_acc_map[5][2];
+        adder_dsp_5_FFC1 <= adder_dsp_5_FFC0;
+        adder_dsp_5_FFC2 <= adder_dsp_5_FFC1;
+        adder_dsp_5_C <= adder_dsp_5_FFC2;
+        adder_dsp_5_P <= adder_dsp_5_M + adder_dsp_5_C;
+        
+        
+        adder_dsp_6_A1 <= s2_conv_acc_map[0][3];
+        adder_dsp_6_A2 <= adder_dsp_6_A1;
+        adder_dsp_6_FFD <= s2_conv_acc_map[1][3];
+        adder_dsp_6_D <= adder_dsp_6_FFD;
+        adder_dsp_6_AD <= adder_dsp_6_A2 + adder_dsp_6_D;
+        adder_dsp_6_M <= adder_dsp_6_AD;
+        adder_dsp_6_FFC0 <= s2_conv_acc_map[2][3];
+        adder_dsp_6_FFC1 <= adder_dsp_6_FFC0;
+        adder_dsp_6_FFC2 <= adder_dsp_6_FFC1;
+        adder_dsp_6_C <= adder_dsp_6_FFC2;
+        adder_dsp_6_P <= adder_dsp_6_M + adder_dsp_6_C;
+        
+        adder_dsp_7_FFC0 <= s2_conv_acc_map[3][3];
+        adder_dsp_7_FFC1 <= adder_dsp_7_FFC0;
+        adder_dsp_7_FFC2 <= adder_dsp_7_FFC1;
+        adder_dsp_7_FFC3 <= adder_dsp_7_FFC2;
+        adder_dsp_7_C <= adder_dsp_7_FFC3;
+        adder_dsp_7_P <= adder_dsp_6_P + adder_dsp_7_C;
+        
+        adder_dsp_8_A1 <= s2_conv_acc_map[1][4];
+        adder_dsp_8_A2 <= adder_dsp_8_A1;
+        adder_dsp_8_FFD <= s2_conv_acc_map[2][4];
+        adder_dsp_8_D <= adder_dsp_8_FFD;
+        adder_dsp_8_AD <= adder_dsp_8_A2 + adder_dsp_8_D;
+        adder_dsp_8_M <= adder_dsp_8_AD;
+        adder_dsp_8_FFC0 <= s2_conv_acc_map[3][4];
+        adder_dsp_8_FFC1 <= adder_dsp_8_FFC0;
+        adder_dsp_8_FFC2 <= adder_dsp_8_FFC1;
+        adder_dsp_8_C <= adder_dsp_8_FFC2;
+        adder_dsp_8_P <= adder_dsp_8_M + adder_dsp_8_C;
+        
+        adder_dsp_9_FFC0 <= s2_conv_acc_map[4][3];
+        adder_dsp_9_FFC1 <= adder_dsp_9_FFC0;
+        adder_dsp_9_FFC2 <= adder_dsp_9_FFC1;
+        adder_dsp_9_FFC3 <= adder_dsp_9_FFC2;
+        adder_dsp_9_C <= adder_dsp_9_FFC3;
+        adder_dsp_9_P <= adder_dsp_8_P + adder_dsp_9_C;
+        
+        adder_dsp_10_A1 <= s2_conv_acc_map[2][5];
+        adder_dsp_10_A2 <= adder_dsp_10_A1;
+        adder_dsp_10_FFD <= s2_conv_acc_map[3][5];
+        adder_dsp_10_D <= adder_dsp_10_FFD;
+        adder_dsp_10_AD <= adder_dsp_10_A2 + adder_dsp_10_D;
+        adder_dsp_10_M <= adder_dsp_10_AD;
+        adder_dsp_10_FFC0 <= s2_conv_acc_map[4][4];
+        adder_dsp_10_FFC1 <= adder_dsp_10_FFC0;
+        adder_dsp_10_FFC2 <= adder_dsp_10_FFC1;
+        adder_dsp_10_C <= adder_dsp_10_FFC2;
+        adder_dsp_10_P <= adder_dsp_10_M + adder_dsp_10_C;
+        
+        adder_dsp_11_FFC0 <= s2_conv_acc_map[5][3];
+        adder_dsp_11_FFC1 <= adder_dsp_11_FFC0;
+        adder_dsp_11_FFC2 <= adder_dsp_11_FFC1;
+        adder_dsp_11_FFC3 <= adder_dsp_11_FFC2;
+        adder_dsp_11_C <= adder_dsp_11_FFC3;
+        adder_dsp_11_P <= adder_dsp_10_P + adder_dsp_11_C;
+        
+        adder_dsp_12_A1 <= s2_conv_acc_map[0][4];
+        adder_dsp_12_A2 <= adder_dsp_12_A1;
+        adder_dsp_12_FFD <= s2_conv_acc_map[3][6];
+        adder_dsp_12_D <= adder_dsp_12_FFD;
+        adder_dsp_12_AD <= adder_dsp_12_A2 + adder_dsp_12_D;
+        adder_dsp_12_M <= adder_dsp_12_AD;
+        adder_dsp_12_FFC0 <= s2_conv_acc_map[4][5];
+        adder_dsp_12_FFC1 <= adder_dsp_12_FFC0;
+        adder_dsp_12_FFC2 <= adder_dsp_12_FFC1;
+        adder_dsp_12_C <= adder_dsp_12_FFC2;
+        adder_dsp_12_P <= adder_dsp_12_M + adder_dsp_12_C;
+        
+        adder_dsp_13_FFC0 <= s2_conv_acc_map[5][4];
+        adder_dsp_13_FFC1 <= adder_dsp_13_FFC0;
+        adder_dsp_13_FFC2 <= adder_dsp_13_FFC1;
+        adder_dsp_13_FFC3 <= adder_dsp_13_FFC2;
+        adder_dsp_13_C <= adder_dsp_13_FFC3;
+        adder_dsp_13_P <= adder_dsp_12_P + adder_dsp_13_C;
+        
+        adder_dsp_14_A1 <= s2_conv_acc_map[0][5];
+        adder_dsp_14_A2 <= adder_dsp_14_A1;
+        adder_dsp_14_FFD <= s2_conv_acc_map[1][5];
+        adder_dsp_14_D <= adder_dsp_14_FFD;
+        adder_dsp_14_AD <= adder_dsp_14_A2 + adder_dsp_14_D;
+        adder_dsp_14_M <= adder_dsp_14_AD;
+        adder_dsp_14_FFC0 <= s2_conv_acc_map[4][6];
+        adder_dsp_14_FFC1 <= adder_dsp_14_FFC0;
+        adder_dsp_14_FFC2 <= adder_dsp_14_FFC1;
+        adder_dsp_14_C <= adder_dsp_14_FFC2;
+        adder_dsp_14_P <= adder_dsp_14_M + adder_dsp_14_C;
+        
+        adder_dsp_15_FFC0 <= s2_conv_acc_map[5][5];
+        adder_dsp_15_FFC1 <= adder_dsp_15_FFC0;
+        adder_dsp_15_FFC2 <= adder_dsp_15_FFC1;
+        adder_dsp_15_FFC3 <= adder_dsp_15_FFC2;
+        adder_dsp_15_C <= adder_dsp_15_FFC3;
+        adder_dsp_15_P <= adder_dsp_14_P + adder_dsp_15_C;
+        
+        adder_dsp_16_A1 <= s2_conv_acc_map[0][6];
+        adder_dsp_16_A2 <= adder_dsp_16_A1;
+        adder_dsp_16_FFD <= s2_conv_acc_map[1][6];
+        adder_dsp_16_D <= adder_dsp_16_FFD;
+        adder_dsp_16_AD <= adder_dsp_16_A2 + adder_dsp_16_D;
+        adder_dsp_16_M <= adder_dsp_16_AD;
+        adder_dsp_16_FFC0 <= s2_conv_acc_map[2][6];
+        adder_dsp_16_FFC1 <= adder_dsp_16_FFC0;
+        adder_dsp_16_FFC2 <= adder_dsp_16_FFC1;
+        adder_dsp_16_C <= adder_dsp_16_FFC2;
+        adder_dsp_16_P <= adder_dsp_16_M + adder_dsp_16_C;
+        
+        adder_dsp_17_FFC0 <= s2_conv_acc_map[5][6];
+        adder_dsp_17_FFC1 <= adder_dsp_17_FFC0;
+        adder_dsp_17_FFC2 <= adder_dsp_17_FFC1;
+        adder_dsp_17_FFC3 <= adder_dsp_17_FFC2;
+        adder_dsp_17_C <= adder_dsp_17_FFC3;
+        adder_dsp_17_P <= adder_dsp_16_P + adder_dsp_17_C;
+        
+        adder_dsp_18_A1 <= s2_conv_acc_map[0][7];
+        adder_dsp_18_A2 <= adder_dsp_18_A1;
+        adder_dsp_18_FFD <= s2_conv_acc_map[1][7];
+        adder_dsp_18_D <= adder_dsp_18_FFD;
+        adder_dsp_18_AD <= adder_dsp_18_A2 + adder_dsp_18_D;
+        adder_dsp_18_M <= adder_dsp_18_AD;
+        adder_dsp_18_FFC0 <= s2_conv_acc_map[3][7];
+        adder_dsp_18_FFC1 <= adder_dsp_18_FFC0;
+        adder_dsp_18_FFC2 <= adder_dsp_18_FFC1;
+        adder_dsp_18_C <= adder_dsp_18_FFC2;
+        adder_dsp_18_P <= adder_dsp_18_M + adder_dsp_18_C;
+        
+        adder_dsp_19_FFC0 <= s2_conv_acc_map[4][7];
+        adder_dsp_19_FFC1 <= adder_dsp_19_FFC0;
+        adder_dsp_19_FFC2 <= adder_dsp_19_FFC1;
+        adder_dsp_19_FFC3 <= adder_dsp_19_FFC2;
+        adder_dsp_19_C <= adder_dsp_19_FFC3;
+        adder_dsp_19_P <= adder_dsp_18_P + adder_dsp_19_C;
+        
+        adder_dsp_20_A1 <= s2_conv_acc_map[1][8];
+        adder_dsp_20_A2 <= adder_dsp_20_A1;
+        adder_dsp_20_FFD <= s2_conv_acc_map[2][7];
+        adder_dsp_20_D <= adder_dsp_20_FFD;
+        adder_dsp_20_AD <= adder_dsp_20_A2 + adder_dsp_20_D;
+        adder_dsp_20_M <= adder_dsp_20_AD;
+        adder_dsp_20_FFC0 <= s2_conv_acc_map[4][8];
+        adder_dsp_20_FFC1 <= adder_dsp_20_FFC0;
+        adder_dsp_20_FFC2 <= adder_dsp_20_FFC1;
+        adder_dsp_20_C <= adder_dsp_20_FFC2;
+        adder_dsp_20_P <= adder_dsp_20_M + adder_dsp_20_C;
+        
+        adder_dsp_21_FFC0 <= s2_conv_acc_map[5][7];
+        adder_dsp_21_FFC1 <= adder_dsp_21_FFC0;
+        adder_dsp_21_FFC2 <= adder_dsp_21_FFC1;
+        adder_dsp_21_FFC3 <= adder_dsp_21_FFC2;
+        adder_dsp_21_C <= adder_dsp_21_FFC3;
+        adder_dsp_21_P <= adder_dsp_20_P + adder_dsp_21_C;
+        
+        adder_dsp_22_A1 <= s2_conv_acc_map[0][8];
+        adder_dsp_22_A2 <= adder_dsp_22_A1;
+        adder_dsp_22_FFD <= s2_conv_acc_map[2][8];
+        adder_dsp_22_D <= adder_dsp_22_FFD;
+        adder_dsp_22_AD <= adder_dsp_22_A2 + adder_dsp_22_D;
+        adder_dsp_22_M <= adder_dsp_22_AD;
+        adder_dsp_22_FFC0 <= s2_conv_acc_map[3][8];
+        adder_dsp_22_FFC1 <= adder_dsp_22_FFC0;
+        adder_dsp_22_FFC2 <= adder_dsp_22_FFC1;
+        adder_dsp_22_C <= adder_dsp_22_FFC2;
+        adder_dsp_22_P <= adder_dsp_22_M + adder_dsp_22_C;
+        
+        adder_dsp_23_FFC0 <= s2_conv_acc_map[5][8];
+        adder_dsp_23_FFC1 <= adder_dsp_23_FFC0;
+        adder_dsp_23_FFC2 <= adder_dsp_23_FFC1;
+        adder_dsp_23_FFC3 <= adder_dsp_23_FFC2;
+        adder_dsp_23_C <= adder_dsp_23_FFC3;
+        adder_dsp_23_P <= adder_dsp_22_P + adder_dsp_23_C;
+        
+        
+        adder_dsp_24_A1 <= s2_conv_acc_map[0][9];
+        adder_dsp_24_A2 <= adder_dsp_24_A1;
+        adder_dsp_24_FFD <= s2_conv_acc_map[1][9];
+        adder_dsp_24_D <= adder_dsp_24_FFD;
+        adder_dsp_24_AD <= adder_dsp_24_A2 + adder_dsp_24_D;
+        adder_dsp_24_M <= adder_dsp_24_AD;
+        adder_dsp_24_FFC0 <= s2_conv_acc_map[2][9];
+        adder_dsp_24_FFC1 <= adder_dsp_24_FFC0;
+        adder_dsp_24_FFC2 <= adder_dsp_24_FFC1;
+        adder_dsp_24_C <= adder_dsp_24_FFC2;
+        adder_dsp_24_P <= adder_dsp_24_M + adder_dsp_24_C;
+        
+        adder_dsp_25_A1 <= s2_conv_acc_map[3][9];
+        adder_dsp_25_A2 <= adder_dsp_25_A1;
+        adder_dsp_25_FFD <= s2_conv_acc_map[4][9];
+        adder_dsp_25_D <= adder_dsp_25_FFD;
+        adder_dsp_25_AD <= adder_dsp_25_A2 + adder_dsp_25_D;
+        adder_dsp_25_M <= adder_dsp_25_AD;
+        adder_dsp_25_FFC0 <= s2_conv_acc_map[5][9];
+        adder_dsp_25_FFC1 <= adder_dsp_25_FFC0;
+        adder_dsp_25_FFC2 <= adder_dsp_25_FFC1;
+        adder_dsp_25_C <= adder_dsp_25_FFC2;
+        adder_dsp_25_P <= adder_dsp_25_M + adder_dsp_25_C;
+        
+        adder_dsp_26_P <= adder_dsp_24_P + adder_dsp_25_P;
     end
     
     always_ff @(posedge i_clk)
