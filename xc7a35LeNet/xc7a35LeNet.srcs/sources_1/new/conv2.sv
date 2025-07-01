@@ -410,7 +410,7 @@ module conv2(
     
     logic [15:0] adder_dsp_26_P;
     
-    // Stage 1 MACC logic
+    // Stage 1 DSP MACC logic
     always_ff @(posedge i_clk)
         for (int i = 0; i < 6; i++)
             for (int j = 0; j < 10; j++) begin
@@ -444,7 +444,7 @@ module conv2(
         end
     end
     
-    // Adder DSP logic
+    // Stage 2 DSP adder logic
     always_ff @(posedge i_clk) begin
         // conv_interm_feature_ctr may need to be subtracted by 1?
         // or will need to account for it in the next layer
@@ -729,6 +729,7 @@ module conv2(
         adder_dsp_26_P <= adder_dsp_24_P + adder_dsp_25_P;
     end
     
+    // Stage 2 DSP output datapaths
     always_ff @(posedge i_clk) begin
         o_features[0]  <= adder_dsp_0_P;
         o_features[1]  <= adder_dsp_1_P;
@@ -748,41 +749,5 @@ module conv2(
         o_features[15] <= adder_dsp_26_P;
     end
     
-    always_ff @(posedge i_clk)
-    begin
-        if (i_rst) begin
-            ram_row_ctr      <= 0;
-            ram_col_ctr      <= 0;
-            feature_ram_full <= 0;
-            layer_en         <= 0;
-        end else begin
-            if (i_feature_valid) begin
-                for (int i = 0; i < INPUT_CHANNELS; i++)
-                    feature_ram[i][ram_row_ctr][ram_col_ctr] <= i_features[i];
-                ram_col_ctr <= ram_col_ctr + 1;
-                if (ram_col_ctr == INPUT_WIDTH-1)
-                    ram_row_ctr <= ram_row_ctr + 1;
-                if (ram_row_ctr[2] & ram_row_ctr[0])
-                    macc_en <= 1;
-                // What logic is going to use the RAM full flag?
-                if (ram_row_ctr == INPUT_HEIGHT-1 && ram_col_ctr == INPUT_WIDTH-1)
-                    ram_full <= 1;
-            end
-        end
-    end
-    
-    always_ff @(posedge i_clk)
-    begin
-        if (i_rst) begin
-            feat_row_ctr <= ROW_START;
-            feat_col_ctr <= COL_START;
-        end else begin
-            feat_col_ctr <= feat_col_ctr + 1;
-            if (feat_col_ctr == COL_END) begin
-                feat_col_ctr <= 0;
-                feat_row_ctr <= feat_row_ctr == COL_END ? 0: feat_row_ctr + 1;
-            end
-        end
-    end
 
 endmodule

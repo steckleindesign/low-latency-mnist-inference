@@ -105,19 +105,17 @@ Memory resources (10 free 18kb Block RAMs):
     
 
 PLAN:
-    develop data paths into BRAMs for s2 feature maps
-    develop conv2 datapaths, focus on DSP mapping and intermediate results storage
-    develop max pool 2 layer which quickly processes data out of conv2 and stores results in BRAM
-    
-    
+    6xBRAM logic between max pool 1 and conv 2
+    Max pool 2 layer RTL logic design including serially inserting 16 S4 features into BRAM FIFO
+    1xBRAM FIFO logic between max pool 2 and conv 3
     
 TODO:
-    conv 2: FSM, DSP feature muxing, coefficient flow
-    conv 3: control logic
-    fc:     feature buffering, control logic
-    output: control logic
+    Max Pool 2 logic
+    control logic for {conv 2, conv 3, fc, output}
+    datapath for {fc, output}
 
 Future:
+    weights flow to DSPs for conv2 through output layer
     conv 1: re-architect
     Send output out on MISO line
     Floorplanning
@@ -218,7 +216,7 @@ module inference_top(
                   .o_last_feature());
           
     // Max Pooling Layer 1
-    pool #(.INPUT_WIDTH (28),
+    pool1 #(.INPUT_WIDTH (28),
            .INPUT_HEIGHT(28),
            .NUM_CHANNELS(6))
          max_pool_1 (.i_clk(clk100m),

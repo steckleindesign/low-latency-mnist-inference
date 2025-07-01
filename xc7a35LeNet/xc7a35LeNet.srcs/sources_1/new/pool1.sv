@@ -1,62 +1,75 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 
+/*
+How is the data coming in from conv1?
+    - in parallel between 6 c1 maps and serially per map
+
+How should we develop systemverilog code to store max pool output data into 6 BRAMs?
+    - separate BRAM based module after max pool 1 and conv2
+
+What control logic do we need to control data coming out of the 6 S2 BRAMs?
+    - A counter compare value or state value to know when data is valid
+
+*/
+
 //////////////////////////////////////////////////////////////////////////////////
 
 module pool1(
-    input  logic               clk,
-    input  logic               rst,
-    input  logic               valid_in,
-    input  logic signed [15:0] features_in[0:5],
-    output logic               valid_out,
-    output logic signed [15:0] features_out[0:5]
+    input  logic       i_clk,
+    input  logic       i_rst,
+    input  logic       i_feature_valid,
+    input  logic [7:0] i_features[0:5],
+    output logic       o_feature_valid,
+    output logic [7:0] o_features[0:5]
 );
-
-    localparam NUM_FILTERS       = 6;
-    localparam FEATURE_MAP_WIDTH = 28;
-
-    logic row, col;
-    logic [$clog2(FEATURE_MAP_WIDTH/2):0] cnt;
-    logic signed [15:0] row_buf [0:NUM_FILTERS-1][0:FEATURE_MAP_WIDTH/2-1];
     
-    always_ff @(clk)
-        if (rst)
-        begin
-            row <= 0;
-            col <= 0;
-            cnt <= 0;
-            row_buf <= '{default: 0};
-            valid_out <= 0;
-        end
-        else
-        begin
-            valid_out <= 0;
-            if (valid_in)
-            begin
-                col <= ~col;
-                cnt <= cnt + 1;
-                if (cnt == FEATURE_MAP_WIDTH/2 - 1)
-                begin
-                    cnt <= 0;
-                    row <= ~row;
+    logic [$clog2(14)-1:0] col_cnt = 0;
+    logic [$clog2(14)-1:0] row_cnt = 0;
+    
+    logic [7:0] feature_sr[0:5][0:13];
+    
+    logic [7:0] reg_0_0[0:5];
+    logic [7:0] reg_0_1[0:5];
+    logic [7:0] reg_0_c[0:5];
+    
+    logic [7:0] reg_1_0[0:5];
+    logic [7:0] reg_1_1[0:5];
+    logic [7:0] reg_1_c[0:5];
+    
+//    typedef enum logic [1:0] {
+//        S2_ONE,
+//        S2_TWO,
+//        S2_THREE,
+//        S2_FOUR
+//    } s2_state_t;
+//    s2_state_t s2_state = S2_ONE;
+    
+    always_ff @(posedge i_clk) begin
+        if (i_feature_valid) begin
+            for (int i = 0; i < 6; i++) begin
+                // Conditional data flow - implemented as logic on D input or as CE?
+                if (col_cnt[0]) begin
+                    feature_sr[i] <= {feature_sr[i][12:0], reg_0_c};
+                    reg_1_1[i] <= reg_1_c[i];
+                end else if (~col_cnt[0]) begin
+                    reg_1_1[i] <= feature_sr[i][13];
                 end
-                if (~row & ~col)
-                    for (int i = 0; i < NUM_FILTERS; i++)
-                        row_buf[i][cnt] <= features_in[i];
-                else
-                begin
-                    for (int i = 0; i < NUM_FILTERS; i++)
-                        if (features_in[i] > row_buf[i][cnt])
-                        begin
-                            row_buf[i][cnt] <= features_in[i];
-                            features_out[i] <= features_in[i];
-                        end
-                        else
-                            features_out[i] <= row_buf[i][cnt];
-                    if (row & col)
-                        valid_out <= 1;
-                end
+                // Continuous Data flow
+                reg_0_0[i] <= i_features[i];
+                reg_0_1[i] <= reg_0_0[i];
+                reg_0_c[i] <= (reg_0_1[i] > reg_0_0[i]) ? reg_0_1[i] : reg_0_0[i];
+                reg_1_0[i] <= i_features[i];
+                reg_1_c[i] <= (reg_1_1[i] > reg_1_0[i]) ? reg_1_1[i] : reg_1_0[i];
+                o_feature_valid <= row_cnt[0] & col_cnt[0];
+            end
+            // Counters for control logic
+            col_cnt <= col_cnt + 1;
+            if (col_cnt == 13) begin
+                col_cnt <= 0;
+                row_cnt <= row_cnt + 1;
             end
         end
+    end
 
 endmodule

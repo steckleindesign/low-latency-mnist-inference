@@ -15,6 +15,8 @@
     We could also just allocate 1 DSP per feature so 6 DSPs would just be unused
     
     Adder trees: 85 operands, $clog2(85) = 7 clock cycles, latency of layer should be 17 clock cycles
+    
+    F6 neurons come serially, but for the current architecture we shall wait until all F6 features are valid
 */
 
 //////////////////////////////////////////////////////////////////////////////////

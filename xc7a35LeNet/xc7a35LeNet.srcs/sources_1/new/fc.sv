@@ -41,6 +41,8 @@
     
     4 cycles to compute * operations for 3 neurons.
     4 * 84/3 = 4 * 28 = 112 clock cycles.
+    
+    C5 neurons come in parallel
 */
 
 //////////////////////////////////////////////////////////////////////////////////
