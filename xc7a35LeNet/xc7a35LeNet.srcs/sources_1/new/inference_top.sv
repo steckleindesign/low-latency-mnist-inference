@@ -236,7 +236,7 @@ module inference_top(
                   .o_features(conv2_features));
                             
     // Max Pooling Layer 2
-    pool #(.INPUT_WIDTH (10),
+    pool2 #(.INPUT_WIDTH (10),
            .INPUT_HEIGHT(10),
            .NUM_CHANNELS(16))
          max_pool_2 (.i_clk(clk100m),
