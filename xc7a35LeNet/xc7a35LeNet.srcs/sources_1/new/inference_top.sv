@@ -110,7 +110,7 @@ PLAN:
     1xBRAM FIFO logic between max pool 2 and conv 3
     
 TODO:
-    Max Pool 2 logic
+    BRAM/FIFO storage logic post max pooling logic
     control logic for {conv 2, conv 3, fc, output}
     datapath for {fc, output}
 
