@@ -1,6 +1,10 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 
+/*
+Can still use FIFO18 here similar to the FIFO after s4
+*/
+
 //////////////////////////////////////////////////////////////////////////////////
 
 module s2_ram_c3(
@@ -11,39 +15,22 @@ module s2_ram_c3(
     input  logic       dout_valid,
     output logic [7:0] dout[0:5]
 );
-
-    logic [7:0] c3_feature_ram[0:5][0:14*14-1];
-    logic [$clog2(14*14)-1:0] c3_feature_ram_addr;
     
-    // 6xBRAM -> RAMB18E1 2k x 9
-    logic [$clog2(14*14)-1:0] c3_feature_ram_wraddr;
-    logic [$clog2(14*14)-1:0] c3_feature_ram_rdaddr;
-    // logic                     c3_feature_ram_en;
-    logic                     c3_feature_ram_wen;
-    logic                     c3_feature_ram_rden;
-    logic               [7:0] c3_feature_ram_din;
-    logic               [7:0] c3_feature_ram_dout;
-    
-    always_comb begin
-        c3_feature_ram_wen <= din_valid;
-        c3_feature_ram_din <= din;
-        
-        
-        dout <= c3_feature_ram_dout;
-        
-    end
-    
-    always_ff @(posedge clk) begin
-        if (rst) begin
-            
-        end else begin
-            if (c3_feature_ram_wen) begin
-                c3_feature_ram[c3_feature_ram_wraddr] <= c3_feature_ram_din;
-            end
-            if (c3_feature_ram_dout) begin
-                c3_feature_ram_dout <= c3_feature_ram[c3_feature_ram_rdaddr];
-            end
-        end
-    end
+    // 6xBRAMFIFO -> FIFO18E1 2k x 9 -> 144x8-bits used
+    generate
+    genvar i;
+    for (i = 0; i < 6; i++)
+        fifo_generator_1 c3_fifo (.clk(clk),
+                                  .rst(rst),
+                                  .din(din[i]),
+                                  .wr_en(din_valid),
+                                  .rd_en(), // once the fifo is near full (once of DSPs are done multiplying conv1)
+                                  .dout(dout[i]),
+                                  .full(), // should never be reach
+                                  .empty(), // NC
+                                  .valid(dout_valid), // Perhaps this module port needs to AND dout_valid and other control for when data should truly be consumed by the next layer
+                                  .prog_full(fifo_almost_full), // To be used to control read enable
+                                  .prog_empty(fifo_almost_empty)); // NC
+    endgenerate
 
 endmodule

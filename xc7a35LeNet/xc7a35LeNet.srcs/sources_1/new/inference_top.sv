@@ -103,16 +103,10 @@ Memory resources (10 free 18kb Block RAMs):
     
     Store F6 84 neurons 8-bit data (672 bits)                       -> Fabric FFs
     
-
-PLAN:
-    6xBRAM logic between max pool 1 and conv 2
-    Max pool 2 layer RTL logic design including serially inserting 16 S4 features into BRAM FIFO
-    1xBRAM FIFO logic between max pool 2 and conv 3
     
 TODO:
-    BRAM/FIFO storage logic post max pooling logic
-    control logic for {conv 2, conv 3, fc, output}
     datapath for {fc, output}
+    control logic for {conv 2, conv 3, fc, output} (everything past conv1)
 
 Future:
     weights flow to DSPs for conv2 through output layer
@@ -225,7 +219,9 @@ module inference_top(
                      .i_features(conv1_features),
                      .o_feature_valid(pool1_feature_valid),
                      .o_features(pool1_features));
-                            
+    
+    s2_ram_c3
+    
     // Convolutional Layer 2
     conv2 #()
           conv_2 (.i_clk(clk100m),
@@ -245,6 +241,8 @@ module inference_top(
                      .i_features(conv2_features),
                      .o_feature_valid(pool2_feature_valid),
                      .o_features(pool2_features));
+    
+    s4_ram_c5
     
     // Convolutional Layer 3
     conv3 #()
