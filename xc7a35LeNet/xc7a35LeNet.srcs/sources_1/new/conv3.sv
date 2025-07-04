@@ -25,29 +25,27 @@ module conv3(
     input  logic        i_feature_valid,
     input  logic [15:0] i_feature,
     output logic        o_feature_valid,
-    output logic [15:0] o_feature[0:119]
+    output logic [15:0] o_feature[0:119],
+    
+    input  logic [7:0] weights[0:89],
+    output logic is_mixing
 );
-    
-    localparam string WEIGHTS_FILE = "weights.mem";
-    localparam string BIASES_FILE  = "biases.mem";
-    
+
     // Each convolution is 16*5*5, each of the 120 neurons in this layer connects to all 16 S4 feature maps
     localparam S4_NUM_MAPS = 16;
     localparam S4_MAP_SIZE = 5;
     localparam NUM_NEURONS = 120;
     localparam NUM_DSP     = 90;
     
-    // Initialize trainable parameters
     // Weights
-    // Will probably need to be reshaped into 90 RAMs dedicated to each DSP throughout the design
-    // (* rom_style = "block" *)
-    logic signed [7:0]
-    weights [0:NUM_NEURONS-1][0:S4_MAP_SIZE-1][0:S4_MAP_SIZE-1];
-    initial $readmemb(WEIGHTS_FILE, weights);
+    // localparam string WEIGHTS_FILE = "weights.mem";
+    // logic signed [7:0]
+    // weights [0:NUM_NEURONS-1][0:S4_MAP_SIZE-1][0:S4_MAP_SIZE-1];
+    // initial $readmemb(WEIGHTS_FILE, weights);
+    
     // Biases
-    // (* rom_style = "block" *)
-    logic signed [7:0]
-    biases [0:NUM_NEURONS-1];
+    localparam string BIASES_FILE = "biases.mem";
+    logic signed [7:0] biases [0:NUM_NEURONS-1];
     initial $readmemb(BIASES_FILE, biases);
     
     // 120 accumulate values for each of the 120 neurons in the following layer
@@ -247,5 +245,8 @@ module conv3(
     
     always_comb
         o_feature <= accumulates;
+        
+    always_comb
+        is_mixing <= is_processing;
     
 endmodule

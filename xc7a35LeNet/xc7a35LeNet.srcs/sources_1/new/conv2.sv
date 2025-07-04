@@ -24,7 +24,6 @@
     Num multiplies       = (6*3 + 9*4 + 6) * (10*10*5*5) = 10*10*(1516-16) = 150000
     Clock cycles when 100% DSP48E1 utilization w/ no overclocking = 150000/90 = 1666.67 = 1667
     
-    
     FUTURE IDEAS
     -------------------------------------------------------------------------------
     Potential mapping of the 18 DSP groups by cycle
@@ -84,6 +83,12 @@
     4) Store output feature accumulations in their own 60 feature maps
         That's 60x10x10 8-bit values = 6000 8-bit values, or 48,000 bits (Needs 3 18kb BRAMs)
     5) Use DSPs to add appropriate intermediate feature map values into 16 C3 feature maps
+    
+    
+    Takes 10*10*5*5 = 2500 cycles of multiplies
+    Might be too much for us for now
+    Lets do 8x8 instead, so 8*8*5*5 = 1600 cycles
+    
 */
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -94,15 +99,17 @@ module conv2(
     input  logic               i_feature_valid,
     input  logic         [7:0] i_features[0:5],
     output logic               o_feature_valid,
-    output logic signed [15:0] o_features[0:15]
+    output logic signed [15:0] o_features[0:15],
+    
+    input  logic [7:0] weights[0:89],
+    output logic is_mixing
 );
 
-    localparam WEIGHTS_FILE = "conv2_weights.mem";
-    localparam BIASES_FILE  = "conv2_biases.mem";
-
-    logic signed [7:0] weights [0:59];
-    initial $readmemb(WEIGHTS_FILE, weights);
+    // localparam WEIGHTS_FILE = "conv2_weights.mem";
+    // logic signed [7:0] weights [0:59];
+    // initial $readmemb(WEIGHTS_FILE, weights);
     
+    localparam BIASES_FILE = "conv2_biases.mem";
     logic signed [7:0] biases [0:5][0:9];
     initial $readmemb(BIASES_FILE, biases);
     
@@ -749,5 +756,7 @@ module conv2(
         o_features[15] <= adder_dsp_26_P;
     end
     
+    always_comb
+        is_mixing <= is_processing;
 
 endmodule

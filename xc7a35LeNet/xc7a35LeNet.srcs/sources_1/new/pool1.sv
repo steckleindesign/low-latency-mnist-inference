@@ -1,17 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 
-/*
-How is the data coming in from conv1?
-    - in parallel between 6 c1 maps and serially per map
-
-How should we develop systemverilog code to store max pool output data into 6 BRAMs?
-    - separate BRAM based module after max pool 1 and conv2
-
-What control logic do we need to control data coming out of the 6 S2 BRAMs?
-    - A counter compare value or state value to know when data is valid
-
-*/
+// Conv1 data coming in parallel between 6 C1 maps and serially per map
 
 //////////////////////////////////////////////////////////////////////////////////
 
@@ -32,18 +22,9 @@ module pool1(
     logic [7:0] reg_0_0[0:5];
     logic [7:0] reg_0_1[0:5];
     logic [7:0] reg_0_c[0:5];
-    
     logic [7:0] reg_1_0[0:5];
     logic [7:0] reg_1_1[0:5];
     logic [7:0] reg_1_c[0:5];
-    
-//    typedef enum logic [1:0] {
-//        S2_ONE,
-//        S2_TWO,
-//        S2_THREE,
-//        S2_FOUR
-//    } s2_state_t;
-//    s2_state_t s2_state = S2_ONE;
     
     always_ff @(posedge i_clk) begin
         if (i_feature_valid) begin

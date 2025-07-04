@@ -20,24 +20,23 @@ module output_fc (
     input  logic        i_feature_valid,
     input  logic [15:0] i_feature,
     output logic        o_result_valid,
-    output logic  [3:0] o_result
+    output logic  [3:0] o_result,
+    
+    input  logic [7:0] weights[0:89],
+    output logic is_mixing
 );
-
-    localparam string WEIGHTS_FILE = "weights.mem";
-    localparam string BIASES_FILE  = "biases.mem";
 
     localparam INPUT_FEATURE_DEPTH = 84;
     localparam NUM_CLASSES         = 10;
     localparam ADDER_TREE_DEPTH    = $clog2(INPUT_FEATURE_DEPTH)+1;
     
-    // Initialize trainable parameters
     // Weights
-    // (* rom_style = "block" *)
-    logic signed [7:0] weights[0:INPUT_FEATURE_DEPTH-1]
-                              [0:NUM_CLASSES-1];
-    initial $readmemb(WEIGHTS_FILE, weights);
+    // localparam string WEIGHTS_FILE = "weights.mem";
+    // logic signed [7:0] weights[0:INPUT_FEATURE_DEPTH-1][0:NUM_CLASSES-1];
+    // initial $readmemb(WEIGHTS_FILE, weights);
+    
     // Biases
-    // (* rom_style = "block" *)
+    localparam string BIASES_FILE  = "biases.mem";
     logic signed [7:0] biases[0:NUM_CLASSES-1];
     initial $readmemb(BIASES_FILE, biases);
 
@@ -94,7 +93,7 @@ module output_fc (
     
     always_ff @(posedge i_clk) begin
         for (int i = 0; i < INPUT_FEATURE_DEPTH; i++)
-            adder_stage1[i] <= upstream_features[i] * weights[?][i]; // TODO: Global weight FIFOs
+            adder_stage1[i] <= upstream_features[i] * weights[i];
     
         for (int i = 0; i < 42; i++)
             adder_stage2[i] <= adder_stage1[i*2] + adder_stage1[i*2+1];
@@ -128,5 +127,8 @@ module output_fc (
         o_result_valid <= output_valid;
         o_result       <= internal_result_bus[19:16] - ADDER_TREE_DEPTH;
     end
+    
+    always_comb
+        is_mixing <= is_processing;
 
 endmodule

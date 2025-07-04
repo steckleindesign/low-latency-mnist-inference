@@ -3,6 +3,9 @@
 
 /*
 Can still use FIFO18 here similar to the FIFO after s4
+
+What control logic do we need to control data coming out of the 6 S2 BRAMs?
+    - A counter compare value or state value to know when data is valid
 */
 
 //////////////////////////////////////////////////////////////////////////////////

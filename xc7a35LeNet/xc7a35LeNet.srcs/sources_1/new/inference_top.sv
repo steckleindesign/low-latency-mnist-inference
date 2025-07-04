@@ -68,26 +68,27 @@ weights RAMs
     could be stored in fabric FFs upon the GSR, and wrote into the
     weights BRAMs once conv2 begins reading weight data from the RAMs
 
-Once we understand
-1) DSP input data paths
-2) DSP output data paths
-3) Adder tree / MACC architecture
-We will be able to better determine feasability of placement
-
-
 Resource mapping
+100 RAMB18E
+90 DSP48E1
 
-100 RAMB18Es?
-How many ports?
-
-90 18kb Block RAMs dedicated to DSP weights operands
+Global Weights BRAMs
+    90 RAMB18E1 (2k x 9) dedicated to 90 DSP weights operands
+    total weights RAM depth = 2500 + 534 + 112 + 10 = 3156
+    could shrink s4 to 4x4 -> 1600 + 534 + 112 + 10 = 2256
+    and use the 9th bit on each bram output and collect this
+    bit in a SR over 8 cycles and write back into the bram the
+    weight value, so we can make every use of every bit in the BRAM
+    for now because we only care about circuit area and not correctness
+    of the model, we'll just let the global weights counter wrap and
+    so some parameters will be reused on downstream MACCs
 
 Memory resources (10 free 18kb Block RAMs):
     Store image input data (8,192 bits)          -> BRAM_0
 
     Store feature RAM data in conv1 (1,280 bits) -> BRAM_1
 
-    Store S2 feature maps (9,408 bits)           -> BRAM_2-6
+    Store S2 feature maps (9,408 bits)           -> BRAM_2-7
     
     Where to store 60 intermediate feature maps for conv2 operation (48,000 bits) ???
         With each intermediate map as 10x10 8-bit values, we could use Distributed RAMs
@@ -96,27 +97,32 @@ Memory resources (10 free 18kb Block RAMs):
         We will use RAM32M => 32x8-bit LUTRAM uses 4 LUT6 per RAM32M
         128x8-bit Distributed RAM will use 16 LUTRAMs (2 CLBs)
         60 of these will utilize 120 CLBs
+        There is also exactly 1 BRAM unused, but this could only cover 18kb/48kb = 3/8 of the data
+        If there are congestion issues or FF utilization issues,
+        and its hard to use 120 CLBs for this data storage, then
+        we can use a wide RAMB18E1 port width to store 37.5% of the data
     
-    Store S4 feature maps as large SR (FIFO??) in BRAM (3,200 bits) -> BRAM_7
+    Store S4 feature maps as large SR (FIFO??) in BRAM (3,200 bits) -> BRAM_8
     
     Store C5 120 neurons 8-bit data (960 bits)                      -> Fabric FFs
     
     Store F6 84 neurons 8-bit data (672 bits)                       -> Fabric FFs
     
-    
-TODO:
-    control logic for {conv 2, conv 3, fc, output} (everything past conv1)
-    weights flow to DSPs for conv2 through output layer
-    - Global weights mem - enough to fill fifo
-    - Set read enable once conv2 data is valid
-    
+    1 RAMB18E1 totally unused throughout design
 
+
+Perform feasability of placement after we understand
+1) DSP input data paths
+2) DSP output data paths
+3) Adder tree structures
+
+
+TODO:
+    Control logic for {conv 2, conv 3, fc, output}
+    
 Future:
     SPI transfer MISO data
-    Send output on MISO line
-    Floorplanning
-    Synthesis attributes
-    Synthesis/implementation strategies
+    Floorplanning, Synthesis attributes, Placer strategies, Router strategies
 
 */
 //////////////////////////////////////////////////////////////////////////////////
@@ -139,6 +145,7 @@ module inference_top(
     
     localparam CONV1_CHANNELS = 6;
     localparam CONV2_CHANNELS = 16;
+    localparam NUM_DSP        = 90;
     
     // MMCM
     logic       clk100m;
@@ -149,6 +156,9 @@ module inference_top(
     logic       spi_rd_req;
     logic [7:0] spi_wr_data;
     logic [7:0] logit; // spi_rd_data
+    
+    logic feed_conv2, feed_conv3, feed_fc, feed_output;
+    logic [7:0] global_weight_operands[0:NUM_DSP-1];
     
     // Valid signals, features
     logic               pixel_valid;
@@ -171,7 +181,7 @@ module inference_top(
                      .reset(rst),
                      .locked(locked),
                      .clk100m(clk100m));
-                             
+    
     // Discontinuous SPI clock
     // How to handle reset for SPI interface? Do we need a reset?
     spi_interface spi0 (.i_sck(sck),
@@ -182,7 +192,7 @@ module inference_top(
                         .o_wr_data(spi_wr_data),
                         .o_rd_req(spi_rd_req),
                         .i_rd_data(logit));
-                             
+    
     // Grayscale pixel data
     pixel_curation cur (.i_clk(clk100m),
                         .i_rst(rst),
@@ -190,7 +200,7 @@ module inference_top(
                         .i_spi_data(spi_wr_data),
                         .o_pixel(spi_pixel),
                         .o_pix_valid(spi_pixel_valid));
-
+    
     image_buffer_ram
         img_buf_ram (.clk(clk100m),
                      .rst(rst),
@@ -198,6 +208,11 @@ module inference_top(
                      .pixel_in_valid(spi_pixel_valid),
                      .hold(~conv1_take_feature),
                      .pixel_out(img_ram_data));
+    
+    downstream_weights_feed (.clk(clk100m),
+                             .rst(rst),
+                             .feed_cycle({feed_conv2, feed_conv3, feed_fc, feed_output}),
+                             .weight_operands_out(global_weight_operands));
     
     // Convolutional Layer 1
     conv1 #(.NUM_FILTERS(CONV1_CHANNELS))
@@ -209,7 +224,7 @@ module inference_top(
                   .o_features(conv1_features),
                   .o_ready_feature(conv1_take_feature),
                   .o_last_feature());
-          
+    
     // Max Pooling Layer 1
     pool1 #(.INPUT_WIDTH (28),
            .INPUT_HEIGHT(28),
@@ -233,8 +248,9 @@ module inference_top(
                   .i_feature_valid(pool1_feature_valid),
                   .i_feature(pool1_feature),
                   .o_feature_valid(conv2_feature_valid),
-                  .o_features(conv2_features));
-                            
+                  .o_features(conv2_features),
+                  .is_mixing(feed_conv2));
+    
     // Max Pooling Layer 2
     pool2 #(.INPUT_WIDTH (10),
            .INPUT_HEIGHT(10),
@@ -259,8 +275,9 @@ module inference_top(
                   .i_feature(spi_pixel),
                   .o_feature_valid(conv1_feature_valid),
                   .o_features(conv1_features),
-                  .o_buffer_full(conv1_lb_full));
-                             
+                  .o_buffer_full(conv1_lb_full),
+                  .is_mixing(feed_conv3));
+    
     // Fully Connected Layer 1
     fc #(.WEIGHTS_FILE("fc1_weights.mem"),
          .BIASES_FILE("fc1_biases.mem"),
@@ -272,9 +289,9 @@ module inference_top(
                  .i_feature_valid(pool2_feature_valid),
                  .i_features(pool2_features),
                  .o_neuron_valid(fc1_neuron_valid),
-                 .o_neuron(fc1_neuron));
-                             
-                             
+                 .o_neuron(fc1_neuron),
+                 .is_mixing(feed_fc));
+    
     // Fully Connected Layer 2 (Output Layer)
     output_fc #(.WEIGHTS_FILE("output_fc_weights.mem"),
                 .BIASES_FILE ("output_fc_biases.mem"),
@@ -287,7 +304,8 @@ module inference_top(
                         .i_feature(fc2_neuron),
                         // class valid signal will be MCU interrupt line
                         .o_logits_valid(logits_valid),
-                        .o_logits(logit));
+                        .o_logits(logit),
+                        .is_mixing(feed_output));
     
     
     assign led   = 2'b11;

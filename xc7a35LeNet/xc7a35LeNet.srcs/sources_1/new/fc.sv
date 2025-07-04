@@ -53,22 +53,22 @@ module fc (
     input  logic        i_feature_valid,
     input  logic [15:0] i_feature,
     output logic        o_neuron_valid,
-    output logic [15:0] o_neuron
+    output logic [15:0] o_neuron,
+    
+    input logic  [7:0] weights[0:89],
+    output logic is_mixing
 );
-
-    localparam string WEIGHTS_FILE = "weights.mem";
-    localparam string BIASES_FILE  = "biases.mem";
 
     localparam NUM_FEATURES = 120;
     localparam NUM_NEURONS  = 84;
     
-    // Initialize trainable parameters
     // Weights
-    // (* rom_style = "block" *)
-    logic signed [7:0] weights[0:NUM_FEATURES-1][0:NUM_NEURONS-1];
-    initial $readmemb(WEIGHTS_FILE, weights);
+    // localparam string WEIGHTS_FILE = "weights.mem";
+    // logic signed [7:0] weights[0:NUM_FEATURES-1][0:NUM_NEURONS-1];
+    // initial $readmemb(WEIGHTS_FILE, weights);
+    
     // Biases
-    // (* rom_style = "block" *)
+    localparam string BIASES_FILE  = "biases.mem";
     logic signed [7:0] biases[0:NUM_FEATURES-1];
     initial $readmemb(BIASES_FILE, biases);
     
@@ -121,7 +121,7 @@ module fc (
     logic [7:0] adder3_result;
     
     // Control counters
-    logic          [$clog2(112)-1:0] cycle_cnt;
+    // logic          [$clog2(112)-1:0] cycle_cnt;
     logic [$clog2(NUM_FEATURES)-1:0] feature_ctr;
     logic  [$clog2(NUM_NEURONS)-1:0] neuron_ctr;
     
@@ -185,17 +185,8 @@ module fc (
                 default: next_state = FC_ONE;
             endcase
     
-    always_ff @(posedge i_clk) begin
-        if (i_rst)
-            cycle_cnt <= 0;
-        else
-            if (is_processing) begin
-                for (int i = 0; i < 90; i++)
-                    weight_operands[i] <= coefficients_rom[i][cycle_cnt];
-                cycle_cnt <= cycle_cnt + 1;
-            end else
-                cycle_cnt <= 0;
-    end
+    always_ff @(posedge i_clk)
+        weight_operands <= weights;
     
     always_ff @(posedge i_clk)
         for (int i = 0; i < 30; i++) begin
@@ -363,5 +354,8 @@ module fc (
                 {adder_tree_valid_sr[i][6:0],
                  is_processing ? state == valid_states[i]: 1'b0};
     end
+    
+    always_comb
+        is_mixing <= is_processing;
     
 endmodule
