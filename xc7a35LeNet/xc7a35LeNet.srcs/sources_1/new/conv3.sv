@@ -25,7 +25,7 @@ module conv3(
     input  logic        i_feature_valid,
     input  logic [15:0] i_feature,
     output logic        o_feature_valid,
-    output logic [15:0] o_feature
+    output logic [15:0] o_feature[0:119]
 );
     
     localparam string WEIGHTS_FILE = "weights.mem";
@@ -51,7 +51,7 @@ module conv3(
     initial $readmemb(BIASES_FILE, biases);
     
     // 120 accumulate values for each of the 120 neurons in the following layer
-    logic signed [8+$clog2(NUM_NEURONS)-1:0] accumulates[0:NUM_NEURONS-1] = '{default: 0};
+    logic [8+$clog2(NUM_NEURONS)-1:0] accumulates[0:NUM_NEURONS-1] = '{default: 0};
     
     // 3 DSP groups (30 DSP48E1s per group)
     logic signed [23:0] macc_out[0:2][0:(NUM_DSP/3)-1];
@@ -244,5 +244,8 @@ module conv3(
             endcase
         end
     end
+    
+    always_comb
+        o_feature <= accumulates;
     
 endmodule

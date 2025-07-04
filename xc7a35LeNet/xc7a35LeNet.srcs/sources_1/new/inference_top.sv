@@ -105,17 +105,18 @@ Memory resources (10 free 18kb Block RAMs):
     
     
 TODO:
-    datapath for {fc, output}
     control logic for {conv 2, conv 3, fc, output} (everything past conv1)
+    weights flow to DSPs for conv2 through output layer
+    - Global weights mem - enough to fill fifo
+    - Set read enable once conv2 data is valid
+    
 
 Future:
-    weights flow to DSPs for conv2 through output layer
-    conv 1: re-architect
-    Send output out on MISO line
+    SPI transfer MISO data
+    Send output on MISO line
     Floorplanning
     Synthesis attributes
-    Synthesis and implementation strategies
-    Transceiver for IO data
+    Synthesis/implementation strategies
 
 */
 //////////////////////////////////////////////////////////////////////////////////
@@ -220,7 +221,10 @@ module inference_top(
                      .o_feature_valid(pool1_feature_valid),
                      .o_features(pool1_features));
     
-    s2_ram_c3
+    s2_ram_c3 c3_fifo (.clk(),
+                       .rst(),
+                       .din(),
+                       .dout());
     
     // Convolutional Layer 2
     conv2 #()
@@ -242,7 +246,10 @@ module inference_top(
                      .o_feature_valid(pool2_feature_valid),
                      .o_features(pool2_features));
     
-    s4_ram_c5
+    s4_ram_c5 c5_fifo (.clk(),
+                       .rst(),
+                       .din(),
+                       .dout());
     
     // Convolutional Layer 3
     conv3 #()
@@ -255,42 +262,34 @@ module inference_top(
                   .o_buffer_full(conv1_lb_full));
                              
     // Fully Connected Layer 1
-    fc #(
-         .WEIGHTS_FILE("fc1_weights.mem"),
+    fc #(.WEIGHTS_FILE("fc1_weights.mem"),
          .BIASES_FILE("fc1_biases.mem"),
          .FEATURE_WIDTH(16),
          .NUM_FEATURES(16*5*5),
-         .NUM_NEURONS(84)
-        ) fc_inst (
-         .i_clk(clk100m),
-         .i_rst(rst),
-         .i_feature_valid(pool2_feature_valid),
-         .i_features(pool2_features),
-         .o_neuron_valid(fc1_neuron_valid),
-         .o_neuron(fc1_neuron));
+         .NUM_NEURONS(84))
+        fc_inst (.i_clk(clk100m),
+                 .i_rst(rst),
+                 .i_feature_valid(pool2_feature_valid),
+                 .i_features(pool2_features),
+                 .o_neuron_valid(fc1_neuron_valid),
+                 .o_neuron(fc1_neuron));
                              
                              
     // Fully Connected Layer 2 (Output Layer)
-    output_fc #(
-               .WEIGHTS_FILE("output_fc_weights.mem"),
-               .BIASES_FILE ("output_fc_biases.mem"),
-               .FEATURE_WIDTH(16+16+$clog2(16*5*5)+$clog2(120)),
-               .NUM_FEATURES (84),
-               .NUM_CLASSES  (10)
-              ) output_fc_inst (
-               .i_clk(clk100m),
-               .i_rst(rst),
-               .i_feature_valid(fc2_neuron_valid),
-               .i_feature(fc2_neuron),
-               // class valid signal will connect to output pad
-               // this valid signal will be traced to the MCU
-               // the MCU will configure an interrupt pin for the incoming valid line
-               // upon the interrupt, the MCU will execute a SPI read
-               // directly after the class is valid, the FPGA should send the logits to the SPI controller
-               .o_logits_valid(logits_valid),
-               .o_logits(logit));
+    output_fc #(.WEIGHTS_FILE("output_fc_weights.mem"),
+                .BIASES_FILE ("output_fc_biases.mem"),
+                .FEATURE_WIDTH(16+16+$clog2(16*5*5)+$clog2(120)),
+                .NUM_FEATURES (84),
+                .NUM_CLASSES  (10))
+        output_fc_inst (.i_clk(clk100m),
+                        .i_rst(rst),
+                        .i_feature_valid(fc2_neuron_valid),
+                        .i_feature(fc2_neuron),
+                        // class valid signal will be MCU interrupt line
+                        .o_logits_valid(logits_valid),
+                        .o_logits(logit));
     
-    // LEDs as constant hue for now, save all resources for CNN
+    
     assign led   = 2'b11;
     assign led_r = 1'b1;
     assign led_g = 1'b1;

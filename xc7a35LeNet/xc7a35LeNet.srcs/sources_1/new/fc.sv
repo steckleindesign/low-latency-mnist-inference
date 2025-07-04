@@ -85,6 +85,11 @@ module fc (
     // One-hot encoding adder tree valid SR
     logic [8:0] adder_result_valid[0:2];
     
+    /*
+    [1+2] 3
+    
+    */
+    
     logic [7:0] adder1_stage1[0:89];
     logic [7:0] adder1_stage2[0:74];
     logic [7:0] adder1_stage3[0:37];
@@ -253,7 +258,7 @@ module fc (
     
     always_ff @(posedge i_clk) begin
     
-        adder1_stage1[ 0:29] <= mult[0:29];
+        adder1_stage1[ 0:29] <= mult[ 0:29];
         adder1_stage1[30:59] <= mult[30:59];
         adder1_stage1[60:89] <= mult[60:89];
         
