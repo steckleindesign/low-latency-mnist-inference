@@ -24,6 +24,21 @@
     Num multiplies       = (6*3 + 9*4 + 6) * (10*10*5*5) = 10*10*(1516-16) = 150000
     Clock cycles when 100% DSP48E1 utilization w/ no overclocking = 150000/90 = 1666.67 = 1667
     
+    Theory of operation:
+    1) Gather features into 6 14x14 8-bit input feature maps. 6x25 8x8-bit Distributed RAMs
+    2) When the feature buffer is full MACC operations should begin
+    3) MACC operation consists of 25 cycles per output feature accumulation, 2D convolution counter
+        iterates from 0 to 9, left to right, top to bottom. 2D kernel counter counts from 0 to 4,
+            left to right, top to bottom. Address to weights is kernel counter, address to features
+                is convolution counter + kernel counter
+    4) During multiplications, accumulate 5x5 convolution multiplies into 60 feature maps which
+        are addressed by hardcoded 0-9, 0-5 for each maps loop, and the row, column value is tied
+            to the 2D convolution counter. 60x10x10 8-bit values = 48,000 bits (Needs 3 18kb BRAMs)
+    5) Use DSPs to add appropriate intermediate feature map values into 16 C3 feature maps
+    
+    Takes 10*10*5*5 = 2500 cycles of multiplies
+    
+    
     FUTURE IDEAS
     -------------------------------------------------------------------------------
     Potential mapping of the 18 DSP groups by cycle
@@ -63,89 +78,66 @@
     6 DSP groups: \   \   \   \   \ 2 \ 4 \
     6 DSP groups: \   \   \   \   \   \ 6 \
     
-    We are only doing 9x9 convolutions and there are 10 weight kernels for each S2 map and 90 DSPs.
+    We are only doing 10x10 convolutions and there are 10 weight kernels for each S2 map and 90 DSPs.
     
     So we divide DSPs into 10 groups of 9. Each DSP group has the job of working on its own row.
     It will take 25 clock cycles For each of these rows.
     
     16 10x10 output feature maps = 1600 8-bit values = 12,800 bits
     So there are 1600 accumulate values.
-    
     -------------------------------------------------------------------------------
-    
-    Current architecture
-    
-    Theory of operation:
-    1) Gather features into 6 14x5 8-bit feature buffers (6x70 8-bit data)
-    2) When the feature buffer is full enough (4 rows and first feature of 5th row)
-        MACC operations should begin
-    3) MACC operation consists of 25 cycles per output feature accumulation
-    4) Store output feature accumulations in their own 60 feature maps
-        That's 60x10x10 8-bit values = 6000 8-bit values, or 48,000 bits (Needs 3 18kb BRAMs)
-    5) Use DSPs to add appropriate intermediate feature map values into 16 C3 feature maps
-    
-    
-    Takes 10*10*5*5 = 2500 cycles of multiplies
-    Might be too much for us for now
-    Lets do 8x8 instead, so 8*8*5*5 = 1600 cycles
     
 */
 
 //////////////////////////////////////////////////////////////////////////////////
 
 module conv2(
-    input  logic               i_clk,
-    input  logic               i_rst,
-    input  logic               i_feature_valid,
-    input  logic         [7:0] i_features[0:5],
-    output logic               o_feature_valid,
-    output logic signed [15:0] o_features[0:15],
-    
-    input  logic [7:0] weights[0:89],
-    output logic is_mixing
+    input  logic              i_clk,
+    input  logic              i_rst,
+    input  logic              i_feature_valid,
+    input  logic signed [7:0] i_features[0:5],
+    output logic              o_feature_valid,
+    output logic signed [7:0] o_features[0:15]
 );
 
-    // localparam WEIGHTS_FILE = "conv2_weights.mem";
-    // logic signed [7:0] weights [0:59];
-    // initial $readmemb(WEIGHTS_FILE, weights);
+    localparam WEIGHTS_FILE = "conv2_weights.mem";
+    logic signed [7:0] weights[0:5][0:9][0:4][0:4];
+    initial $readmemb(WEIGHTS_FILE, weights);
     
     localparam BIASES_FILE = "conv2_biases.mem";
-    logic signed [7:0] biases [0:5][0:9];
+    logic signed [7:0] biases[0:5][0:9];
     initial $readmemb(BIASES_FILE, biases);
     
-    // Enable convolution MACC operations on this layer (CONV2)
-    logic layer_en;
+    logic                         macc_en;
     
-    // DSP48E1 operands for the first stage of MACC operations
-    logic        [7:0] s2_conv_feature_operands[0:59];
-    logic signed [7:0] s2_conv_weight_operands[0:59];
+    logic signed            [7:0] s2_map[0:5][0:9][0:9];
     
-    // Keep track of how many output features we have computed
-    logic [$clog2(10*10)-1:0] conv_output_feature_ctr;
-    // Keep track of how many intermediate features we have computed
-    logic [$clog2(10*10)-1:0] conv_interm_feature_ctr;
-    // Keep track of how many elements in the current
-    // 5x5 conv kernel we've performed a MACC operation
-    logic [$clog2(25)-1:0] conv_acc_ctr;
-    // Intermediate results after convolving the 60 instances
-    // of convolutions on S2 input feature maps
-    // 6 S2 maps | 10 unique weight kernels for each S2 map | 10x10 feature map
+    logic         [$clog2(5)-1:0] conv_kernel_col_cnt;
+    logic         [$clog2(5)-1:0] conv_kernel_row_cnt;
+    
+    logic        [$clog2(10)-1:0] conv_feature_col_cnt;
+    logic        [$clog2(10)-1:0] conv_feature_row_cnt;
+    
+    logic signed            [7:0] s2_conv_feature_operands[0:59];
+    logic signed            [7:0] s2_conv_weight_operands[0:59];
+    
     // 48000 bits -> Distributed RAM utilization is 120 CLBs
     // This is the case if both slices in each CLB are SLICEM
-    logic signed [7:0] s2_conv_acc_map[0:5][0:9][0:99];
-    // First stage DSPs should be fully pipelined => dual AD, dual B, M, P registers
-    // Register stage 1 -> pipeline inputs
-    logic signed [15:0] first_stage_macc_dsps_dualAD1reg[0:59];
-    logic signed [15:0] first_stage_macc_dsps_dualB1reg[0:59];
-    // Register stage 2 -> pipeline outputs
-    logic signed [15:0] first_stage_macc_dsps_dualAD2reg[0:59];
-    logic signed [15:0] first_stage_macc_dsps_dualB2reg[0:59];
-    // Register stage 3 -> multiplcation result
-    logic signed [15:0] first_stage_macc_dsps_Mreg[0:59];
-    // Register stage 4 -> accumulate
-    logic signed [15:0] first_stage_macc_dsps_Preg[0:59];
+    // Use distributed RAM because BRAM is used by weights
+    logic signed            [7:0] conv_acc_map[0:5][0:9][0:9][0:9];
     
-    // Adder DSPs, some fabric FFs are required to match pipeline delays
+    // Shift the first 1 into the valid shreg when conv_feature_cnt is 9,9 and conv_kernel_cnt is 4,4
+    // shreg should be the length of the number of pipeline stages in the adder DSPs
+    logic                   [3:0] conv_interm_valid_sr;
+    
+    
+    logic signed            [7:0] first_stage_macc_dsps_dualAD1reg[0:59];
+    logic signed            [7:0]  first_stage_macc_dsps_dualB1reg[0:59];
+    logic signed            [7:0] first_stage_macc_dsps_dualAD2reg[0:59];
+    logic signed            [7:0]  first_stage_macc_dsps_dualB2reg[0:59];
+    logic signed            [7:0]       first_stage_macc_dsps_Mreg[0:59];
+    logic signed            [7:0]       first_stage_macc_dsps_Preg[0:59];
+    
     logic [15:0] adder_dsp_0_A1;
     logic [15:0] adder_dsp_0_A2;
     logic [15:0] adder_dsp_0_FFD;
@@ -417,8 +409,7 @@ module conv2(
     
     logic [15:0] adder_dsp_26_P;
     
-    // Stage 1 DSP MACC logic
-    always_ff @(posedge i_clk)
+    always_ff @(posedge i_clk) begin
         for (int i = 0; i < 6; i++)
             for (int j = 0; j < 10; j++) begin
                 first_stage_macc_dsps_dualAD1reg[i][j]
@@ -439,19 +430,29 @@ module conv2(
                     <= first_stage_macc_dsps_Preg[i][j]
                         + first_stage_macc_dsps_Mreg[i][j];
             end
+    end
     
-    // Stage 1 DSP output datapath
+    // if i_feature_valid, we know data will start filling the A/B registers of the 60 DSPs
+    // we can then shift in a 1 to the correct length shreg which shifts out valid signal
+    // 
+    
     always_ff @(posedge i_clk) begin
-        if (conv_acc_ctr == 24) begin
+        conv_interm_valid_sr <= {conv_interm_valid_sr[2:0], i_feature_valid};
+        
+        if (conv_interm_valid_sr[3]) begin
             for (int i = 0; i < 6; i++)
                 for (int j = 0; j < 10; j++)
-                    s2_conv_acc_map[i][j][conv_interm_feature_ctr]
-                        <= first_stage_macc_dsps_Preg[i][j];
-            conv_interm_feature_ctr <= conv_interm_feature_ctr + 1;
+                    s2_conv_acc_map[i][j][conv_interm_feature_ctr] <= first_stage_macc_dsps_Preg[i][j];
+    
+            conv_acc_ctr <= conv_acc_ctr + 1;
+            if (conv_acc_ctr == 24) begin
+                conv_acc_ctr            <= 0;
+                conv_interm_feature_ctr <= conv_interm_feature_ctr + 1;
+            end
         end
     end
     
-    // Stage 2 DSP adder logic
+    // As soon as a new interm feature is valid, we propagate the value through the adders
     always_ff @(posedge i_clk) begin
         // conv_interm_feature_ctr may need to be subtracted by 1?
         // or will need to account for it in the next layer
@@ -736,7 +737,10 @@ module conv2(
         adder_dsp_26_P <= adder_dsp_24_P + adder_dsp_25_P;
     end
     
-    // Stage 2 DSP output datapaths
+    // Valid shreg should shift in when macc operations begin
+    // adder trees should be balanced pipelined so data out
+    // has a latency but throughput every cycle
+    // then data out stays valid until layers finishes
     always_ff @(posedge i_clk) begin
         o_features[0]  <= adder_dsp_0_P;
         o_features[1]  <= adder_dsp_1_P;
@@ -756,7 +760,7 @@ module conv2(
         o_features[15] <= adder_dsp_26_P;
     end
     
-    always_comb
-        is_mixing <= is_processing;
+    
+    
 
 endmodule
