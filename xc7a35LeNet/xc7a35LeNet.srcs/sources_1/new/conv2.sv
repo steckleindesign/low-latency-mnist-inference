@@ -110,25 +110,24 @@ module conv2(
     
     logic                         macc_en;
     
-    logic signed            [7:0] s2_map[0:5][0:9][0:9];
+    logic signed            [7:0] s2_map[0:5][0:13][0:13];
     
-    logic         [$clog2(5)-1:0] conv_kernel_col_cnt;
-    logic         [$clog2(5)-1:0] conv_kernel_row_cnt;
+    logic        [$clog2(14)-1:0] input_feature_col_cnt;
+    logic        [$clog2(14)-1:0] input_feature_row_cnt;
     
-    logic        [$clog2(10)-1:0] conv_feature_col_cnt;
-    logic        [$clog2(10)-1:0] conv_feature_row_cnt;
+    logic        [$clog2(10)-1:0] mult_feature_col_cnt;
+    logic        [$clog2(10)-1:0] mult_feature_row_cnt;
     
-    logic signed            [7:0] s2_conv_feature_operands[0:59];
-    logic signed            [7:0] s2_conv_weight_operands[0:59];
+    logic         [$clog2(5)-1:0] mult_kernel_col_cnt;
+    logic         [$clog2(5)-1:0] mult_kernel_row_cnt;
+    
+    logic                   [3:0] mult_result_valid_sr;
     
     // 48000 bits -> Distributed RAM utilization is 120 CLBs
     // This is the case if both slices in each CLB are SLICEM
     // Use distributed RAM because BRAM is used by weights
-    logic signed            [7:0] conv_acc_map[0:5][0:9][0:9][0:9];
+    logic signed            [7:0] macc_map[0:5][0:9][0:9][0:9];
     
-    // Shift the first 1 into the valid shreg when conv_feature_cnt is 9,9 and conv_kernel_cnt is 4,4
-    // shreg should be the length of the number of pipeline stages in the adder DSPs
-    logic                   [3:0] conv_interm_valid_sr;
     
     
     logic signed            [7:0] first_stage_macc_dsps_dualAD1reg[0:59];
@@ -138,6 +137,7 @@ module conv2(
     logic signed            [7:0]       first_stage_macc_dsps_Mreg[0:59];
     logic signed            [7:0]       first_stage_macc_dsps_Preg[0:59];
     
+    // Syntax simplify so we don't have so many signals
     logic [15:0] adder_dsp_0_A1;
     logic [15:0] adder_dsp_0_A2;
     logic [15:0] adder_dsp_0_FFD;
@@ -409,45 +409,83 @@ module conv2(
     
     logic [15:0] adder_dsp_26_P;
     
+    
     always_ff @(posedge i_clk) begin
-        for (int i = 0; i < 6; i++)
-            for (int j = 0; j < 10; j++) begin
-                first_stage_macc_dsps_dualAD1reg[i][j]
-                    <= i_features[i];
-                first_stage_macc_dsps_dualB1reg[i][j]
-                    <= weights[i*10+j];
-                
-                first_stage_macc_dsps_dualAD2reg[i][j]
-                    <= first_stage_macc_dsps_dualAD1reg[i][j];
-                first_stage_macc_dsps_dualB2reg[i][j]
-                    <= first_stage_macc_dsps_dualB1reg[i][j];
-                
-                first_stage_macc_dsps_Mreg[i][j]
-                    <= first_stage_macc_dsps_dualAD2reg[i][j]
-                        * first_stage_macc_dsps_dualB2reg[i][j];
-                
-                first_stage_macc_dsps_Preg[i][j]
-                    <= first_stage_macc_dsps_Preg[i][j]
-                        + first_stage_macc_dsps_Mreg[i][j];
+        if (i_rst) begin
+            macc_en               <= 0;
+            input_feature_col_cnt <= 0;
+            input_feature_row_cnt <= 0;
+        end else begin
+            if (i_feature_valid) begin
+                for (int i = 0; i < 6; i++)
+                    s2_map[i][input_feature_row_cnt][input_feature_col_cnt] <= i_features[i];
+                input_feature_col_cnt <= input_feature_col_cnt + 1;
+                if (input_feature_col_cnt == 13) begin
+                    input_feature_col_cnt <= 0;
+                    input_feature_row_cnt <= input_feature_row_cnt + 1;
+                    if (input_feature_row_cnt == 13) begin
+                        macc_en <= 1;
+                    end
+                end
             end
+        end
     end
     
-    // if i_feature_valid, we know data will start filling the A/B registers of the 60 DSPs
-    // we can then shift in a 1 to the correct length shreg which shifts out valid signal
-    // 
     
     always_ff @(posedge i_clk) begin
-        conv_interm_valid_sr <= {conv_interm_valid_sr[2:0], i_feature_valid};
+        if (i_rst) begin
+            first_stage_macc_dsps_dualAD1reg <= '{default: 0};
+             first_stage_macc_dsps_dualB1reg <= '{default: 0};
+            first_stage_macc_dsps_dualAD2reg <= '{default: 0};
+             first_stage_macc_dsps_dualB2reg <= '{default: 0};
+                  first_stage_macc_dsps_Mreg <= '{default: 0};
+                  first_stage_macc_dsps_Preg <= '{default: 0};
+            // Is it a bad practice to shift in 0 during reset like this?
+            mult_result_valid_sr <= {mult_result_valid_sr[2:0], 1'b0};
+        end else begin
+            mult_result_valid_sr <= {mult_result_valid_sr[2:0], 1'b0};
+            if (macc_en) begin
+                mult_kernel_col_cnt <= mult_kernel_col_cnt + 1;
+                if (mult_kernel_col_cnt == 4) begin
+                    mult_kernel_col_cnt <= 0;
+                    mult_kernel_row_cnt <= mult_kernel_row_cnt + 1;
+                    if (mult_kernel_row_cnt == 4) begin
+                        mult_kernel_row_cnt <= 0;
+                        mult_result_valid_sr <= {mult_result_valid_sr[2:0], 1'b1};
+                    end
+                end
+                
+                for (int i = 0; i < 6; i++) begin
+                    for (int j = 0; j < 10; j++) begin
+                        first_stage_macc_dsps_dualAD1reg[i][j] <= s2_map[i][mult_feature_row_cnt]
+                                                                           [mult_feature_col_cnt];
+                        first_stage_macc_dsps_dualB1reg[i][j] <= weights[i][j]
+                                                                        [mult_kernel_row_cnt]
+                                                                        [mult_kernel_col_cnt];
+                        
+                        first_stage_macc_dsps_dualAD2reg[i][j]
+                            <= first_stage_macc_dsps_dualAD1reg[i][j];
+                        first_stage_macc_dsps_dualB2reg[i][j]
+                            <= first_stage_macc_dsps_dualB1reg[i][j];
+                        
+                        first_stage_macc_dsps_Mreg[i][j]
+                            <= first_stage_macc_dsps_dualAD2reg[i][j]
+                                * first_stage_macc_dsps_dualB2reg[i][j];
+                        
+                        first_stage_macc_dsps_Preg[i][j]
+                            <= first_stage_macc_dsps_Preg[i][j]
+                                + first_stage_macc_dsps_Mreg[i][j];
+                    end
+                end
         
-        if (conv_interm_valid_sr[3]) begin
-            for (int i = 0; i < 6; i++)
-                for (int j = 0; j < 10; j++)
-                    s2_conv_acc_map[i][j][conv_interm_feature_ctr] <= first_stage_macc_dsps_Preg[i][j];
-    
-            conv_acc_ctr <= conv_acc_ctr + 1;
-            if (conv_acc_ctr == 24) begin
-                conv_acc_ctr            <= 0;
-                conv_interm_feature_ctr <= conv_interm_feature_ctr + 1;
+                if (mult_result_valid_sr[3])
+                    for (int i = 0; i < 6; i++)
+                        for (int j = 0; j < 10; j++)
+                            // Need to use row/col from 4 cycles ago
+                            macc_map[i][j]
+                                    [mult_feature_row_cnt]
+                                    [mult_feature_col_cnt]
+                                        <= first_stage_macc_dsps_Preg[i][j];
             end
         end
     end
