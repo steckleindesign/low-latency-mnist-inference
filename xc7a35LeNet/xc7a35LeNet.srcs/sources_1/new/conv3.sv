@@ -6,6 +6,14 @@
     Num multiplies = 120*16*5*5 = 48000
     90 DSP48s, 48000/90 = 533.3 = 534 clock cycles
     
+    INPUT: 16x 5x5 feature maps
+    OUTPUT: 120 neurons
+    
+    Theory of operation:
+    Start with multiplying map 0 location 0,0 and work our way left to right on the input map
+    then work our way top to bottom on the input map, then work our way through each input map
+    all the way through map 15.
+    
     Architecture: 4 state FSM
     DSP48E1 mapping by state
     State:      1,  2,  3,  4
@@ -20,18 +28,17 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module conv3(
-    input  logic        i_clk,
-    input  logic        i_rst,
-    input  logic        i_feature_valid,
-    input  logic [15:0] i_feature,
-    output logic        o_feature_valid,
-    output logic [15:0] o_feature[0:119],
+    input  logic       i_clk,
+    input  logic       i_rst,
+    input  logic       i_feature_valid,
+    input  logic [7:0] i_features[0:15],
+    output logic       o_feature_valid,
+    output logic [7:0] o_feature[0:119],
     
-    input  logic [7:0] weights[0:89],
-    output logic is_mixing
+    input  logic [7:0] weights[0:89]
 );
 
-    // Each convolution is 16*5*5, each of the 120 neurons in this layer connects to all 16 S4 feature maps
+    // Each of the 120 output neurons connect to all 16 S4 feature maps (16x5x5=400)
     localparam S4_NUM_MAPS = 16;
     localparam S4_MAP_SIZE = 5;
     localparam NUM_NEURONS = 120;
@@ -49,15 +56,14 @@ module conv3(
     initial $readmemb(BIASES_FILE, biases);
     
     // 120 accumulate values for each of the 120 neurons in the following layer
-    logic [8+$clog2(NUM_NEURONS)-1:0] accumulates[0:NUM_NEURONS-1] = '{default: 0};
+    logic signed  [7:0] accumulates[0:NUM_NEURONS-1] = '{default: 0};
     
     // 3 DSP groups (30 DSP48E1s per group)
     logic signed [23:0] macc_out[0:2][0:(NUM_DSP/3)-1];
     
-    logic signed [7:0] feature_operands[0:2];
-    logic signed [7:0] weight_operands[0:NUM_DSP-1];
-    logic signed [$clog2(S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE)+7:0] accumulate_operands
-                                                                    [0:2][0:(NUM_DSP/3)-1];
+    logic signed  [7:0] feature_operands[0:2];
+    logic signed  [7:0] weight_operands[0:NUM_DSP-1];
+    logic signed [$clog2(S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE)+7:0] accumulate_operands[0:2][0:(NUM_DSP/3)-1];
     
     // TODO: Can we shink this so we dont take up 3200 FFs? Thats 400 slices.
     logic signed [7:0] feature_buf[0:S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE-1];
@@ -245,8 +251,5 @@ module conv3(
     
     always_comb
         o_feature <= accumulates;
-        
-    always_comb
-        is_mixing <= is_processing;
     
 endmodule
