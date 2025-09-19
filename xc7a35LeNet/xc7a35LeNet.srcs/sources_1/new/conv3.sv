@@ -13,6 +13,7 @@
     Start with multiplying map 0 location 0,0 and work our way left to right on the input map
     then work our way top to bottom on the input map, then work our way through each input map
     all the way through map 15.
+    TODO: Pipeline DSP48E1s
     
     Architecture: 4 state FSM
     DSP48E1 mapping by state
@@ -20,22 +21,22 @@
     Neuron n+1: 90, 30
     Neuron n+2:     60, 60
     Neuron n+3:         30, 90
-    
-    TODO: Verify control logic and check for off-by-ones
-    
+    Throughout 4 states, we compute 3 features
+    400 features, so 4* 400/3 = 533.3 = 534 cycles
+        
 */
 
 //////////////////////////////////////////////////////////////////////////////////
 
 module conv3(
-    input  logic       i_clk,
-    input  logic       i_rst,
-    input  logic       i_feature_valid,
-    input  logic [7:0] i_features[0:15],
-    output logic       o_feature_valid,
-    output logic [7:0] o_feature[0:119],
+    input  logic              i_clk,
+    input  logic              i_rst,
+    input  logic              i_feature_valid,
+    input  logic        [7:0] i_features[0:15],
+    output logic              o_feature_valid,
+    output logic signed [7:0] o_features[0:119],
     
-    input  logic [7:0] weights[0:89]
+    input  logic        [7:0] weights[0:89]
 );
 
     // Each of the 120 output neurons connect to all 16 S4 feature maps (16x5x5=400)
@@ -55,33 +56,28 @@ module conv3(
     logic signed [7:0] biases [0:NUM_NEURONS-1];
     initial $readmemb(BIASES_FILE, biases);
     
-    // 120 accumulate values for each of the 120 neurons in the following layer
-    logic signed  [7:0] accumulates[0:NUM_NEURONS-1] = '{default: 0};
+    logic                                  macc_en;
     
-    // 3 DSP groups (30 DSP48E1s per group)
-    logic signed [23:0] macc_out[0:2][0:(NUM_DSP/3)-1];
+    logic signed                     [7:0] s4_map[0:15][0:4][0:4];
     
-    logic signed  [7:0] feature_operands[0:2];
-    logic signed  [7:0] weight_operands[0:NUM_DSP-1];
-    logic signed [$clog2(S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE)+7:0] accumulate_operands[0:2][0:(NUM_DSP/3)-1];
+    logic                  [$clog2(5)-1:0] input_feature_col_cnt;
+    logic                  [$clog2(5)-1:0] input_feature_row_cnt;
     
-    // TODO: Can we shink this so we dont take up 3200 FFs? Thats 400 slices.
-    logic signed [7:0] feature_buf[0:S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE-1];
-    logic signed [7:0] current_features[0:1];
+    logic                 [$clog2(16)-1:0] feature_operand_map_cnt;
+    logic                  [$clog2(5)-1:0] feature_operand_row_cnt;
+    logic                  [$clog2(5)-1:0] feature_operand_col_cnt;
     
-    // Used for storing incoming features at their arrival location
-    logic [$clog2(S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE)-1:0] feature_buf_ctr  = 0;
-    // Used for reading feature from buffer into current feature slot
-    logic [$clog2(S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE)-1:0] feature_buf_addr = 0;
+    logic signed                     [7:0] current_features[0:1];
+    logic signed                     [7:0] feature_operands[0:2];
+    logic signed                     [7:0] weight_operands[0:NUM_DSP-1];
+    logic signed                     [7:0] accumulate_operands[0:2][0:(NUM_DSP/3)-1];
+    logic signed                     [7:0] macc_out[0:2][0:(NUM_DSP/3)-1];
     
-    logic [$clog2(NUM_NEURONS)-1:0] conv_pattern_rollover_cnt = 0;
+    logic signed                     [7:0] accumulates[0:NUM_NEURONS-1] = '{default: 0};
     
-    // 544 clock cycles of * operations in this layer
-    logic [$clog2(543)-1:0] conv3_cyc;
+    logic        [$clog2(NUM_NEURONS)-1:0] conv_pattern_rollover_cnt = 0;
     
-    logic is_processing    = 0;
-    logic feature_buf_full = 0;
-    logic data_valid       = 0;
+    logic                [$clog2(543)-1:0] conv3_cyc;
     
     typedef enum logic [1:0] {
         CONV3_ONE,
@@ -92,21 +88,15 @@ module conv3(
     conv3_state_t state = CONV3_ONE;
     
     always_ff @(posedge i_clk) begin
-        if (is_processing) begin
+        if (macc_en) begin
             case(state)
                 CONV3_ONE: begin
-                    current_features <= {current_features[0], feature_buf[feature_buf_addr]};
-                    feature_buf_addr <= feature_buf_addr + 1;
                     state <= CONV3_TWO;
                 end
                 CONV3_TWO: begin
-                    current_features <= {current_features[0], feature_buf[feature_buf_addr]};
-                    feature_buf_addr <= feature_buf_addr + 1;
                     state <= CONV3_THREE;
                 end
                 CONV3_THREE: begin
-                    current_features <= {current_features[0], feature_buf[feature_buf_addr]};
-                    feature_buf_addr <= feature_buf_addr + 1;
                     state <= CONV3_FOUR;
                 end
                 CONV3_FOUR: begin
@@ -114,34 +104,60 @@ module conv3(
                     state <= CONV3_ONE;
                 end
             endcase
+            if (state == CONV3_ONE | state == CONV3_TWO | state == CONV3_THREE) begin
+                current_features <= {current_features[0], s4_map[feature_operand_map_cnt]
+                                                                [feature_operand_row_cnt]
+                                                                [feature_operand_col_cnt]};
+                feature_operand_col_cnt <= feature_operand_col_cnt + 1;
+                if (feature_operand_col_cnt == 4) begin
+                    feature_operand_col_cnt <= 0;
+                    feature_operand_row_cnt <= feature_operand_row_cnt + 1;
+                    if (feature_operand_row_cnt == 4) begin
+                        feature_operand_row_cnt <= 0;
+                        feature_operand_map_cnt <= feature_operand_map_cnt + 1;
+                        if (feature_operand_map_cnt == 15) begin
+                            // Layer is done.
+                        end
+                    end
+                end
+            end
         end
     end
     
+    // We need to take in 16 features in parallel, and place them in appropriate feature buffer location
+    // Maybe the dimensions of the feature buffer should be 16x5x5.
+    // We could have 16 separate distributed RAMs, 32x8 bits each. Would use 16 slices?
+    // We then would need 3D feature buffer counter: map #, row #, column #.
     always_ff @(posedge i_clk)
         if (i_feature_valid) begin
-            is_processing <= 1;
-            if (~feature_buf_full) begin
-                feature_buf[feature_buf_ctr] <= i_feature;
-                feature_buf_ctr <= feature_buf_ctr + 1;
-                if (feature_buf_ctr == S4_NUM_MAPS*S4_MAP_SIZE*S4_MAP_SIZE)
-                    feature_buf_full <= 1;
+            for (int i = 0; i < 16; i++)
+                s4_map[i][input_feature_row_cnt]
+                         [input_feature_col_cnt] <= i_features[i];
+            input_feature_col_cnt <= input_feature_col_cnt + 1;
+            if (input_feature_col_cnt == 4) begin
+                input_feature_col_cnt <= 0;
+                input_feature_row_cnt <= input_feature_row_cnt + 1;
+                if (input_feature_row_cnt == 4) begin
+                    macc_en <= 1;
+                end
             end
         end
     
-//    always_ff @(posedge i_clk)
-//        if (is_processing)
-//            conv3_cyc <= conv3_cyc + 1;
-    
+    // What to do with cycle count?
     always_ff @(posedge i_clk)
-        // 16*5*5=400 features, 3 features per pattern, 400/3=133.3
-        // All valid data is present in 2 cycles
-        // 30 neurons are ready on the first cycle valid is high
-        // 90 other neurons are valid the next cycle
+        if (macc_en)
+            conv3_cyc <= conv3_cyc + 1;
+    
+    // All date becomes valid during 2 cycles, 30 neurons are ready on the
+    // first valid cycle and the 90 other neurons are valid the next cycle
+    always_ff @(posedge i_clk)
         if (conv_pattern_rollover_cnt == 8'd133 && (state == CONV3_THREE || state == CONV3_FOUR))
-            data_valid <= 1;
+            o_feature_valid <= 1;
+        else
+            o_feature_valid <= 0;
     
     always_ff @(posedge i_clk) begin
-        if (is_processing) begin
+        if (macc_en) begin
             case(state)
                 CONV3_ONE: begin
                     feature_operands[0] <= current_features[0];
@@ -172,7 +188,7 @@ module conv3(
     end
     
     always_ff @(posedge i_clk) begin
-        if (is_processing) begin
+        if (macc_en) begin
             case(state)
                 CONV3_ONE: begin
                     for (int i = 0; i < 30; i++) begin
@@ -215,7 +231,7 @@ module conv3(
                             accumulate_operands[i][j];
     
     always_ff @(posedge i_clk) begin
-        if (is_processing) begin
+        if (macc_en) begin
             case(state)
                 CONV3_ONE: begin
                     for (int i = 0; i < 30; i++) begin
@@ -250,6 +266,6 @@ module conv3(
     end
     
     always_comb
-        o_feature <= accumulates;
+        o_features <= accumulates;
     
 endmodule

@@ -3,46 +3,23 @@
 
 /*
     Connections (# of * ops): 120 * 84 = 10080
-    
     Trainable parameters = (120 + 1) * 84 = 10164
-    
     @ 90 DSPs, 10164 / 90 = 112 clock cycles
     
-    Adder trees won't be so bad, 120 operands, $clog2(120) = 7 clock cycles,
-    overall latency of layer should be within 120 clock cycles
+    Adder trees: 120 operands, $clog2(120) = 7 clock cycles, layer latency = 119 clock cycles
     
     FSM has 4 states:
-    DSP48E1 usage by state:
-    State:      1,  2,  3,  4
-    Neuron n+1: 90, 30
-    Neuron n+2:     60, 60
-    Neuron n+3:         30, 90
+    DSP48E1 usage by state:         4 neuron groups     3 DSP groups, each DSP group gets mapped to 2 neuron groups
+    State:      1,  2,  3,  4       s0 [ 0 -  29]       d0 -> [s0, s1]                                           
+    Neuron n+1: 90, 30              s1 [30 -  59]       d1 -> [s1, s2]                                           
+    Neuron n+2:     60, 60          s2 [60 -  89]       d2 -> [s2, s3]                                           
+    Neuron n+3:         30, 90      s3 [90 - 119]       d2 -> [s2, s3]                                           
     
-    4 neuron groups
-    s0 [ 0 -  29]
-    s1 [30 -  59]
-    s2 [60 -  89]
-    s3 [90 - 119]
+    state 1: [0-29], [30-59], [60-89]       State 1: d0->s0, d1->s1, d2->s2
+    state 2: [0-29], [30-59], [90-119]      State 2: d0->s0, d1->s1, d2->s3
+    state 3: [60-89], [90-119], [0-29]      State 3: d0->s0, d1->s2, d2->s3
+    state 4: [30-59], [60-89], [90-119]     State 4: d0->s1, d1->s2, d2->s3
     
-    3 DSP groups, each DSP group is mapped to 2 neuron groups
-    d0 -> [s0, s1]
-    d1 -> [s1, s2]
-    d2 -> [s2, s3]
-    
-    state 1: [0-29], [30-59], [60-89]
-    state 2: [0-29], [30-59], [90-119]
-    state 3: [60-89], [90-119], [0-29]
-    state 4: [30-59], [60-89], [90-119]
-    
-    State 1: d0->s0, d1->s1, d2->s2
-    State 2: d0->s0, d1->s1, d2->s3
-    State 3: d0->s0, d1->s2, d2->s3
-    State 4: d0->s1, d1->s2, d2->s3
-    
-    4 cycles to compute * operations for 3 neurons.
-    4 * 84/3 = 4 * 28 = 112 clock cycles.
-    
-    C5 neurons come in parallel
 */
 
 //////////////////////////////////////////////////////////////////////////////////
@@ -55,8 +32,7 @@ module fc (
     output logic        o_neuron_valid,
     output logic [15:0] o_neuron,
     
-    input logic  [7:0] weights[0:89],
-    output logic is_mixing
+    input logic  [7:0] weights[0:89]
 );
 
     localparam NUM_FEATURES = 120;
@@ -72,10 +48,9 @@ module fc (
     logic signed [7:0] biases[0:NUM_FEATURES-1];
     initial $readmemb(BIASES_FILE, biases);
     
-    logic [8:0] upstream_neurons[0:NUM_FEATURES-1];
+    logic              macc_en;
     
-    // # ROMs = # DSPs = 90 | Width = 8 | ROM depth = cycles = 112
-    logic [7:0] coefficients_rom[0:89][0:111];
+    logic signed [7:0] upstream_neurons[0:NUM_FEATURES-1];
     
     logic [8:0] mult[0:2][0:29];
     
@@ -84,6 +59,12 @@ module fc (
     
     // One-hot encoding adder tree valid SR
     logic [8:0] adder_result_valid[0:2];
+    
+    // Control counters
+    // logic          [$clog2(112)-1:0] cycle_cnt;
+    logic [$clog2(NUM_FEATURES)-1:0] feature_ctr;
+    logic  [$clog2(NUM_NEURONS)-1:0] neuron_ctr;
+    
     
     /*
     [1+2] 3
@@ -120,14 +101,6 @@ module fc (
     logic [7:0] adder3_stage8[0:1];
     logic [7:0] adder3_result;
     
-    // Control counters
-    // logic          [$clog2(112)-1:0] cycle_cnt;
-    logic [$clog2(NUM_FEATURES)-1:0] feature_ctr;
-    logic  [$clog2(NUM_NEURONS)-1:0] neuron_ctr;
-    
-    logic is_processing;
-    logic done;
-    
     typedef enum logic [1:0] {
         FC_ONE,
         FC_TWO,
@@ -143,6 +116,7 @@ module fc (
             state <= next_state;
     end
     
+    // 4 cycles to compute * operations for 3 neurons. 4 * 84/3 = 4 * 28 = 112 clock cycles.
     always_comb
         if (~is_processing) begin
             next_state = FC_ONE;
@@ -354,8 +328,5 @@ module fc (
                 {adder_tree_valid_sr[i][6:0],
                  is_processing ? state == valid_states[i]: 1'b0};
     end
-    
-    always_comb
-        is_mixing <= is_processing;
     
 endmodule
