@@ -34,9 +34,7 @@ module conv3(
     input  logic              i_feature_valid,
     input  logic        [7:0] i_features[0:15],
     output logic              o_feature_valid,
-    output logic signed [7:0] o_features[0:119],
-    
-    input  logic        [7:0] weights[0:89]
+    output logic signed [7:0] o_features[0:119]
 );
 
     // Each of the 120 output neurons connect to all 16 S4 feature maps (16x5x5=400)
@@ -45,11 +43,11 @@ module conv3(
     localparam NUM_NEURONS = 120;
     localparam NUM_DSP     = 90;
     
-    // Weights
-    // localparam string WEIGHTS_FILE = "weights.mem";
-    // logic signed [7:0]
-    // weights [0:NUM_NEURONS-1][0:S4_MAP_SIZE-1][0:S4_MAP_SIZE-1];
-    // initial $readmemb(WEIGHTS_FILE, weights);
+     // Weights
+     localparam string WEIGHTS_FILE = "weights.mem";
+     logic signed [7:0]
+     weights [0:NUM_NEURONS-1][0:S4_NUM_MAPS-1][0:S4_MAP_SIZE-1][0:S4_MAP_SIZE-1];
+     initial $readmemb(WEIGHTS_FILE, weights);
     
     // Biases
     localparam string BIASES_FILE = "biases.mem";
@@ -68,10 +66,20 @@ module conv3(
     logic                  [$clog2(5)-1:0] feature_operand_col_cnt;
     
     logic signed                     [7:0] current_features[0:1];
+    
     logic signed                     [7:0] feature_operands[0:2];
     logic signed                     [7:0] weight_operands[0:NUM_DSP-1];
-    logic signed                     [7:0] accumulate_operands[0:2][0:(NUM_DSP/3)-1];
+    
+    // Pipelined DSP48E1 logic
+    logic signed                     [7:0] A1reg[0:2][0:(NUM_DSP/3)-1] = '{default: 0};
+    logic signed                     [7:0] B1reg[0:2][0:(NUM_DSP/3)-1] = '{default: 0};
+    logic signed                     [7:0] A2reg[0:2][0:(NUM_DSP/3)-1] = '{default: 0};
+    logic signed                     [7:0] B2reg[0:2][0:(NUM_DSP/3)-1] = '{default: 0};
+    logic signed                     [7:0]  Mreg[0:2][0:(NUM_DSP/3)-1] = '{default: 0};
+    logic signed                     [7:0]  Preg[0:2][0:(NUM_DSP/3)-1] = '{default: 0};
+    
     logic signed                     [7:0] macc_out[0:2][0:(NUM_DSP/3)-1];
+    
     
     logic signed                     [7:0] accumulates[0:NUM_NEURONS-1] = '{default: 0};
     
@@ -160,62 +168,87 @@ module conv3(
         if (macc_en) begin
             case(state)
                 CONV3_ONE: begin
-                    feature_operands[0] <= current_features[0];
-                    feature_operands[1] <= current_features[1];
-                    feature_operands[2] <= current_features[1];
-                    // weight_operands <= weights[conv3_cyc];
-                end
-                CONV3_TWO: begin
-                    feature_operands[0] <= current_features[0];
-                    feature_operands[1] <= current_features[0];
-                    feature_operands[2] <= current_features[1];
-                    // weight_operands <= weights[conv3_cyc];
-                end
-                CONV3_THREE: begin
-                    feature_operands[0] <= current_features[1];
-                    feature_operands[1] <= current_features[1];
-                    feature_operands[2] <= current_features[1];
-                    // weight_operands <= weights[conv3_cyc];
-                end
-                CONV3_FOUR: begin
-                    feature_operands[0] <= current_features[0];
-                    feature_operands[1] <= current_features[0];
-                    feature_operands[2] <= current_features[0];
-                    // weight_operands <= weights[conv3_cyc];
-                end
-            endcase
-        end
-    end
-    
-    always_ff @(posedge i_clk) begin
-        if (macc_en) begin
-            case(state)
-                CONV3_ONE: begin
                     for (int i = 0; i < 30; i++) begin
-                        accumulate_operands[0][i] <= accumulates[90 + i];
-                        accumulate_operands[1][i] <= accumulates[     i];
-                        accumulate_operands[2][i] <= accumulates[30 + i];
+                        A1reg[0][i] <= current_features[0];
+                        A1reg[1][i] <= current_features[1];
+                        A1reg[2][i] <= current_features[1];
+                        // Addressing for the weights here might be more complicated
+                        // because there is a +1 added to be added to the counters
+                        B1reg[0][i] <= weights[i]
+                                              [feature_operand_map_cnt]
+                                              [feature_operand_row_cnt]
+                                              [feature_operand_col_cnt];
+                        B1reg[1][i] <= weights[30+i]
+                                              [feature_operand_map_cnt]
+                                              [feature_operand_row_cnt]
+                                              [feature_operand_col_cnt];
+                        B1reg[2][i] <= weights[60+i]
+                                              [feature_operand_map_cnt]
+                                              [feature_operand_row_cnt]
+                                              [feature_operand_col_cnt];
                     end
                 end
                 CONV3_TWO: begin
                     for (int i = 0; i < 30; i++) begin
-                        accumulate_operands[0][i] <= accumulates[60 + i];
-                        accumulate_operands[1][i] <= accumulates[90 + i];
-                        accumulate_operands[2][i] <= accumulates[     i];
+                        A1reg[0][i] <= current_features[0];
+                        A1reg[1][i] <= current_features[0];
+                        A1reg[2][i] <= current_features[1];
+                        // Addressing for the weights here might be more complicated
+                        // because there is a +1 added to be added to the counters
+                        B1reg[0][i] <= weights[i]
+                                              [feature_operand_map_cnt]
+                                              [feature_operand_row_cnt]
+                                              [feature_operand_col_cnt];
+                        B1reg[1][i] <= weights[30+i]
+                                              [feature_operand_map_cnt]
+                                              [feature_operand_row_cnt]
+                                              [feature_operand_col_cnt];
+                        B1reg[2][i] <= weights[60+i]
+                                              [feature_operand_map_cnt]
+                                              [feature_operand_row_cnt]
+                                              [feature_operand_col_cnt];
                     end
                 end
                 CONV3_THREE: begin
                     for (int i = 0; i < 30; i++) begin
-                        accumulate_operands[0][i] <= accumulates[30 + i];
-                        accumulate_operands[1][i] <= accumulates[60 + i];
-                        accumulate_operands[2][i] <= accumulates[90 + i];
+                        A1reg[0][i] <= current_features[1];
+                        A1reg[1][i] <= current_features[1];
+                        A1reg[2][i] <= current_features[1];
+                        // Addressing for the weights here might be more complicated
+                        // because there is a +1 added to be added to the counters
+                        B1reg[0][i] <= weights[i]
+                                              [feature_operand_map_cnt]
+                                              [feature_operand_row_cnt]
+                                              [feature_operand_col_cnt];
+                        B1reg[1][i] <= weights[30+i]
+                                              [feature_operand_map_cnt]
+                                              [feature_operand_row_cnt]
+                                              [feature_operand_col_cnt];
+                        B1reg[2][i] <= weights[60+i]
+                                              [feature_operand_map_cnt]
+                                              [feature_operand_row_cnt]
+                                              [feature_operand_col_cnt];
                     end
                 end
                 CONV3_FOUR: begin
                     for (int i = 0; i < 30; i++) begin
-                        accumulate_operands[0][i] <= accumulates[     i];
-                        accumulate_operands[1][i] <= accumulates[30 + i];
-                        accumulate_operands[2][i] <= accumulates[60 + i];
+                        A1reg[0][i] <= current_features[0];
+                        A1reg[1][i] <= current_features[0];
+                        A1reg[2][i] <= current_features[0];
+                        // Addressing for the weights here might be more complicated
+                        // because there is a +1 added to be added to the counters
+                        B1reg[0][i] <= weights[i]
+                                              [feature_operand_map_cnt]
+                                              [feature_operand_row_cnt]
+                                              [feature_operand_col_cnt];
+                        B1reg[1][i] <= weights[30+i]
+                                              [feature_operand_map_cnt]
+                                              [feature_operand_row_cnt]
+                                              [feature_operand_col_cnt];
+                        B1reg[2][i] <= weights[60+i]
+                                              [feature_operand_map_cnt]
+                                              [feature_operand_row_cnt]
+                                              [feature_operand_col_cnt];
                     end
                 end
             endcase
@@ -224,11 +257,12 @@ module conv3(
     
     always_ff @(posedge i_clk)
         for (int i = 0; i < 3; i++)
-            for (int j = 0; j < 30; j++)
-                macc_out[i][j] <=
-                    feature_operands[i] *
-                        weight_operands[i*30+j] +
-                            accumulate_operands[i][j];
+            for (int j = 0; j < 30; j++) begin
+                A2reg[i][j] <= A1reg[i][j];
+                B2reg[i][j] <= B1reg[i][j];
+                Mreg [i][j] <= A2reg[i][j] * B2reg[i][j];
+                Preg [i][j] <=  Preg[i][j] +  Mreg[i][j];
+            end
     
     always_ff @(posedge i_clk) begin
         if (macc_en) begin
