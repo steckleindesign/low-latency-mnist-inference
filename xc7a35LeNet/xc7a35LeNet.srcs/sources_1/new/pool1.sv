@@ -6,25 +6,25 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module pool1(
-    input  logic       i_clk,
-    input  logic       i_rst,
-    input  logic       i_feature_valid,
-    input  logic [7:0] i_features[0:5],
-    output logic       o_feature_valid,
-    output logic [7:0] o_features[0:5]
+    input  logic              i_clk,
+    input  logic              i_rst,
+    input  logic              i_feature_valid,
+    input  logic signed [7:0] i_features[0:5],
+    output logic              o_feature_valid,
+    output logic signed [7:0] o_features[0:5]
 );
     
     logic [$clog2(14)-1:0] col_cnt = 0;
     logic [$clog2(14)-1:0] row_cnt = 0;
     
-    logic [7:0] feature_sr[0:5][0:13];
+    logic signed [7:0] feature_sr[0:5][0:13];
     
-    logic [7:0] reg_0_0[0:5];
-    logic [7:0] reg_0_1[0:5];
-    logic [7:0] reg_0_c[0:5];
-    logic [7:0] reg_1_0[0:5];
-    logic [7:0] reg_1_1[0:5];
-    logic [7:0] reg_1_c[0:5];
+    logic signed [7:0] reg_0_0[0:5];
+    logic signed [7:0] reg_0_1[0:5];
+    logic signed [7:0] reg_0_c[0:5];
+    logic signed [7:0] reg_1_0[0:5];
+    logic signed [7:0] reg_1_1[0:5];
+    logic signed [7:0] reg_1_c[0:5];
     
     always_ff @(posedge i_clk) begin
         if (i_feature_valid) begin

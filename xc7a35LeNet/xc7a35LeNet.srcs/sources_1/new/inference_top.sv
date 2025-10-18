@@ -118,9 +118,7 @@ Perform feasability of placement after we understand
 
 
 TODO:
-    Control logic for {conv 2, conv 3, fc, output}
-    
-Future:
+    Control logic downstream pool1
     SPI transfer MISO data
     Floorplanning, Synthesis attributes, Placer strategies, Router strategies
 
@@ -236,9 +234,9 @@ module inference_top(
                      .o_feature_valid(pool1_feature_valid),
                      .o_features(pool1_features));
     
-    s2_ram_c3 c3_fifo (.clk(),
-                       .rst(),
-                       .din(),
+    s2_ram_c3 c3_fifo (.clk(clk100m),
+                       .rst(rst),
+                       .din(pool1_features),
                        .dout());
     
     // Convolutional Layer 2
@@ -262,9 +260,9 @@ module inference_top(
                      .o_feature_valid(pool2_feature_valid),
                      .o_features(pool2_features));
     
-    s4_ram_c5 c5_fifo (.clk(),
-                       .rst(),
-                       .din(),
+    s4_ram_c5 c5_fifo (.clk(clk100m),
+                       .rst(rst),
+                       .din(pool2_features),
                        .dout());
     
     // Convolutional Layer 3
@@ -302,7 +300,7 @@ module inference_top(
                         .i_rst(rst),
                         .i_feature_valid(fc2_neuron_valid),
                         .i_feature(fc2_neuron),
-                        // class valid signal will be MCU interrupt line
+                        // Logits valid signal will be MCU interrupt line
                         .o_logits_valid(logits_valid),
                         .o_logits(logit),
                         .is_mixing(feed_output));
