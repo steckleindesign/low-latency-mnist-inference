@@ -8,95 +8,121 @@
     Adder tree latency = $clog2(84) = 7 clock cycles
     Total latency of layer = 10 + 7 = 17 clock cycles
     
-    F6 neurons come serially for the current architecture
-    we shall wait until all F6 features are valid
+    Theory of operation
+    1) 84 neurons come in serially, buffer them into 84x8-bit parallel neurons, enable MACC when full
+    2) When MACC is enabled, register the 84 values into the A inputs of 84 DSP48E1s, set bit 0 of valid shreg
+    3) When Preg is valid, put 84 multiply results into adder tree root combinatorial logic
+    
 */
 
 //////////////////////////////////////////////////////////////////////////////////
 
 module output_fc (
-    input  logic        i_clk,
-    input  logic        i_rst,
-    input  logic        i_feature_valid,
-    input  logic [15:0] i_feature,
-    output logic        o_result_valid,
-    output logic  [3:0] o_result,
-    
-    input  logic [7:0] weights[0:89],
-    output logic is_mixing
+    input  logic       i_clk,
+    input  logic       i_rst,
+    input  logic       i_feature_valid,
+    input  logic [7:0] i_feature,
+    output logic       o_result_valid,
+    output logic [3:0] o_result
 );
 
     localparam INPUT_FEATURE_DEPTH = 84;
     localparam NUM_CLASSES         = 10;
-    localparam ADDER_TREE_DEPTH    = $clog2(INPUT_FEATURE_DEPTH)+1;
     
-    // Weights
-    // localparam string WEIGHTS_FILE = "weights.mem";
-    // logic signed [7:0] weights[0:INPUT_FEATURE_DEPTH-1][0:NUM_CLASSES-1];
-    // initial $readmemb(WEIGHTS_FILE, weights);
+     // Weights
+     localparam string WEIGHTS_FILE = "weights.mem";
+     logic signed [7:0] weights[0:INPUT_FEATURE_DEPTH-1][0:NUM_CLASSES-1];
+     initial $readmemb(WEIGHTS_FILE, weights);
     
     // Biases
-    localparam string BIASES_FILE  = "biases.mem";
+    localparam string BIASES_FILE = "biases.mem";
     logic signed [7:0] biases[0:NUM_CLASSES-1];
     initial $readmemb(BIASES_FILE, biases);
+    
+    logic                                   macc_en;
 
-    logic [7:0] upstream_features[0:INPUT_FEATURE_DEPTH-1];
+    logic signed                      [7:0] upstream_features[0:INPUT_FEATURE_DEPTH-1];
     logic [$clog2(INPUT_FEATURE_DEPTH)-1:0] upstream_features_cnt;
     
-    logic [$clog2(NUM_CLASSES)+ADDER_TREE_DEPTH-1:0] layer_cycle_num;
+    logic                            [11:0] class_valid_sr;
     
-    logic        is_processing;
-    logic [15:0] done_sr;
-    logic        output_valid;
+    logic         [$clog2(NUM_CLASSES)-1:0] operand_load_cnt;
     
-    // logic [15:0] neurons[0:9];
-    logic [19:0] internal_result_bus; // {4-bit class, 16-bit magnitude}
+    logic signed                      [7:0] feature_operands[0:INPUT_FEATURE_DEPTH-1];
+    logic signed                      [7:0] weight_operands[0:INPUT_FEATURE_DEPTH-1];
+    logic signed                      [7:0] A1reg[0:INPUT_FEATURE_DEPTH-1];
+    logic signed                      [7:0] B1reg[0:INPUT_FEATURE_DEPTH-1];
+    logic signed                      [7:0] A2reg[0:INPUT_FEATURE_DEPTH-1];
+    logic signed                      [7:0] B2reg[0:INPUT_FEATURE_DEPTH-1];
+    logic signed                      [7:0]  Mreg[0:INPUT_FEATURE_DEPTH-1];
+    logic signed                      [7:0]  Preg[0:INPUT_FEATURE_DEPTH-1];
+        
+    logic signed                      [7:0] adder_stage2[0:41];
+    logic signed                      [7:0] adder_stage3[0:20];
+    logic signed                      [7:0] adder_stage4[0:10];
+    logic signed                      [7:0] adder_stage5[0:5];
+    logic signed                      [7:0] adder_stage6[0:2];
+    logic signed                      [7:0] adder_stage7[0:1];
+    logic signed                      [7:0] adder_result;
     
-    // Adder tree structure (depth = 8)
-    logic [15:0] adder_stage1[0:83];
-    logic [15:0] adder_stage2[0:41];
-    logic [15:0] adder_stage3[0:20];
-    logic [15:0] adder_stage4[0:10];
-    logic [15:0] adder_stage5[0:5];
-    logic [15:0] adder_stage6[0:2];
-    logic [15:0] adder_stage7[0:1];
-    logic [15:0] adder_result;
-    logic        adder_result_valid;
+    logic         [$clog2(NUM_CLASSES)-1:0] class_valid_cnt;
     
-    always_ff @(posedge i_clk)
+    // {4-bit class, 8-bit magnitude}
+    logic       [$clog2(NUM_CLASSES)+8-1:0] internal_result_bus;
+    
+    always_ff @(posedge i_clk) begin
         if (i_rst) begin
-            output_valid          <= 0;
-            is_processing         <= 0;
+            macc_en               <= 0;
             upstream_features_cnt <= 0;
-            layer_cycle_num       <= 0;
         end else begin
-            output_valid <= 0;
-            
             if (i_feature_valid) begin
                 upstream_features[upstream_features_cnt] <= i_feature;
                 upstream_features_cnt <= upstream_features_cnt + 1;
-                if (upstream_features_cnt == 7'd83)
-                    is_processing <= 1;
-            end
-            
-            if (is_processing) begin
-                done_sr <= {done_sr[14:0], 1'b1};
-                layer_cycle_num <= layer_cycle_num + 1;
-            end
-                
-            if (done_sr[15]) begin
-                is_processing   <= 0;
-                output_valid    <= 1;
-                layer_cycle_num <= 0;
+                if (upstream_features_cnt == (INPUT_FEATURE_DEPTH-1)) begin
+                    macc_en               <= 1;
+                    upstream_features_cnt <= 0;
+                end
+                if (class_valid_cnt == (NUM_CLASSES-1)) begin
+                    macc_en <= 0;
+                end
             end
         end
+    end
     
     always_ff @(posedge i_clk) begin
-        for (int i = 0; i < INPUT_FEATURE_DEPTH; i++)
-            adder_stage1[i] <= upstream_features[i] * weights[i];
+        if (i_rst) begin
+            operand_load_cnt <= 0;
+            class_valid_sr   <= {class_valid_sr[10:0], 1'b0};
+        end else begin
+            class_valid_sr <= {class_valid_sr[10:0], 1'b0};
+            if (macc_en && (operand_load_cnt < NUM_CLASSES)) begin
+                operand_load_cnt <= operand_load_cnt + 1;
+                feature_operands <= upstream_features;
+                weight_operands  <= weights[operand_load_cnt];
+                class_valid_sr   <= {class_valid_sr[10:0], 1'b1};
+            end
+            if (class_valid_cnt == (NUM_CLASSES-1)) begin
+                operand_load_cnt <= 0;
+            end
+        end
+    end
     
+    always_ff @(posedge i_clk) begin
+        if (macc_en) begin
+            for (int i = 0; i < INPUT_FEATURE_DEPTH; i++) begin
+                A1reg[i] <= feature_operands[i];
+                B1reg[i] <= weight_operands[i];
+                A2reg[i] <= A1reg[i];
+                B2reg[i] <= B1reg[i];
+                Mreg [i] <= A2reg[i] * B2reg[i];
+                Preg [i] <= Mreg[i];
+            end
+        end
+    end
+    
+    always_ff @(posedge i_clk) begin
         for (int i = 0; i < 42; i++)
-            adder_stage2[i] <= adder_stage1[i*2] + adder_stage1[i*2+1];
+            adder_stage2[i] <= Preg[i*2] + Preg[i*2+1];
     
         for (int i = 0; i < 21; i++)
             adder_stage3[i] <= adder_stage2[i*2] + adder_stage2[i*2+1];
@@ -118,17 +144,27 @@ module output_fc (
         adder_result <= adder_stage7[0] + adder_stage7[1];
     end
     
-    always_ff @(posedge i_clk)
-        if (layer_cycle_num > 8)
-            if (adder_result > internal_result_bus[15:0])
-                internal_result_bus <= { layer_cycle_num, adder_result};
-    
-    always_comb begin
-        o_result_valid <= output_valid;
-        o_result       <= internal_result_bus[19:16] - ADDER_TREE_DEPTH;
+    always_ff @(posedge i_clk) begin
+        if (i_rst) begin
+            internal_result_bus <= 0;
+            class_valid_cnt     <= 0;
+        end else begin
+            if (class_valid_sr[11]) begin
+                if (adder_result > internal_result_bus[15:0]) begin
+                    internal_result_bus <= { class_valid_cnt, adder_result};
+                end
+                class_valid_cnt <= class_valid_cnt + 1;
+                if (class_valid_cnt == (NUM_CLASSES-1)) begin
+                    class_valid_cnt     <= 0;
+                    internal_result_bus <= 0;
+                end
+            end
+        end
     end
     
-    always_comb
-        is_mixing <= is_processing;
+    always_ff @(posedge i_clk) begin
+        o_result_valid <= class_valid_cnt == (NUM_CLASSES-1) ? 1'b1 : 1'b0;
+        o_result       <= internal_result_bus[$clog2(NUM_CLASSES)+8-1:8];
+    end
 
 endmodule
